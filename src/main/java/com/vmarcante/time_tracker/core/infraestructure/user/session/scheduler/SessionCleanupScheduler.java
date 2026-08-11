@@ -5,6 +5,8 @@ import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -18,6 +20,7 @@ public class SessionCleanupScheduler {
     }
 
     @Scheduled(cron = "0 0 2 * * *")
+    @SchedulerLock(name = "SessionCleanupScheduler.cleanupExpiredSessions", lockAtMostFor = "PT30M", lockAtLeastFor = "PT1M")
     public void cleanupExpiredSessions() {
         log.info("[SessionCleanup] Starting cleanup of expired sessions");
         

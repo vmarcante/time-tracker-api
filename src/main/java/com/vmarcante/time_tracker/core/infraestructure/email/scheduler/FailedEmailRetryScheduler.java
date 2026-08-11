@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+
 import com.vmarcante.time_tracker.core.application.email.in.RetryFailedEmailUseCase;
 import com.vmarcante.time_tracker.core.domain.email.model.FailedEmail;
 import com.vmarcante.time_tracker.core.domain.email.repository.FailedEmailRepository;
@@ -36,6 +38,7 @@ public class FailedEmailRetryScheduler {
      */
     @PostConstruct
     @Scheduled(cron = "${email.retry.cron:0 0/30 * * * *}")
+    @SchedulerLock(name = "FailedEmailRetryScheduler.retryFailedEmails", lockAtMostFor = "PT10M", lockAtLeastFor = "PT1M")
     public void retryFailedEmails() {
         log.info("[Failed Email Retry] Starting scheduled retry job");
 

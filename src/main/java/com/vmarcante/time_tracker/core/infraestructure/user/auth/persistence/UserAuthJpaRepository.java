@@ -13,14 +13,14 @@ import java.util.UUID;
 public interface UserAuthJpaRepository
         extends BaseJpaRepository<UserAuthJpaEntity, UUID, Integer> {
 
-    Optional<UserAuthJpaEntity> findByUsername(String username);
+    Optional<UserAuthJpaEntity> findByUsernameHash(String usernameHash);
 
     Optional<UserAuthJpaEntity> findByAccessToken(String accessToken);
 
-    boolean existsByUsername(String username);
+    boolean existsByUsernameHash(String usernameHash);
 
     @Query(" SELECT userAuth FROM UserAuthJpaEntity userAuth " +
            " LEFT JOIN FETCH userAuth.person " +
-           " WHERE userAuth.username = :username")
-    Optional<UserAuthJpaEntity> findByUsernameWithPerson(@Param("username") String username);
+           " WHERE userAuth.usernameHash = :usernameHash")
+    Optional<UserAuthJpaEntity> findByUsernameHashWithPerson(@Param("usernameHash") String usernameHash);
 }

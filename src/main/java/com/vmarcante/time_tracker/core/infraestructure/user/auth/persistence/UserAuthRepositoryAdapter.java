@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.infraestructure.user.auth.persistence;
 
 import org.springframework.stereotype.Component;
 
+import com.vmarcante.time_tracker.base.infraestructure.persistence.converter.EncryptedFieldHashUtils;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.infraestructure.user.auth.mapper.UserAuthPersistenceMapper;
@@ -33,7 +34,8 @@ public class UserAuthRepositoryAdapter implements UserAuthRepository {
 
     @Override
     public Optional<UserAuth> findByUsername(String username) {
-        return jpaRepository.findByUsername(username)
+        String usernameHash = EncryptedFieldHashUtils.generateSearchHash(username);
+        return jpaRepository.findByUsernameHash(usernameHash)
                 .map(UserAuthPersistenceMapper::toDomain);
     }
 
@@ -45,12 +47,14 @@ public class UserAuthRepositoryAdapter implements UserAuthRepository {
 
     @Override
     public boolean existsByUsername(String username) {
-        return jpaRepository.existsByUsername(username);
+        String usernameHash = EncryptedFieldHashUtils.generateSearchHash(username);
+        return jpaRepository.existsByUsernameHash(usernameHash);
     }
 
     @Override
     public Optional<UserAuth> findByUsernameWithPerson(String username) {
-        return jpaRepository.findByUsernameWithPerson(username)
+        String usernameHash = EncryptedFieldHashUtils.generateSearchHash(username);
+        return jpaRepository.findByUsernameHashWithPerson(usernameHash)
                 .map(UserAuthPersistenceMapper::toDomain);
     }
 }

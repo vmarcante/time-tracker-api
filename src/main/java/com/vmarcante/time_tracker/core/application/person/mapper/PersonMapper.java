@@ -11,6 +11,7 @@ public class PersonMapper {
         person.setEmail(input.email());
         person.setPhone(input.phone());
         person.setLocale(input.locale() != null ? input.locale() : "pt");
+        person.setAge(input.age());
         return person;
     }
 }

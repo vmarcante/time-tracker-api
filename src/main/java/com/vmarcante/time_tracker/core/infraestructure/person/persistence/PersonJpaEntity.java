@@ -4,9 +4,14 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.vmarcante.time_tracker.base.infraestructure.persistence.BaseAuthEntityInterface;
+import com.vmarcante.time_tracker.base.infraestructure.persistence.annotation.EncryptedSearchable;
+import com.vmarcante.time_tracker.base.infraestructure.persistence.converter.EncryptedStringConverter;
+import com.vmarcante.time_tracker.base.infraestructure.persistence.listener.EncryptedSearchableHashListener;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,10 +22,13 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
+@EntityListeners(EncryptedSearchableHashListener.class)
 @Table(name = "TB0001_PERSON", schema = "dbo", indexes = {
         @Index(name = "IX0001_ID", columnList = "C0001_ID"),
         @Index(name = "IX0001_SQ_ID", columnList = "C0001_SQ_ID", unique = true),
-        @Index(name = "IX0001_EMAIL_LOWER", columnList = "C0001_EMAIL", unique = true),
+        @Index(name = "IX0001_EMAIL_HASH", columnList = "C0001_EMAIL_HASH", unique = true),
+        @Index(name = "IX0001_NAME_HASH", columnList = "C0001_NAME_HASH"),
+        @Index(name = "IX0001_PHONE_HASH", columnList = "C0001_PHONE_HASH"),
         @Index(name = "IX0001_CREATED_AT", columnList = "C0001_CREATED_AT")
 })
 @Data
@@ -51,17 +59,35 @@ public class PersonJpaEntity implements BaseAuthEntityInterface<UUID, Integer> {
     private UUID updatedBy;
 
     // Entity Fields
-    @Column(name = "C0001_NAME", nullable = false, length = 100)
+    @Column(name = "C0001_NAME", nullable = false, columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String name;
 
-    @Column(name = "C0001_EMAIL", nullable = false, length = 255, unique = true)
+    @Column(name = "C0001_NAME_HASH", nullable = false, length = 64)
+    @EncryptedSearchable(sourceField = "name")
+    private String nameHash;
+
+    @Column(name = "C0001_EMAIL", nullable = false, columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String email;
 
-    @Column(name = "C0001_PHONE", length = 20)
+    @Column(name = "C0001_EMAIL_HASH", nullable = false, length = 64, unique = true)
+    @EncryptedSearchable(sourceField = "email")
+    private String emailHash;
+
+    @Column(name = "C0001_PHONE", columnDefinition = "TEXT")
+    @Convert(converter = EncryptedStringConverter.class)
     private String phone;
+
+    @Column(name = "C0001_PHONE_HASH", nullable = true, length = 64)
+    @EncryptedSearchable(sourceField = "phone")
+    private String phoneHash;
 
     @Column(name = "C0001_LOCALE", length = 5)
     private String locale;
+
+    @Column(name = "C0001_AGE")
+    private Integer age;
 
     @PrePersist
     public void onCreate() {

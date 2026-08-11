@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Component;
 
+import com.vmarcante.time_tracker.base.infraestructure.persistence.converter.EncryptedFieldHashUtils;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.infraestructure.person.mapper.PersonPersistenceMapper;
@@ -37,7 +38,8 @@ public class PersonRepositoryAdapter implements PersonRepository {
 
     @Override
     public boolean existsByEmail(String email) {
-        return jpaRepository.existsByEmailIgnoreCase(email);
+        String emailHash = EncryptedFieldHashUtils.generateSearchHash(email);
+        return jpaRepository.existsByEmailHash(emailHash);
     }
 
     @Override

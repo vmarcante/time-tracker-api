@@ -7,9 +7,14 @@ public record CreatePersonDTO(
         String name,
         Email email,
         Phone phone,
-        String locale) {
+        String locale,
+        Integer age) {
+
+    public CreatePersonDTO(String name, Email email, Phone phone, String locale) {
+        this(name, email, phone, locale, null);
+    }
 
     public CreatePersonDTO(String name, Email email, Phone phone) {
-        this(name, email, phone, "pt");
+        this(name, email, phone, "pt", null);
     }
 }

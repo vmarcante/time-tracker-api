@@ -41,6 +41,9 @@ public class SecurityInterceptor implements HandlerInterceptor {
     @Value("${jwt.audience:time-tracker-client}")
     private String expectedAudience;
 
+    @Value("${health.app-key:}")
+    private String expectedAppKey;
+
     public SecurityInterceptor(
             JwtPort jwtPort,
             SecurityContextPort securityContextPort,
@@ -71,6 +74,12 @@ public class SecurityInterceptor implements HandlerInterceptor {
 
         log.debug("[SecurityInterceptor] Endpoint {} requires authentication", 
             request.getRequestURI(), requestId);
+
+        if (authSecure.appKeyAllowed() && isValidAppKey(request)) {
+            log.debug("[SecurityInterceptor] Endpoint {} authenticated via AppKey", 
+                request.getRequestURI(), requestId);
+            return true;
+        }
 
         String token = HttpRequestUtils.extractToken(request);
 
@@ -172,5 +181,13 @@ public class SecurityInterceptor implements HandlerInterceptor {
             Exception ex) throws Exception {
         securityContextPort.clear();
         LocaleContextHolder.resetLocaleContext();
+    }
+
+    private boolean isValidAppKey(HttpServletRequest request) {
+        if (expectedAppKey == null || expectedAppKey.isBlank()) {
+            return false;
+        }
+        String appKey = request.getHeader("X-App-Key");
+        return appKey != null && appKey.equals(expectedAppKey);
     }
 }

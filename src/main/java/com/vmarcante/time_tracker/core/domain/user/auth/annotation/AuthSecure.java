@@ -15,4 +15,6 @@ public @interface AuthSecure {
 
     UserRoleType[] acceptedRoles() default {};
 
+    boolean appKeyAllowed() default false;
+
 }

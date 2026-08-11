@@ -31,3 +31,14 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Local environment files ###
+docker/.env.local
+docker/.env.dev
+docker/.env.prod
+
+### Kubernetes secrets / local config ###
+k8s/secret.yaml
+k8s/configmap.yaml
+
+*.puml

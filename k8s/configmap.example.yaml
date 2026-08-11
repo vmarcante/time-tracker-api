@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: time-tracker-api-config
+  namespace: time-tracker
+data:
+  SPRING_PROFILES_ACTIVE: "prod"
+  REDIS_ENABLED: "true"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  REDIS_DATABASE: "0"
+  DB_URL: "jdbc:postgresql://set_me:5432/time-tracker-digital"
+  DB_USERNAME: "set_me"
+  SMTP_HOST: "smtp.resend.com"
+  SMTP_PORT: "465"
+  SMTP_USERNAME: "resend"
+  EMAIL_FROM_ADDRESS: "set_me"
+  EMAIL_RETRY_CRON: "0 0/30 * * * *"
+  EMAIL_RETRY_MAX_ATTEMPTS: "5"
+  COOKIE_SECURE: "true"

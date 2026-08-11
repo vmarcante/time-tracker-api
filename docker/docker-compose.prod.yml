@@ -1,0 +1,18 @@
+name: time-tracker-api-prod
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: time-tracker-api-prod
+    ports:
+      - "8080:8080"
+    env_file: .env.prod
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xms1g -Xmx2g -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0
+    deploy:
+      resources:
+        limits:
+          memory: 2g

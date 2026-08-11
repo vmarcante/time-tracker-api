@@ -21,6 +21,7 @@ public class RequestFilter extends OncePerRequestFilter {
 
     private static final String X_REQUEST_ID = "X-Request-ID";
     private static final String MDC_REQUEST_ID = "requestId";
+    private static final String MDC_POD_NAME = "podName";
     private static final String X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";
     private static final String X_FRAME_OPTIONS = "X-Frame-Options";
 
@@ -41,6 +42,7 @@ public class RequestFilter extends OncePerRequestFilter {
 
         // Add to MDC for logging
         MDC.put(MDC_REQUEST_ID, requestId);
+        MDC.put(MDC_POD_NAME, System.getenv().getOrDefault("HOSTNAME", "unknown"));
 
         try {
             // Wrap request to include X-Request-ID header
@@ -48,6 +50,7 @@ public class RequestFilter extends OncePerRequestFilter {
             filterChain.doFilter(wrappedRequest, response);
         } finally {
             MDC.remove(MDC_REQUEST_ID);
+            MDC.remove(MDC_POD_NAME);
         }
     }
 

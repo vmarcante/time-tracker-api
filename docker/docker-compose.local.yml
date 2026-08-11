@@ -1,0 +1,18 @@
+name: time-tracker-api-local
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: time-tracker-api-local
+    ports:
+      - "8080:8080"
+    env_file: .env.local
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - JAVA_OPTS=-Xms256m -Xmx512m
+    deploy:
+      resources:
+        limits:
+          memory: 1g

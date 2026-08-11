@@ -17,4 +17,5 @@ public class Person extends BaseAuthDomainModel<UUID, Integer> {
     private Email email;
     private Phone phone;
     private String locale;
+    private Integer age;
 }

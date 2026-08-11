@@ -13,6 +13,7 @@ public class PersonPersistenceMapper {
         entity.setName(person.getName());
         entity.setEmail(person.getEmail().address());
         entity.setPhone(person.getPhone() != null ? person.getPhone().number() : null);
+        entity.setAge(person.getAge());
         entity.setCreatedAt(person.getCreatedAt());
         entity.setUpdatedAt(person.getUpdatedAt());
         entity.setSeqId(person.getSeqId());
@@ -28,6 +29,7 @@ public class PersonPersistenceMapper {
         person.setName(entity.getName());
         person.setEmail(new Email(entity.getEmail()));
         person.setPhone(entity.getPhone() != null ? new Phone(entity.getPhone()) : null);
+        person.setAge(entity.getAge());
         person.setCreatedAt(entity.getCreatedAt());
         person.setUpdatedAt(entity.getUpdatedAt());
         person.setSeqId(entity.getSeqId());
