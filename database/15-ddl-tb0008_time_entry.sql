@@ -1,4 +1,4 @@
--- Criar Sequence
+﻿-- Criar Sequence
 CREATE SEQUENCE seq_tb0008_time_entry START 1;
 
 -- Criar Tabela (FLEXÍVEL - permite uso pessoal e corporativo)
@@ -88,4 +88,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TB0008_TIME_ENTRY TO "TIME-TRACKER-API";
 GRANT USAGE, SELECT ON SEQUENCE seq_tb0008_time_entry TO "TIME-TRACKER-API";
 
 -- Registrar a execução deste script
-INSERT INTO TB0000_SQL_HISTORY (C0000_SCRIPT_NAME) VALUES ('12-ddl-tb0008_time_entry.sql');
+INSERT INTO TB0000_SQL_HISTORY (C0000_SCRIPT_NAME) VALUES ('15-ddl-tb0008_time_entry.sql');

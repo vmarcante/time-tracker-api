@@ -1,4 +1,4 @@
--- Criar Sequence
+﻿-- Criar Sequence
 CREATE SEQUENCE seq_tb0005_company START 1;
 
 -- Criar Tabela
@@ -45,4 +45,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TB0005_COMPANY TO "TIME-TRACKER-API";
 GRANT USAGE, SELECT ON SEQUENCE seq_tb0005_company TO "TIME-TRACKER-API";
 
 -- Registrar a execução deste script
-INSERT INTO TB0000_SQL_HISTORY (C0000_SCRIPT_NAME) VALUES ('09-ddl-tb0005_company.sql');
+INSERT INTO TB0000_SQL_HISTORY (C0000_SCRIPT_NAME) VALUES ('12-ddl-tb0005_company.sql');

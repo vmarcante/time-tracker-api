@@ -1,4 +1,4 @@
--- Criar Sequence
+﻿-- Criar Sequence
 CREATE SEQUENCE seq_tb0007_project START 1;
 
 -- Criar Tabela (FLEXÍVEL - projeto pode ser vinculado à empresa OU ao time)
@@ -64,4 +64,4 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TB0007_PROJECT TO "TIME-TRACKER-API";
 GRANT USAGE, SELECT ON SEQUENCE seq_tb0007_project TO "TIME-TRACKER-API";
 
 -- Registrar a execução deste script
-INSERT INTO TB0000_SQL_HISTORY (C0000_SCRIPT_NAME) VALUES ('11-ddl-tb0007_project.sql');
+INSERT INTO TB0000_SQL_HISTORY (C0000_SCRIPT_NAME) VALUES ('14-ddl-tb0007_project.sql');
