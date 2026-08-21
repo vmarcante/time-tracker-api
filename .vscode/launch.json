@@ -1,0 +1,17 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run API - Local",
+      "request": "launch",
+      "mainClass": "com.vmarcante.time_tracker.TimeTrackerApiApplication",
+      "projectName": "time-tracker",
+      "envFile": "${workspaceFolder}/docker/.env.local",
+      "args": ""
+    }
+  ]
+}
