@@ -64,6 +64,7 @@ public class UserRegistrationOrchestrator {
         // Validates and create person
         CreatePersonDTO personInput = new CreatePersonDTO(
                 input.name(),
+                input.age(),
                 input.email(),
                 input.phone(),
                 input.locale());

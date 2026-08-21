@@ -77,6 +77,7 @@ public class UserRegisterController extends BaseResponseController {
         CreateUserInputDTO inputWithLocale = new CreateUserInputDTO(
                 input.username(),
                 input.name(),
+                input.age(),
                 input.email(),
                 input.phone(),
                 input.password(),

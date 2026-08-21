@@ -11,6 +11,7 @@ public class CreatePersonInputValidationPolicy {
 
     public void validate(CreatePersonDTO input) throws ApplicationException {
         validateName(input.name());
+        validateAge(input.age());
     }
 
     private void validateName(String name) throws ApplicationException {
@@ -57,6 +58,20 @@ public class CreatePersonInputValidationPolicy {
 
         if (trimmedName.startsWith(" ") || trimmedName.endsWith(" ")) {
             throw new ApplicationException("user.name.invalid.spacing", null);
+        }
+    }
+
+    private void validateAge(Integer age) throws ApplicationException {
+        if (age == null) {
+            throw new ApplicationException("user.age.required", null);
+        }
+
+        if (age < 18) {
+            throw new ApplicationException("user.age.min", null);
+        }
+
+        if (age > 120) {
+            throw new ApplicationException("user.age.max", null);
         }
     }
 }

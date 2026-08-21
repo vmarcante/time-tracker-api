@@ -1,11 +1,16 @@
 package com.vmarcante.time_tracker.core.shared.vo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.vmarcante.time_tracker.core.shared.utils.StringValidationUtils;
 import com.vmarcante.time_tracker.core.shared.vo.exception.VoException;
 
-public record Phone(String number) {
+public class Phone {
 
-    public Phone {
+    private final String number;
+
+    @JsonCreator
+    public Phone(String number) {
         if (StringValidationUtils.containsContent(number)) {
             String cleanNumber = PhoneValidator.clean(number);
 
@@ -15,6 +20,13 @@ public record Phone(String number) {
 
             number = cleanNumber;
         }
+
+        this.number = number;
+    }
+
+    @JsonValue
+    public String number() {
+        return number;
     }
 
     public String formatted() {

@@ -5,16 +5,12 @@ import com.vmarcante.time_tracker.core.shared.vo.Phone;
 
 public record CreatePersonDTO(
         String name,
+        Integer age,
         Email email,
         Phone phone,
-        String locale,
-        Integer age) {
+        String locale) {
 
-    public CreatePersonDTO(String name, Email email, Phone phone, String locale) {
-        this(name, email, phone, locale, null);
-    }
-
-    public CreatePersonDTO(String name, Email email, Phone phone) {
-        this(name, email, phone, "pt", null);
+    public CreatePersonDTO(String name, Integer age, Email email, Phone phone) {
+        this(name, age, email, phone, "pt");
     }
 }

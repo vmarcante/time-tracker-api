@@ -86,6 +86,6 @@ public class UserAuthCreatedEventListener {
     }
 
     private String buildConfirmationLink(String token) {
-        return frontendUrl + "/user-confirmation/" + token;
+        return frontendUrl + "/confirm-registration/" + token;
     }
 }
