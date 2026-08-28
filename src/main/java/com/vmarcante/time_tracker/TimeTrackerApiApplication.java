@@ -13,5 +13,6 @@ public class TimeTrackerApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TimeTrackerApiApplication.class, args);
 	}
+	
 
 }
