@@ -11,6 +11,7 @@ import com.vmarcante.time_tracker.core.application.team.in.DeactivateTeamUseCase
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -23,14 +24,17 @@ public class DeactivateTeamUseCaseImpl implements DeactivateTeamUseCase {
 
     private final TeamRepository teamRepository;
     private final CompanyRepository companyRepository;
+    private final ProjectRepository projectRepository;
     private final SecurityContextPort securityContext;
 
     public DeactivateTeamUseCaseImpl(
             TeamRepository teamRepository,
             CompanyRepository companyRepository,
+            ProjectRepository projectRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
         this.companyRepository = companyRepository;
+        this.projectRepository = projectRepository;
         this.securityContext = securityContext;
     }
 
@@ -61,7 +65,10 @@ public class DeactivateTeamUseCaseImpl implements DeactivateTeamUseCase {
         teamRepository.save(team);
 
         teamRepository.deactivateMembershipsByTeamId(teamId, actorId);
+        projectRepository.deactivateAssignmentsByTeamId(teamId, actorId);
+        projectRepository.deactivateTeamLinksByTeamId(teamId, actorId);
 
-        log.info("[Deactivate Team] Team {} deactivated by {}", teamId, actorId);
+        log.info("[Deactivate Team] Team {} deactivated by {} "
+                + "(memberships, project links and assignments deactivated)", teamId, actorId);
     }
 }

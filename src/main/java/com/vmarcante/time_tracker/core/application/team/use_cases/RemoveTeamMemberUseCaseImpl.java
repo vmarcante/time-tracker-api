@@ -11,6 +11,7 @@ import com.vmarcante.time_tracker.core.application.team.in.RemoveTeamMemberUseCa
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -23,14 +24,17 @@ public class RemoveTeamMemberUseCaseImpl implements RemoveTeamMemberUseCase {
 
     private final TeamRepository teamRepository;
     private final CompanyRepository companyRepository;
+    private final ProjectRepository projectRepository;
     private final SecurityContextPort securityContext;
 
     public RemoveTeamMemberUseCaseImpl(
             TeamRepository teamRepository,
             CompanyRepository companyRepository,
+            ProjectRepository projectRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
         this.companyRepository = companyRepository;
+        this.projectRepository = projectRepository;
         this.securityContext = securityContext;
     }
 
@@ -47,10 +51,9 @@ public class RemoveTeamMemberUseCaseImpl implements RemoveTeamMemberUseCase {
         CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
-        teamRepository.findById(teamId)
-                .filter(t -> t.getCompanyId().equals(companyId))
-                .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+            throw new ApplicationException("team.not.found", null);
+        }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
                 || teamRepository.isTeamLead(actorId, teamId);
@@ -68,7 +71,9 @@ public class RemoveTeamMemberUseCaseImpl implements RemoveTeamMemberUseCase {
         target.setUpdatedBy(actorId);
         teamRepository.saveMembership(target);
 
-        log.info("[Remove Team Member] Membership {} removed from team {} by {}",
-                membershipId, teamId, actorId);
+        projectRepository.deactivateAssignmentsByUserIdAndTeamId(target.getUserId(), teamId, actorId);
+
+        log.info("[Remove Team Member] Membership {} removed from team {} by {} "
+                + "(project assignments deactivated)", membershipId, teamId, actorId);
     }
 }

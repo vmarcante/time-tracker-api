@@ -46,10 +46,9 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
             throw new ApplicationException("company.access.denied", null);
         }
 
-        teamRepository.findById(teamId)
-                .filter(t -> t.getCompanyId().equals(companyId))
-                .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+            throw new ApplicationException("team.not.found", null);
+        }
 
         List<TeamMembership> members = teamRepository.findApprovedMembershipsByTeamId(teamId);
 

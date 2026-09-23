@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAssignmentOutputDTO;
+import com.vmarcante.time_tracker.core.application.project.in.GetMemberRemovalImpactUseCase;
 import com.vmarcante.time_tracker.core.application.team.dto.input.TeamMemberEmailInputDTO;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.in.AddTeamMemberUseCase;
@@ -38,18 +40,21 @@ public class TeamMembershipController extends BaseResponseController {
     private final ListTeamMembersUseCase listTeamMembersUseCase;
     private final AssignTeamLeadUseCase assignTeamLeadUseCase;
     private final LeaveTeamUseCase leaveTeamUseCase;
+    private final GetMemberRemovalImpactUseCase getMemberRemovalImpactUseCase;
 
     public TeamMembershipController(
             AddTeamMemberUseCase addTeamMemberUseCase,
             RemoveTeamMemberUseCase removeTeamMemberUseCase,
             ListTeamMembersUseCase listTeamMembersUseCase,
             AssignTeamLeadUseCase assignTeamLeadUseCase,
-            LeaveTeamUseCase leaveTeamUseCase) {
+            LeaveTeamUseCase leaveTeamUseCase,
+            GetMemberRemovalImpactUseCase getMemberRemovalImpactUseCase) {
         this.addTeamMemberUseCase = addTeamMemberUseCase;
         this.removeTeamMemberUseCase = removeTeamMemberUseCase;
         this.listTeamMembersUseCase = listTeamMembersUseCase;
         this.assignTeamLeadUseCase = assignTeamLeadUseCase;
         this.leaveTeamUseCase = leaveTeamUseCase;
+        this.getMemberRemovalImpactUseCase = getMemberRemovalImpactUseCase;
     }
 
     @AuthSecure
@@ -69,6 +74,16 @@ public class TeamMembershipController extends BaseResponseController {
             @PathVariable UUID companyId,
             @PathVariable UUID teamId) throws ApplicationException {
         return ok(listTeamMembersUseCase.execute(companyId, teamId));
+    }
+
+    @AuthSecure
+    @GetMapping("/{teamId}/members/{membershipId}/removal-impact")
+    @Operation(summary = "Member removal impact", description = "Lists the project assignments that would be deactivated if the member is removed from the team")
+    public ResponseEntity<ApiResponseDTO<List<ProjectAssignmentOutputDTO>>> removalImpact(
+            @PathVariable UUID companyId,
+            @PathVariable UUID teamId,
+            @PathVariable UUID membershipId) throws ApplicationException {
+        return ok(getMemberRemovalImpactUseCase.execute(companyId, teamId, membershipId));
     }
 
     @AuthSecure

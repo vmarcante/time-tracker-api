@@ -60,10 +60,9 @@ public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
             throw new ApplicationException("company.permission.denied", null);
         }
 
-        teamRepository.findById(teamId)
-                .filter(t -> t.getCompanyId().equals(companyId))
-                .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+            throw new ApplicationException("team.not.found", null);
+        }
 
         Person target = personRepository.findByEmail(input.email().address())
                 .orElseThrow(() -> new ApplicationException("user.not.found", null));

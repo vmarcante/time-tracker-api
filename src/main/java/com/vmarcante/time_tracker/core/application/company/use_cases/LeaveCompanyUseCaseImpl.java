@@ -11,6 +11,8 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +22,18 @@ import lombok.extern.slf4j.Slf4j;
 public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
 
     private final CompanyRepository companyRepository;
+    private final TeamRepository teamRepository;
+    private final ProjectRepository projectRepository;
     private final SecurityContextPort securityContext;
 
     public LeaveCompanyUseCaseImpl(
             CompanyRepository companyRepository,
+            TeamRepository teamRepository,
+            ProjectRepository projectRepository,
             SecurityContextPort securityContext) {
         this.companyRepository = companyRepository;
+        this.teamRepository = teamRepository;
+        this.projectRepository = projectRepository;
         this.securityContext = securityContext;
     }
 
@@ -50,6 +58,10 @@ public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
         membership.setUpdatedBy(userId);
         companyRepository.saveMembership(membership);
 
-        log.info("[Leave Company] User {} left company {}", userId, companyId);
+        teamRepository.deactivateMembershipsByUserIdAndCompanyId(userId, companyId, userId);
+        projectRepository.deactivateAssignmentsByUserIdAndCompanyId(userId, companyId, userId);
+
+        log.info("[Leave Company] User {} left company {} "
+                + "(team memberships and project assignments deactivated)", userId, companyId);
     }
 }

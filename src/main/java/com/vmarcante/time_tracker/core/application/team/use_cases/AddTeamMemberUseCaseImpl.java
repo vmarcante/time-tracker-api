@@ -56,10 +56,9 @@ public class AddTeamMemberUseCaseImpl implements AddTeamMemberUseCase {
         CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
-        teamRepository.findById(teamId)
-                .filter(t -> t.getCompanyId().equals(companyId))
-                .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+            throw new ApplicationException("team.not.found", null);
+        }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
                 || teamRepository.isTeamLead(actorId, teamId);

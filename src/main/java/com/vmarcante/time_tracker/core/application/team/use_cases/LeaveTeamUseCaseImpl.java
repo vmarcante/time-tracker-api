@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.in.LeaveTeamUseCase;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -21,14 +22,17 @@ public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
 
     private final TeamRepository teamRepository;
     private final CompanyRepository companyRepository;
+    private final ProjectRepository projectRepository;
     private final SecurityContextPort securityContext;
 
     public LeaveTeamUseCaseImpl(
             TeamRepository teamRepository,
             CompanyRepository companyRepository,
+            ProjectRepository projectRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
         this.companyRepository = companyRepository;
+        this.projectRepository = projectRepository;
         this.securityContext = securityContext;
     }
 
@@ -46,10 +50,9 @@ public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
             throw new ApplicationException("company.access.denied", null);
         }
 
-        teamRepository.findById(teamId)
-                .filter(t -> t.getCompanyId().equals(companyId))
-                .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+            throw new ApplicationException("team.not.found", null);
+        }
 
         TeamMembership membership = teamRepository.findMembership(userId, teamId)
                 .orElseThrow(() -> new ApplicationException("team.membership.not.found", null));
@@ -58,6 +61,9 @@ public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
         membership.setUpdatedBy(userId);
         teamRepository.saveMembership(membership);
 
-        log.info("[Leave Team] User {} left team {}", userId, teamId);
+        projectRepository.deactivateAssignmentsByUserIdAndTeamId(userId, teamId, userId);
+
+        log.info("[Leave Team] User {} left team {} (project assignments deactivated)",
+                userId, teamId);
     }
 }

@@ -59,4 +59,42 @@ public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, 
             WHERE ut.teamId = :teamId AND ut.active = true
             """)
     void deactivateByTeamId(@Param("teamId") UUID teamId, @Param("updatedBy") UUID updatedBy);
+
+    @Query("""
+            SELECT ut FROM UserTeamJpaEntity ut
+            JOIN TeamJpaEntity t ON t.id = ut.teamId
+            WHERE ut.userId = :userId AND t.companyId = :companyId AND ut.active = true
+            """)
+    List<UserTeamJpaEntity> findActiveByUserIdAndCompanyId(
+            @Param("userId") UUID userId, @Param("companyId") UUID companyId);
+
+    @Modifying
+    @Query("""
+            UPDATE UserTeamJpaEntity ut
+            SET ut.active = false, ut.updatedAt = CURRENT_TIMESTAMP, ut.updatedBy = :updatedBy
+            WHERE ut.userId = :userId AND ut.active = true
+                AND ut.teamId IN (
+                    SELECT t.id FROM TeamJpaEntity t WHERE t.companyId = :companyId
+                )
+            """)
+    void deactivateByUserIdAndCompanyId(
+            @Param("userId") UUID userId,
+            @Param("companyId") UUID companyId,
+            @Param("updatedBy") UUID updatedBy);
+
+    @Modifying
+    @Query("""
+            UPDATE UserTeamJpaEntity ut
+            SET ut.role = :newRole, ut.updatedAt = CURRENT_TIMESTAMP, ut.updatedBy = :updatedBy
+            WHERE ut.userId = :userId AND ut.role = :leadRole AND ut.active = true
+                AND ut.teamId IN (
+                    SELECT t.id FROM TeamJpaEntity t WHERE t.companyId = :companyId
+                )
+            """)
+    void demoteLeadsByUserIdAndCompanyId(
+            @Param("userId") UUID userId,
+            @Param("companyId") UUID companyId,
+            @Param("leadRole") TeamRole leadRole,
+            @Param("newRole") TeamRole newRole,
+            @Param("updatedBy") UUID updatedBy);
 }

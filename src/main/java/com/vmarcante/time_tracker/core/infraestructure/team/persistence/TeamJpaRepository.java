@@ -9,5 +9,7 @@ public interface TeamJpaRepository extends JpaRepository<TeamJpaEntity, UUID> {
 
     List<TeamJpaEntity> findByCompanyIdAndActiveTrue(UUID companyId);
 
+    boolean existsByIdAndCompanyIdAndActiveTrue(UUID id, UUID companyId);
+
     boolean existsByCompanyIdAndNameIgnoreCaseAndActiveTrue(UUID companyId, String name);
 }

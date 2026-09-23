@@ -10,6 +10,8 @@ import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCas
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +21,18 @@ import lombok.extern.slf4j.Slf4j;
 public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
 
     private final CompanyRepository companyRepository;
+    private final TeamRepository teamRepository;
+    private final ProjectRepository projectRepository;
     private final SecurityContextPort securityContext;
 
     public RemoveMemberUseCaseImpl(
             CompanyRepository companyRepository,
+            TeamRepository teamRepository,
+            ProjectRepository projectRepository,
             SecurityContextPort securityContext) {
         this.companyRepository = companyRepository;
+        this.teamRepository = teamRepository;
+        this.projectRepository = projectRepository;
         this.securityContext = securityContext;
     }
 
@@ -58,6 +66,10 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
         target.setUpdatedBy(actorId);
         companyRepository.saveMembership(target);
 
-        log.info("[Remove Member] Membership {} removed by {}", membershipId, actorId);
+        teamRepository.deactivateMembershipsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
+        projectRepository.deactivateAssignmentsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
+
+        log.info("[Remove Member] Membership {} removed by {} "
+                + "(team memberships and project assignments deactivated)", membershipId, actorId);
     }
 }

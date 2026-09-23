@@ -19,7 +19,11 @@ public interface TeamRepository {
 
     List<Team> findActiveByCompanyId(UUID companyId);
 
+    List<Team> findActiveByIds(Collection<UUID> teamIds);
+
     List<Team> findActiveTeamsByUserId(UUID userId, UUID companyId);
+
+    boolean existsActiveByIdAndCompanyId(UUID teamId, UUID companyId);
 
     boolean existsActiveByCompanyIdAndName(UUID companyId, String name);
 
@@ -37,9 +41,15 @@ public interface TeamRepository {
 
     List<TeamMembership> findApprovedMembershipsByTeamId(UUID teamId);
 
+    List<TeamMembership> findActiveMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId);
+
     Map<UUID, Long> countApprovedMembersByTeamIds(Collection<UUID> teamIds);
 
     Map<UUID, UUID> findLeadUserIdsByTeamIds(Collection<UUID> teamIds);
 
     void deactivateMembershipsByTeamId(UUID teamId, UUID updatedBy);
+
+    void deactivateMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId, UUID updatedBy);
+
+    void demoteLeadsByUserIdAndCompanyId(UUID userId, UUID companyId, UUID updatedBy);
 }

@@ -54,12 +54,25 @@ public class TeamRepositoryAdapter implements TeamRepository {
     }
 
     @Override
+    public List<Team> findActiveByIds(Collection<UUID> teamIds) {
+        return teamJpaRepository.findAllById(teamIds).stream()
+                .filter(t -> Boolean.TRUE.equals(t.getActive()))
+                .map(TeamPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Team> findActiveTeamsByUserId(UUID userId, UUID companyId) {
         List<UUID> teamIds = userTeamJpaRepository
                 .findApprovedTeamIdsByUserIdAndCompanyId(userId, companyId);
         return teamJpaRepository.findAllById(teamIds).stream()
                 .map(TeamPersistenceMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public boolean existsActiveByIdAndCompanyId(UUID teamId, UUID companyId) {
+        return teamJpaRepository.existsByIdAndCompanyIdAndActiveTrue(teamId, companyId);
     }
 
     @Override
@@ -130,7 +143,25 @@ public class TeamRepositoryAdapter implements TeamRepository {
     }
 
     @Override
+    public List<TeamMembership> findActiveMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId) {
+        return userTeamJpaRepository.findActiveByUserIdAndCompanyId(userId, companyId).stream()
+                .map(TeamPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public void deactivateMembershipsByTeamId(UUID teamId, UUID updatedBy) {
         userTeamJpaRepository.deactivateByTeamId(teamId, updatedBy);
+    }
+
+    @Override
+    public void deactivateMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId, UUID updatedBy) {
+        userTeamJpaRepository.deactivateByUserIdAndCompanyId(userId, companyId, updatedBy);
+    }
+
+    @Override
+    public void demoteLeadsByUserIdAndCompanyId(UUID userId, UUID companyId, UUID updatedBy) {
+        userTeamJpaRepository.demoteLeadsByUserIdAndCompanyId(
+                userId, companyId, TeamRole.LEAD, TeamRole.MEMBER, updatedBy);
     }
 }
