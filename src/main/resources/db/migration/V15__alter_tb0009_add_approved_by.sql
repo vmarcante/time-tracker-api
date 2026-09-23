@@ -1,0 +1,11 @@
+-- Adicionar quem aprovou o vínculo em TB0009_USER_COMPANY
+
+ALTER TABLE TB0009_USER_COMPANY
+    ADD COLUMN C0009_APPROVED_BY UUID;
+
+ALTER TABLE TB0009_USER_COMPANY
+    ADD CONSTRAINT fk_user_company_approved_by
+    FOREIGN KEY (C0009_APPROVED_BY)
+    REFERENCES TB0002_USER_AUTH(C0002_USER_ID);
+
+COMMENT ON COLUMN TB0009_USER_COMPANY.C0009_APPROVED_BY IS 'ID do usuário que aprovou o vínculo (o próprio usuário no fluxo INVITE, o aprovador no fluxo REQUEST)';

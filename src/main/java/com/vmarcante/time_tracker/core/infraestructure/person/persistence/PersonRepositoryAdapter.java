@@ -1,7 +1,10 @@
 package com.vmarcante.time_tracker.core.infraestructure.person.persistence;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -43,8 +46,28 @@ public class PersonRepositoryAdapter implements PersonRepository {
     }
 
     @Override
+    public Optional<Person> findByEmail(String email) {
+        String emailHash = EncryptedFieldHashUtils.generateSearchHash(email);
+        return jpaRepository.findByEmailHash(emailHash)
+                .map(PersonPersistenceMapper::toDomain);
+    }
+
+    @Override
     public Optional<Person> findById(UUID id) {
         return jpaRepository.findById(id)
                 .map(PersonPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public Optional<String> findNameById(UUID id) {
+        return jpaRepository.findNameById(id);
+    }
+
+    @Override
+    public Map<UUID, String> findNamesByIds(Collection<UUID> ids) {
+        return jpaRepository.findIdAndNameByIds(ids).stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> (String) row[1]));
     }
 }

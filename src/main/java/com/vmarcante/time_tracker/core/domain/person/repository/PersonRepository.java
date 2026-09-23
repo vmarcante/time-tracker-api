@@ -1,5 +1,7 @@
 package com.vmarcante.time_tracker.core.domain.person.repository;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -13,5 +15,11 @@ public interface PersonRepository {
 
     boolean existsByEmail(String email);
 
+    Optional<Person> findByEmail(String email);
+
     Optional<Person> findById(UUID id);
+
+    Optional<String> findNameById(UUID id);
+
+    Map<UUID, String> findNamesByIds(Collection<UUID> ids);
 }
