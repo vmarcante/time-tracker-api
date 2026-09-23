@@ -14,7 +14,9 @@ import lombok.EqualsAndHashCode;
 public class Project extends BaseActiveDomainModel<UUID, Integer> {
 
     private UUID companyId;
+    private UUID userId;
     private String name;
+    private String clientName;
     private String description;
     private ProjectStatus status;
     private LocalDate startDate;

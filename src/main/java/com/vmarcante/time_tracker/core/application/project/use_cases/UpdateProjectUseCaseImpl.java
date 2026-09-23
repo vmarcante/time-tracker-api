@@ -75,6 +75,11 @@ public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
             project.setName(newName);
         }
 
+        if (input.clientName() != null) {
+            validationPolicy.validateClientName(input.clientName());
+            project.setClientName(input.clientName().trim());
+        }
+
         if (input.description() != null) {
             project.setDescription(input.description().isBlank() ? null : input.description());
         }

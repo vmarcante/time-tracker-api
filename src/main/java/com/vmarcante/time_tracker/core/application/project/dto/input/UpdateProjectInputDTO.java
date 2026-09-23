@@ -4,6 +4,7 @@ import java.time.LocalDate;
 
 public record UpdateProjectInputDTO(
         String name,
+        String clientName,
         String description,
         LocalDate startDate,
         LocalDate endDate) {

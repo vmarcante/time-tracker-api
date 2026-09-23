@@ -18,6 +18,8 @@ import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,14 +29,17 @@ public class CreateCompanyUseCaseImpl implements CreateCompanyUseCase {
 
     private final CompanyRepository companyRepository;
     private final CreateCompanyValidationPolicy validationPolicy;
+    private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public CreateCompanyUseCaseImpl(
             CompanyRepository companyRepository,
             CreateCompanyValidationPolicy validationPolicy,
+            UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
         this.companyRepository = companyRepository;
         this.validationPolicy = validationPolicy;
+        this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
     }
 
@@ -50,14 +55,14 @@ public class CreateCompanyUseCaseImpl implements CreateCompanyUseCase {
 
         validationPolicy.validate(input);
 
-        if (companyRepository.existsByDocument(input.document().value())) {
+        if (companyRepository.existsByDocument(input.document().digits())) {
             throw new ApplicationException("company.document.already.exists", null);
         }
 
         Company company = new Company();
         company.setLegalName(input.legalName().trim());
         company.setTradeName(input.tradeName());
-        company.setDocument(input.document().value());
+        company.setDocument(input.document().digits());
         company.setDescription(input.description());
         company.setTimezone(input.timezone() != null ? input.timezone() : "America/Sao_Paulo");
         company.setActive(true);
@@ -79,6 +84,11 @@ public class CreateCompanyUseCaseImpl implements CreateCompanyUseCase {
         membership.setUpdatedBy(userId);
 
         companyRepository.saveMembership(membership);
+
+        userAuthRepository.findById(userId).ifPresent(userAuth -> {
+            userAuth.setAffiliation(AffiliationStatus.COMPANY);
+            userAuthRepository.save(userAuth);
+        });
 
         log.info("[Create Company] Company created: {} by user: {}", saved.getId(), userId);
         return CreateCompanyOutputDTO.from(saved);

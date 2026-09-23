@@ -24,6 +24,7 @@ import lombok.Data;
 @Table(name = "TB0007_PROJECT", schema = "dbo", indexes = {
         @Index(name = "IX0007_SQ_ID", columnList = "C0007_SQ_ID", unique = true),
         @Index(name = "IX0007_COMPANY_ID", columnList = "C0007_COMPANY_ID"),
+        @Index(name = "IX0007_USER_ID", columnList = "C0007_USER_ID"),
         @Index(name = "IX0007_NAME", columnList = "C0007_NAME"),
         @Index(name = "IX0007_STATUS", columnList = "C0007_STATUS"),
         @Index(name = "IX0007_ACTIVE", columnList = "C0007_ACTIVE"),
@@ -49,11 +50,17 @@ public class ProjectJpaEntity implements BaseActiveEntityInterface<UUID, Integer
     @Column(name = "C0007_SQ_ID", nullable = false, updatable = false, insertable = false)
     private Integer seqId;
 
-    @Column(name = "C0007_COMPANY_ID", nullable = false)
+    @Column(name = "C0007_COMPANY_ID")
     private UUID companyId;
+
+    @Column(name = "C0007_USER_ID")
+    private UUID userId;
 
     @Column(name = "C0007_NAME", nullable = false, length = 200)
     private String name;
+
+    @Column(name = "C0007_CLIENT_NAME", nullable = false, length = 200)
+    private String clientName;
 
     @Column(name = "C0007_DESCRIPTION", columnDefinition = "TEXT")
     private String description;

@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -40,7 +42,8 @@ public class ListProjectTeamsUseCaseImpl implements ListProjectTeamsUseCase {
     }
 
     @Override
-    public List<TeamSummaryOutputDTO> execute(UUID companyId, UUID projectId) throws ApplicationException {
+    public Page<TeamSummaryOutputDTO> execute(UUID companyId, UUID projectId, Pageable pageable)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -54,24 +57,23 @@ public class ListProjectTeamsUseCaseImpl implements ListProjectTeamsUseCase {
             throw new ApplicationException("project.not.found", null);
         }
 
-        List<UUID> teamIds = projectRepository.findActiveTeamIdsByProjectId(projectId);
-        if (teamIds.isEmpty()) {
-            return List.of();
+        Page<Team> teams = teamRepository.findActiveByProjectId(projectId, pageable);
+
+        if (teams.isEmpty()) {
+            return teams.map(t -> TeamSummaryOutputDTO.from(t, null, 0));
         }
 
-        List<Team> teams = teamRepository.findActiveByIds(teamIds);
+        List<UUID> teamIds = teams.getContent().stream().map(t -> t.getId()).toList();
 
         Map<UUID, Long> memberCounts = teamRepository.countApprovedMembersByTeamIds(teamIds);
         Map<UUID, UUID> leadUserIds = teamRepository.findLeadUserIdsByTeamIds(teamIds);
         Map<UUID, String> leadNames = personRepository.findNamesByIds(leadUserIds.values());
 
-        return teams.stream()
-                .map(team -> {
-                    UUID leadUserId = leadUserIds.get(team.getId());
-                    String leadName = leadUserId != null ? leadNames.get(leadUserId) : null;
-                    long memberCount = memberCounts.getOrDefault(team.getId(), 0L);
-                    return TeamSummaryOutputDTO.from(team, leadName, memberCount);
-                })
-                .toList();
+        return teams.map(team -> {
+            UUID leadUserId = leadUserIds.get(team.getId());
+            String leadName = leadUserId != null ? leadNames.get(leadUserId) : null;
+            long memberCount = memberCounts.getOrDefault(team.getId(), 0L);
+            return TeamSummaryOutputDTO.from(team, leadName, memberCount);
+        });
     }
 }

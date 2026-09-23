@@ -60,6 +60,7 @@ public class CreateProjectUseCaseImpl implements CreateProjectUseCase {
         }
 
         validationPolicy.validateName(input.name());
+        validationPolicy.validateClientName(input.clientName());
         validationPolicy.validateDates(input.startDate(), input.endDate());
 
         if (projectRepository.existsActiveByCompanyIdAndName(companyId, input.name().trim())) {
@@ -69,6 +70,7 @@ public class CreateProjectUseCaseImpl implements CreateProjectUseCase {
         Project project = new Project();
         project.setCompanyId(companyId);
         project.setName(input.name().trim());
+        project.setClientName(input.clientName().trim());
         project.setDescription(input.description());
         project.setStatus(ProjectStatus.ACTIVE);
         project.setStartDate(input.startDate());

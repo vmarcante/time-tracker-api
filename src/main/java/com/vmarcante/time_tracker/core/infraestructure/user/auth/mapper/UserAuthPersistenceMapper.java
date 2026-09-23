@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.infraestructure.user.auth.mapper;
 
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 import com.vmarcante.time_tracker.core.infraestructure.person.mapper.PersonPersistenceMapper;
 import com.vmarcante.time_tracker.core.infraestructure.user.auth.persistence.UserAuthJpaEntity;
@@ -29,6 +30,7 @@ public class UserAuthPersistenceMapper {
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());
         entity.setRole(domain.getRole() != null ? domain.getRole() : UserRoleType.USER);
+        entity.setAffiliation(domain.getAffiliation() != null ? domain.getAffiliation() : AffiliationStatus.PENDING);
 
         return entity;
     }
@@ -55,7 +57,8 @@ public class UserAuthPersistenceMapper {
         domain.setCreatedAt(entity.getCreatedAt());
         domain.setUpdatedAt(entity.getUpdatedAt());
         domain.setRole(entity.getRole() != null ? entity.getRole() : UserRoleType.USER);
-        
+        domain.setAffiliation(entity.getAffiliation() != null ? entity.getAffiliation() : AffiliationStatus.PENDING);
+
         if (entity.getPerson() != null) {
             domain.setPerson(PersonPersistenceMapper.toDomain(entity.getPerson()));
         }

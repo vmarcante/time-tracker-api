@@ -1,0 +1,12 @@
+package com.vmarcante.time_tracker.core.application.project.in;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
+
+public interface ListPersonalProjectsUseCase {
+
+    Page<ProjectSummaryOutputDTO> execute(Pageable pageable) throws ApplicationException;
+}

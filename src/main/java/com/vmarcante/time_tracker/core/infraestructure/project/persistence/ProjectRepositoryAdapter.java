@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
@@ -44,32 +46,38 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     }
 
     @Override
-    public List<Project> findActiveByCompanyId(UUID companyId) {
-        return projectJpaRepository.findByCompanyIdAndActiveTrue(companyId).stream()
-                .map(ProjectPersistenceMapper::toDomain)
-                .toList();
+    public Page<Project> findActiveByCompanyId(UUID companyId, Pageable pageable) {
+        return projectJpaRepository.findByCompanyIdAndActiveTrue(companyId, pageable)
+                .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<Project> findActiveByIds(Collection<UUID> projectIds) {
-        return projectJpaRepository.findAllById(projectIds).stream()
-                .filter(p -> Boolean.TRUE.equals(p.getActive()))
-                .map(ProjectPersistenceMapper::toDomain)
-                .toList();
+    public Page<Project> findActiveByUserId(UUID userId, Pageable pageable) {
+        return projectJpaRepository.findByUserIdAndActiveTrue(userId, pageable)
+                .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<Project> findActiveProjectsByUserId(UUID userId, UUID companyId) {
-        List<UUID> projectIds = projectJpaRepository
-                .findAssignedProjectIdsByUserIdAndCompanyId(userId, companyId);
-        return projectJpaRepository.findAllById(projectIds).stream()
-                .map(ProjectPersistenceMapper::toDomain)
-                .toList();
+    public Page<Project> findActiveProjectsByUserId(UUID userId, UUID companyId, Pageable pageable) {
+        return userProjectJpaRepository
+                .findActiveProjectsByUserIdAndCompanyId(userId, companyId, pageable)
+                .map(ProjectPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public Page<Project> findActiveByTeamId(UUID teamId, Pageable pageable) {
+        return projectTeamJpaRepository.findActiveProjectsByTeamId(teamId, pageable)
+                .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
     public boolean existsActiveByIdAndCompanyId(UUID projectId, UUID companyId) {
         return projectJpaRepository.existsByIdAndCompanyIdAndActiveTrue(projectId, companyId);
+    }
+
+    @Override
+    public boolean existsActiveByUserIdAndName(UUID userId, String name) {
+        return projectJpaRepository.existsByUserIdAndNameIgnoreCaseAndActiveTrue(userId, name);
     }
 
     @Override
@@ -100,16 +108,6 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     @Override
     public boolean isProjectLinkedToTeam(UUID projectId, UUID teamId) {
         return projectTeamJpaRepository.existsByProjectIdAndTeamIdAndActiveTrue(projectId, teamId);
-    }
-
-    @Override
-    public List<UUID> findActiveTeamIdsByProjectId(UUID projectId) {
-        return projectTeamJpaRepository.findActiveTeamIdsByProjectId(projectId);
-    }
-
-    @Override
-    public List<UUID> findActiveProjectIdsByTeamId(UUID teamId) {
-        return projectTeamJpaRepository.findActiveProjectIdsByTeamId(teamId);
     }
 
     @Override
@@ -149,10 +147,9 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     }
 
     @Override
-    public List<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId) {
-        return userProjectJpaRepository.findByProjectIdAndActiveTrue(projectId).stream()
-                .map(ProjectPersistenceMapper::toDomain)
-                .toList();
+    public Page<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId, Pageable pageable) {
+        return userProjectJpaRepository.findByProjectIdAndActiveTrue(projectId, pageable)
+                .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override

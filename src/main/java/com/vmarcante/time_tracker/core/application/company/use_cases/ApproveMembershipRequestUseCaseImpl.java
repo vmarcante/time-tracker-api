@@ -15,6 +15,8 @@ import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -24,14 +26,17 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
 
     private final CompanyRepository companyRepository;
     private final PersonRepository personRepository;
+    private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public ApproveMembershipRequestUseCaseImpl(
             CompanyRepository companyRepository,
             PersonRepository personRepository,
+            UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
+        this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
     }
 
@@ -71,6 +76,11 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
         target.setUpdatedBy(actorId);
 
         CompanyMembership saved = companyRepository.saveMembership(target);
+
+        userAuthRepository.findById(target.getUserId()).ifPresent(userAuth -> {
+            userAuth.setAffiliation(AffiliationStatus.COMPANY);
+            userAuthRepository.save(userAuth);
+        });
 
         String memberName = personRepository.findNameById(target.getUserId()).orElse(null);
         String approverName = personRepository.findNameById(actorId).orElse(null);

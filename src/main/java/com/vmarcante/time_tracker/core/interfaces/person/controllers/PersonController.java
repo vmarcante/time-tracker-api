@@ -25,7 +25,7 @@ public class PersonController extends BaseResponseController {
         this.currentUserDataOrchestrator = currentUserDataOrchestrator;
     }
 
-    @AuthSecure()
+    @AuthSecure(allowPendingOnboarding = true)
     @GetMapping("/me")
     @Operation(summary = "Get current user data", description = "Returns the authenticated user's data")
     public ResponseEntity<ApiResponseDTO<CurrentUserOutputDTO>> getCurrentUser() {

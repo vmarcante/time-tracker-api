@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
@@ -16,15 +19,19 @@ public interface ProjectRepository {
 
     Optional<Project> findById(UUID id);
 
-    List<Project> findActiveByCompanyId(UUID companyId);
+    Page<Project> findActiveByCompanyId(UUID companyId, Pageable pageable);
 
-    List<Project> findActiveByIds(Collection<UUID> projectIds);
+    Page<Project> findActiveByUserId(UUID userId, Pageable pageable);
 
-    List<Project> findActiveProjectsByUserId(UUID userId, UUID companyId);
+    Page<Project> findActiveProjectsByUserId(UUID userId, UUID companyId, Pageable pageable);
+
+    Page<Project> findActiveByTeamId(UUID teamId, Pageable pageable);
 
     boolean existsActiveByIdAndCompanyId(UUID projectId, UUID companyId);
 
     boolean existsActiveByCompanyIdAndName(UUID companyId, String name);
+
+    boolean existsActiveByUserIdAndName(UUID userId, String name);
 
     Map<UUID, String> findNamesByIds(Collection<UUID> projectIds);
 
@@ -33,10 +40,6 @@ public interface ProjectRepository {
     Optional<TeamProject> findActiveTeamLink(UUID projectId, UUID teamId);
 
     boolean isProjectLinkedToTeam(UUID projectId, UUID teamId);
-
-    List<UUID> findActiveTeamIdsByProjectId(UUID projectId);
-
-    List<UUID> findActiveProjectIdsByTeamId(UUID teamId);
 
     Map<UUID, Long> countActiveTeamsByProjectIds(Collection<UUID> projectIds);
 
@@ -50,7 +53,7 @@ public interface ProjectRepository {
 
     boolean hasActiveAssignment(UUID userId, UUID projectId, UUID teamId);
 
-    List<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId);
+    Page<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId, Pageable pageable);
 
     List<ProjectAssignment> findActiveAssignmentsByUserIdAndTeamId(UUID userId, UUID teamId);
 

@@ -5,10 +5,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
+import com.vmarcante.time_tracker.core.infraestructure.team.persistence.TeamJpaEntity;
 
 public interface ProjectTeamJpaRepository extends JpaRepository<ProjectTeamJpaEntity, UUID> {
 
@@ -29,6 +33,22 @@ public interface ProjectTeamJpaRepository extends JpaRepository<ProjectTeamJpaEn
             WHERE pt.teamId = :teamId AND pt.active = true AND p.active = true
             """)
     List<UUID> findActiveProjectIdsByTeamId(@Param("teamId") UUID teamId);
+
+    @Query("""
+            SELECT p FROM ProjectTeamJpaEntity pt
+            JOIN ProjectJpaEntity p ON p.id = pt.projectId
+            WHERE pt.teamId = :teamId AND pt.active = true AND p.active = true
+            """)
+    Page<ProjectJpaEntity> findActiveProjectsByTeamId(
+            @Param("teamId") UUID teamId, Pageable pageable);
+
+    @Query("""
+            SELECT t FROM ProjectTeamJpaEntity pt
+            JOIN TeamJpaEntity t ON t.id = pt.teamId
+            WHERE pt.projectId = :projectId AND pt.active = true AND t.active = true
+            """)
+    Page<TeamJpaEntity> findActiveTeamsByProjectId(
+            @Param("projectId") UUID projectId, Pageable pageable);
 
     @Query("""
             SELECT pt.projectId, COUNT(pt) FROM ProjectTeamJpaEntity pt

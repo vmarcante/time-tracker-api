@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +16,17 @@ public interface UserProjectJpaRepository extends JpaRepository<UserProjectJpaEn
     boolean existsByUserIdAndProjectIdAndTeamIdAndActiveTrue(UUID userId, UUID projectId, UUID teamId);
 
     List<UserProjectJpaEntity> findByProjectIdAndActiveTrue(UUID projectId);
+
+    Page<UserProjectJpaEntity> findByProjectIdAndActiveTrue(UUID projectId, Pageable pageable);
+
+    @Query("""
+            SELECT p FROM UserProjectJpaEntity up
+            JOIN ProjectJpaEntity p ON p.id = up.projectId
+            WHERE up.userId = :userId AND p.companyId = :companyId
+                AND up.active = true AND p.active = true
+            """)
+    Page<ProjectJpaEntity> findActiveProjectsByUserIdAndCompanyId(
+            @Param("userId") UUID userId, @Param("companyId") UUID companyId, Pageable pageable);
 
     List<UserProjectJpaEntity> findByUserIdAndTeamIdAndActiveTrue(UUID userId, UUID teamId);
 

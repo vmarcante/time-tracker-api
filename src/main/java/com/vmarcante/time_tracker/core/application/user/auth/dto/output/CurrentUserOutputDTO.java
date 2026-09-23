@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 
 public record CurrentUserOutputDTO(
@@ -11,6 +12,7 @@ public record CurrentUserOutputDTO(
         String username,
         String name,
         UserRoleType role,
+        AffiliationStatus affiliation,
         String email,
         String phone,
         String locale) {
@@ -21,6 +23,7 @@ public record CurrentUserOutputDTO(
                 auth.getUsername(),
                 person.getName(),
                 auth.getRole(),
+                auth.getAffiliation(),
                 person.getEmail().address(),
                 person.getPhone().number(),
                 person.getLocale());

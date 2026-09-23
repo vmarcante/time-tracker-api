@@ -3,15 +3,18 @@ package com.vmarcante.time_tracker.core.interfaces.project.controllers;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAssignmentOutputDTO;
@@ -21,6 +24,7 @@ import com.vmarcante.time_tracker.core.application.project.in.ListProjectTeamsUs
 import com.vmarcante.time_tracker.core.application.project.in.UnlinkProjectFromTeamUseCase;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,10 +64,13 @@ public class ProjectTeamLinkController extends BaseResponseController {
     @AuthSecure
     @GetMapping
     @Operation(summary = "List project teams", description = "Lists all teams linked to the project")
-    public ResponseEntity<ApiResponseDTO<List<TeamSummaryOutputDTO>>> listTeams(
+    public ResponseEntity<ApiResponseDTO<PageWrapperDTO<TeamSummaryOutputDTO>>> listTeams(
             @PathVariable UUID companyId,
-            @PathVariable UUID projectId) throws ApplicationException {
-        return ok(listProjectTeamsUseCase.execute(companyId, projectId));
+            @PathVariable UUID projectId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws ApplicationException {
+        Pageable pageable = PageableUtils.pageable(page, size, null);
+        return ok(PageWrapperDTO.of(listProjectTeamsUseCase.execute(companyId, projectId, pageable)));
     }
 
     @AuthSecure

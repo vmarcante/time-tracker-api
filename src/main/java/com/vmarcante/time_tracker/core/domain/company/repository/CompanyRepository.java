@@ -1,9 +1,12 @@
 package com.vmarcante.time_tracker.core.domain.company.repository;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
@@ -18,9 +21,9 @@ public interface CompanyRepository {
 
     Optional<Company> findByDocument(String document);
 
-    List<Company> findAllByIds(Collection<UUID> ids);
+    Map<UUID, String> findLegalNamesByIds(Collection<UUID> ids);
 
-    List<Company> findActiveCompaniesByUserId(UUID userId);
+    Page<Company> findActiveCompaniesByUserId(UUID userId, Pageable pageable);
 
     boolean existsByDocument(String document);
 
@@ -28,15 +31,17 @@ public interface CompanyRepository {
 
     boolean hasAnyActiveMembership(UUID userId, UUID companyId);
 
+    boolean hasAnyApprovedMembership(UUID userId);
+
     Optional<CompanyMembership> findMembership(UUID userId, UUID companyId);
 
     Optional<CompanyMembership> findPendingMembership(UUID userId, UUID companyId);
 
     Optional<CompanyMembership> findMembershipById(UUID membershipId);
 
-    List<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId);
+    Page<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId, Pageable pageable);
 
-    List<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId);
+    Page<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId, Pageable pageable);
 
-    List<CompanyMembership> findPendingInvitationsByUserId(UUID userId);
+    Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable);
 }

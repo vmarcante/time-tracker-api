@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -20,11 +22,27 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
 
     boolean existsByUserIdAndCompanyIdAndActiveTrue(UUID userId, UUID companyId);
 
+    boolean existsByUserIdAndActiveTrueAndApprovedTrue(UUID userId);
+
     List<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedTrue(UUID companyId);
+
+    Page<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedTrue(UUID companyId, Pageable pageable);
 
     List<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId);
 
+    Page<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId, Pageable pageable);
+
     List<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId);
+
+    Page<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId, Pageable pageable);
+
+    @Query("""
+            SELECT c FROM UserCompanyJpaEntity uc
+            JOIN CompanyJpaEntity c ON c.id = uc.companyId
+            WHERE uc.userId = :userId AND uc.active = true AND uc.approved = true AND c.active = true
+            """)
+    Page<CompanyJpaEntity> findActiveCompaniesByUserId(
+            @Param("userId") UUID userId, Pageable pageable);
 
     @Query("""
             SELECT uc.companyId FROM UserCompanyJpaEntity uc

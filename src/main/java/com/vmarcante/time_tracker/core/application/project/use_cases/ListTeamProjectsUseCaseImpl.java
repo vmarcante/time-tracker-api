@@ -5,12 +5,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.ListTeamProjectsUseCase;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -35,7 +38,8 @@ public class ListTeamProjectsUseCaseImpl implements ListTeamProjectsUseCase {
     }
 
     @Override
-    public List<ProjectSummaryOutputDTO> execute(UUID companyId, UUID teamId) throws ApplicationException {
+    public Page<ProjectSummaryOutputDTO> execute(UUID companyId, UUID teamId, Pageable pageable)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -49,19 +53,20 @@ public class ListTeamProjectsUseCaseImpl implements ListTeamProjectsUseCase {
             throw new ApplicationException("team.not.found", null);
         }
 
-        List<UUID> projectIds = projectRepository.findActiveProjectIdsByTeamId(teamId);
-        if (projectIds.isEmpty()) {
-            return List.of();
+        Page<Project> projects = projectRepository.findActiveByTeamId(teamId, pageable);
+
+        if (projects.isEmpty()) {
+            return projects.map(p -> ProjectSummaryOutputDTO.from(p, 0, 0));
         }
+
+        List<UUID> projectIds = projects.getContent().stream().map(p -> p.getId()).toList();
 
         Map<UUID, Long> teamCounts = projectRepository.countActiveTeamsByProjectIds(projectIds);
         Map<UUID, Long> memberCounts = projectRepository.countActiveAssignmentsByProjectIds(projectIds);
 
-        return projectRepository.findActiveByIds(projectIds).stream()
-                .map(project -> ProjectSummaryOutputDTO.from(
-                        project,
-                        teamCounts.getOrDefault(project.getId(), 0L),
-                        memberCounts.getOrDefault(project.getId(), 0L)))
-                .toList();
+        return projects.map(project -> ProjectSummaryOutputDTO.from(
+                project,
+                teamCounts.getOrDefault(project.getId(), 0L),
+                memberCounts.getOrDefault(project.getId(), 0L)));
     }
 }

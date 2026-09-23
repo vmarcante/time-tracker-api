@@ -1,8 +1,8 @@
 package com.vmarcante.time_tracker.core.interfaces.team.controllers;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.dto.input.CreateTeamInputDTO;
@@ -28,6 +30,7 @@ import com.vmarcante.time_tracker.core.application.team.in.ListCompanyTeamsUseCa
 import com.vmarcante.time_tracker.core.application.team.in.ListMyTeamsUseCase;
 import com.vmarcante.time_tracker.core.application.team.in.UpdateTeamUseCase;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -71,17 +74,23 @@ public class TeamController extends BaseResponseController {
     @AuthSecure
     @GetMapping
     @Operation(summary = "List company teams", description = "Lists all active teams of the company")
-    public ResponseEntity<ApiResponseDTO<List<TeamSummaryOutputDTO>>> listTeams(
-            @PathVariable UUID companyId) throws ApplicationException {
-        return ok(listCompanyTeamsUseCase.execute(companyId));
+    public ResponseEntity<ApiResponseDTO<PageWrapperDTO<TeamSummaryOutputDTO>>> listTeams(
+            @PathVariable UUID companyId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws ApplicationException {
+        Pageable pageable = PageableUtils.pageable(page, size, null);
+        return ok(PageWrapperDTO.of(listCompanyTeamsUseCase.execute(companyId, pageable)));
     }
 
     @AuthSecure
     @GetMapping("/mine")
     @Operation(summary = "My teams", description = "Lists the teams the authenticated user belongs to in this company")
-    public ResponseEntity<ApiResponseDTO<List<TeamSummaryOutputDTO>>> myTeams(
-            @PathVariable UUID companyId) throws ApplicationException {
-        return ok(listMyTeamsUseCase.execute(companyId));
+    public ResponseEntity<ApiResponseDTO<PageWrapperDTO<TeamSummaryOutputDTO>>> myTeams(
+            @PathVariable UUID companyId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws ApplicationException {
+        Pageable pageable = PageableUtils.pageable(page, size, null);
+        return ok(PageWrapperDTO.of(listMyTeamsUseCase.execute(companyId, pageable)));
     }
 
     @AuthSecure

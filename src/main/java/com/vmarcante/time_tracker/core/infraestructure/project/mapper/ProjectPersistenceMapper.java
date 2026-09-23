@@ -14,7 +14,9 @@ public class ProjectPersistenceMapper {
         project.setId(entity.getId());
         project.setSeqId(entity.getSeqId());
         project.setCompanyId(entity.getCompanyId());
+        project.setUserId(entity.getUserId());
         project.setName(entity.getName());
+        project.setClientName(entity.getClientName());
         project.setDescription(entity.getDescription());
         project.setStatus(entity.getStatus());
         project.setStartDate(entity.getStartDate());
@@ -31,7 +33,9 @@ public class ProjectPersistenceMapper {
         ProjectJpaEntity entity = new ProjectJpaEntity();
         entity.setId(project.getId());
         entity.setCompanyId(project.getCompanyId());
+        entity.setUserId(project.getUserId());
         entity.setName(project.getName());
+        entity.setClientName(project.getClientName());
         entity.setDescription(project.getDescription());
         entity.setStatus(project.getStatus());
         entity.setStartDate(project.getStartDate());

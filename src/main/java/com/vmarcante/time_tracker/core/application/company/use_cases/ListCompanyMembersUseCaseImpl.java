@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
@@ -34,7 +36,8 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
     }
 
     @Override
-    public List<CompanyMemberOutputDTO> execute(UUID companyId) throws ApplicationException {
+    public Page<CompanyMemberOutputDTO> execute(UUID companyId, Pageable pageable)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -44,9 +47,14 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
             throw new ApplicationException("company.access.denied", null);
         }
 
-        List<CompanyMembership> members = companyRepository.findApprovedMembershipsByCompanyId(companyId);
+        Page<CompanyMembership> members = companyRepository
+                .findApprovedMembershipsByCompanyId(companyId, pageable);
 
-        List<UUID> userIds = members.stream()
+        if (members.isEmpty()) {
+            return members.map(m -> CompanyMemberOutputDTO.from(m, null, null));
+        }
+
+        List<UUID> userIds = members.getContent().stream()
                 .flatMap(m -> Stream.of(m.getUserId(), m.getApprovedBy()))
                 .filter(Objects::nonNull)
                 .distinct()
@@ -54,11 +62,9 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
 
         Map<UUID, String> memberNames = personRepository.findNamesByIds(userIds);
 
-        return members.stream()
-                .map(membership -> CompanyMemberOutputDTO.from(
-                        membership,
-                        memberNames.get(membership.getUserId()),
-                        memberNames.get(membership.getApprovedBy())))
-                .toList();
+        return members.map(membership -> CompanyMemberOutputDTO.from(
+                membership,
+                memberNames.get(membership.getUserId()),
+                memberNames.get(membership.getApprovedBy())));
     }
 }

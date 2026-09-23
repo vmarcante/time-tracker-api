@@ -20,6 +20,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.model.UserContextData;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 import com.vmarcante.time_tracker.core.shared.utils.HttpRequestUtils;
 
@@ -139,6 +140,12 @@ public class SecurityInterceptor implements HandlerInterceptor {
             log.warn("[SecurityInterceptor] User not active | User: {} | URI={}", 
                 user.getUsername(), request.getRequestURI(), requestId);
             throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+        }
+
+        if (user.getAffiliation() == AffiliationStatus.PENDING && !authSecure.allowPendingOnboarding()) {
+            log.warn("[SecurityInterceptor] Onboarding pending | User: {} | URI={}",
+                user.getUsername(), request.getRequestURI(), requestId);
+            throw new ApplicationException("user.onboarding.pending", null, HttpStatus.FORBIDDEN);
         }
 
         if (authSecure.acceptedRoles() != null && authSecure.acceptedRoles().length > 0) {

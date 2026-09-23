@@ -7,12 +7,15 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.infraestructure.project.persistence.ProjectTeamJpaRepository;
 import com.vmarcante.time_tracker.core.infraestructure.team.mapper.TeamPersistenceMapper;
 
 @Component
@@ -20,12 +23,15 @@ public class TeamRepositoryAdapter implements TeamRepository {
 
     private final TeamJpaRepository teamJpaRepository;
     private final UserTeamJpaRepository userTeamJpaRepository;
+    private final ProjectTeamJpaRepository projectTeamJpaRepository;
 
     public TeamRepositoryAdapter(
             TeamJpaRepository teamJpaRepository,
-            UserTeamJpaRepository userTeamJpaRepository) {
+            UserTeamJpaRepository userTeamJpaRepository,
+            ProjectTeamJpaRepository projectTeamJpaRepository) {
         this.teamJpaRepository = teamJpaRepository;
         this.userTeamJpaRepository = userTeamJpaRepository;
+        this.projectTeamJpaRepository = projectTeamJpaRepository;
     }
 
     @Override
@@ -47,27 +53,22 @@ public class TeamRepositoryAdapter implements TeamRepository {
     }
 
     @Override
-    public List<Team> findActiveByCompanyId(UUID companyId) {
-        return teamJpaRepository.findByCompanyIdAndActiveTrue(companyId).stream()
-                .map(TeamPersistenceMapper::toDomain)
-                .toList();
+    public Page<Team> findActiveByCompanyId(UUID companyId, Pageable pageable) {
+        return teamJpaRepository.findByCompanyIdAndActiveTrue(companyId, pageable)
+                .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<Team> findActiveByIds(Collection<UUID> teamIds) {
-        return teamJpaRepository.findAllById(teamIds).stream()
-                .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .map(TeamPersistenceMapper::toDomain)
-                .toList();
+    public Page<Team> findActiveTeamsByUserId(UUID userId, UUID companyId, Pageable pageable) {
+        return userTeamJpaRepository
+                .findActiveTeamsByUserIdAndCompanyId(userId, companyId, pageable)
+                .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<Team> findActiveTeamsByUserId(UUID userId, UUID companyId) {
-        List<UUID> teamIds = userTeamJpaRepository
-                .findApprovedTeamIdsByUserIdAndCompanyId(userId, companyId);
-        return teamJpaRepository.findAllById(teamIds).stream()
-                .map(TeamPersistenceMapper::toDomain)
-                .toList();
+    public Page<Team> findActiveByProjectId(UUID projectId, Pageable pageable) {
+        return projectTeamJpaRepository.findActiveTeamsByProjectId(projectId, pageable)
+                .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
@@ -119,11 +120,9 @@ public class TeamRepositoryAdapter implements TeamRepository {
     }
 
     @Override
-    public List<TeamMembership> findApprovedMembershipsByTeamId(UUID teamId) {
-        return userTeamJpaRepository.findByTeamIdAndActiveTrueAndApprovedTrue(teamId)
-                .stream()
-                .map(TeamPersistenceMapper::toDomain)
-                .toList();
+    public Page<TeamMembership> findApprovedMembershipsByTeamId(UUID teamId, Pageable pageable) {
+        return userTeamJpaRepository.findByTeamIdAndActiveTrueAndApprovedTrue(teamId, pageable)
+                .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override

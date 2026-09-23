@@ -1,8 +1,8 @@
 package com.vmarcante.time_tracker.core.interfaces.company.controllers;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.company.dto.input.ChangeMemberRoleInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.InviteMemberInputDTO;
@@ -33,6 +35,7 @@ import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCas
 import com.vmarcante.time_tracker.core.application.company.in.RequestToJoinCompanyUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -102,17 +105,23 @@ public class CompanyMembershipController extends BaseResponseController {
     @AuthSecure
     @GetMapping("/{companyId}/members")
     @Operation(summary = "List members", description = "Lists all approved members of the company")
-    public ResponseEntity<ApiResponseDTO<List<CompanyMemberOutputDTO>>> listMembers(
-            @PathVariable UUID companyId) throws ApplicationException {
-        return ok(listCompanyMembersUseCase.execute(companyId));
+    public ResponseEntity<ApiResponseDTO<PageWrapperDTO<CompanyMemberOutputDTO>>> listMembers(
+            @PathVariable UUID companyId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws ApplicationException {
+        Pageable pageable = PageableUtils.pageable(page, size, null);
+        return ok(PageWrapperDTO.of(listCompanyMembersUseCase.execute(companyId, pageable)));
     }
 
     @AuthSecure
     @GetMapping("/{companyId}/members/pending")
     @Operation(summary = "List pending memberships", description = "Lists memberships awaiting approval (approvers only)")
-    public ResponseEntity<ApiResponseDTO<List<CompanyMemberOutputDTO>>> listPending(
-            @PathVariable UUID companyId) throws ApplicationException {
-        return ok(listPendingMembershipsUseCase.execute(companyId));
+    public ResponseEntity<ApiResponseDTO<PageWrapperDTO<CompanyMemberOutputDTO>>> listPending(
+            @PathVariable UUID companyId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws ApplicationException {
+        Pageable pageable = PageableUtils.pageable(page, size, null);
+        return ok(PageWrapperDTO.of(listPendingMembershipsUseCase.execute(companyId, pageable)));
     }
 
     @AuthSecure
@@ -154,15 +163,17 @@ public class CompanyMembershipController extends BaseResponseController {
         return noContent();
     }
 
-    @AuthSecure
+    @AuthSecure(allowPendingOnboarding = true)
     @GetMapping("/invitations")
     @Operation(summary = "My invitations", description = "Lists pending company invitations for the authenticated user")
-    public ResponseEntity<ApiResponseDTO<List<CompanyInvitationOutputDTO>>> myInvitations()
-            throws ApplicationException {
-        return ok(listMyInvitationsUseCase.execute());
+    public ResponseEntity<ApiResponseDTO<PageWrapperDTO<CompanyInvitationOutputDTO>>> myInvitations(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws ApplicationException {
+        Pageable pageable = PageableUtils.pageable(page, size, null);
+        return ok(PageWrapperDTO.of(listMyInvitationsUseCase.execute(pageable)));
     }
 
-    @AuthSecure
+    @AuthSecure(allowPendingOnboarding = true)
     @PostMapping("/{companyId}/invitation/accept")
     @Operation(summary = "Accept invitation", description = "Accepts a pending company invitation")
     public ResponseEntity<ApiResponseDTO<CompanyMemberOutputDTO>> acceptInvitation(
@@ -170,7 +181,7 @@ public class CompanyMembershipController extends BaseResponseController {
         return ok(acceptCompanyInvitationUseCase.execute(companyId));
     }
 
-    @AuthSecure
+    @AuthSecure(allowPendingOnboarding = true)
     @PostMapping("/{companyId}/invitation/decline")
     @Operation(summary = "Decline invitation", description = "Declines a pending company invitation")
     public ResponseEntity<ApiResponseDTO<Void>> declineInvitation(

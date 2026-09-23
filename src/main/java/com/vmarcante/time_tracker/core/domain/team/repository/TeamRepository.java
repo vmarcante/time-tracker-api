@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 
@@ -17,11 +20,11 @@ public interface TeamRepository {
 
     Optional<Team> findById(UUID id);
 
-    List<Team> findActiveByCompanyId(UUID companyId);
+    Page<Team> findActiveByCompanyId(UUID companyId, Pageable pageable);
 
-    List<Team> findActiveByIds(Collection<UUID> teamIds);
+    Page<Team> findActiveTeamsByUserId(UUID userId, UUID companyId, Pageable pageable);
 
-    List<Team> findActiveTeamsByUserId(UUID userId, UUID companyId);
+    Page<Team> findActiveByProjectId(UUID projectId, Pageable pageable);
 
     boolean existsActiveByIdAndCompanyId(UUID teamId, UUID companyId);
 
@@ -39,7 +42,7 @@ public interface TeamRepository {
 
     Optional<TeamMembership> findLeadMembership(UUID teamId);
 
-    List<TeamMembership> findApprovedMembershipsByTeamId(UUID teamId);
+    Page<TeamMembership> findApprovedMembershipsByTeamId(UUID teamId, Pageable pageable);
 
     List<TeamMembership> findActiveMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId);
 

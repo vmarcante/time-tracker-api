@@ -9,6 +9,7 @@ import com.vmarcante.time_tracker.base.infraestructure.persistence.BaseActiveEnt
 import com.vmarcante.time_tracker.base.infraestructure.persistence.annotation.EncryptedSearchable;
 import com.vmarcante.time_tracker.base.infraestructure.persistence.converter.EncryptedStringConverter;
 import com.vmarcante.time_tracker.base.infraestructure.persistence.listener.EncryptedSearchableHashListener;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 import com.vmarcante.time_tracker.core.infraestructure.person.persistence.PersonJpaEntity;
 
@@ -95,6 +96,10 @@ public class UserAuthJpaEntity implements BaseActiveEntityInterface<UUID, Intege
     @Column(name = "C0002_ROLE", nullable = false)
     private UserRoleType role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "C0002_AFFILIATION", nullable = false, length = 20)
+    private AffiliationStatus affiliation;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "C0002_USER_ID", nullable = false, insertable = false, updatable = false)
     private PersonJpaEntity person;
@@ -119,6 +124,9 @@ public class UserAuthJpaEntity implements BaseActiveEntityInterface<UUID, Intege
 
         if (this.role == null) {
             this.role = UserRoleType.USER;
+        }
+        if (this.affiliation == null) {
+            this.affiliation = AffiliationStatus.PENDING;
         }
     }
 

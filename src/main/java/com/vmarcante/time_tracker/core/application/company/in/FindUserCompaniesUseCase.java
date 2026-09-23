@@ -1,11 +1,12 @@
 package com.vmarcante.time_tracker.core.application.company.in;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 
 public interface FindUserCompaniesUseCase {
 
-    List<CompanySummaryOutputDTO> execute() throws ApplicationException;
+    Page<CompanySummaryOutputDTO> execute(Pageable pageable) throws ApplicationException;
 }

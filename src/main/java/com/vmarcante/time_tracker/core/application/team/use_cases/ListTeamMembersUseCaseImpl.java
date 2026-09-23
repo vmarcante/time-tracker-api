@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -36,7 +38,8 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
     }
 
     @Override
-    public List<TeamMemberOutputDTO> execute(UUID companyId, UUID teamId) throws ApplicationException {
+    public Page<TeamMemberOutputDTO> execute(UUID companyId, UUID teamId, Pageable pageable)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -50,19 +53,22 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
             throw new ApplicationException("team.not.found", null);
         }
 
-        List<TeamMembership> members = teamRepository.findApprovedMembershipsByTeamId(teamId);
+        Page<TeamMembership> members = teamRepository
+                .findApprovedMembershipsByTeamId(teamId, pageable);
 
-        List<UUID> userIds = members.stream()
+        if (members.isEmpty()) {
+            return members.map(m -> TeamMemberOutputDTO.from(m, null));
+        }
+
+        List<UUID> userIds = members.getContent().stream()
                 .map(m -> m.getUserId())
                 .distinct()
                 .toList();
 
         Map<UUID, String> memberNames = personRepository.findNamesByIds(userIds);
 
-        return members.stream()
-                .map(membership -> TeamMemberOutputDTO.from(
-                        membership,
-                        memberNames.get(membership.getUserId())))
-                .toList();
+        return members.map(membership -> TeamMemberOutputDTO.from(
+                membership,
+                memberNames.get(membership.getUserId())));
     }
 }

@@ -17,4 +17,6 @@ public @interface AuthSecure {
 
     boolean appKeyAllowed() default false;
 
+    boolean allowPendingOnboarding() default false;
+
 }

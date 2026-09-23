@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -37,7 +39,7 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
     }
 
     @Override
-    public List<ProjectAssignmentOutputDTO> execute(UUID companyId, UUID projectId)
+    public Page<ProjectAssignmentOutputDTO> execute(UUID companyId, UUID projectId, Pageable pageable)
             throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
@@ -49,26 +51,24 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
         }
 
         Project project = projectRepository.findById(projectId)
-                .filter(p -> p.getCompanyId().equals(companyId))
+                .filter(p -> companyId.equals(p.getCompanyId()))
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ApplicationException("project.not.found", null));
 
-        List<ProjectAssignment> assignments = projectRepository
-                .findActiveAssignmentsByProjectId(projectId);
+        Page<ProjectAssignment> assignments = projectRepository
+                .findActiveAssignmentsByProjectId(projectId, pageable);
 
         if (assignments.isEmpty()) {
-            return List.of();
+            return assignments.map(a -> ProjectAssignmentOutputDTO.from(a, null, project.getName()));
         }
 
-        List<UUID> userIds = assignments.stream()
+        List<UUID> userIds = assignments.getContent().stream()
                 .map(a -> a.getUserId())
                 .distinct()
                 .toList();
         Map<UUID, String> userNames = personRepository.findNamesByIds(userIds);
 
-        return assignments.stream()
-                .map(a -> ProjectAssignmentOutputDTO.from(
-                        a, userNames.get(a.getUserId()), project.getName()))
-                .toList();
+        return assignments.map(a -> ProjectAssignmentOutputDTO.from(
+                a, userNames.get(a.getUserId()), project.getName()));
     }
 }

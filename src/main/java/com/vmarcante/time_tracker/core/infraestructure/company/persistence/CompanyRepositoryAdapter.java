@@ -1,10 +1,13 @@
 package com.vmarcante.time_tracker.core.infraestructure.company.persistence;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
@@ -50,19 +53,17 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     }
 
     @Override
-    public List<Company> findAllByIds(Collection<UUID> ids) {
-        return companyJpaRepository.findAllById(ids).stream()
-                .map(CompanyPersistenceMapper::toDomain)
-                .toList();
+    public Map<UUID, String> findLegalNamesByIds(Collection<UUID> ids) {
+        return companyJpaRepository.findIdAndLegalNameByIds(ids).stream()
+                .collect(Collectors.toMap(
+                        row -> (UUID) row[0],
+                        row -> (String) row[1]));
     }
 
     @Override
-    public List<Company> findActiveCompaniesByUserId(UUID userId) {
-        List<UUID> companyIds = userCompanyJpaRepository.findApprovedCompanyIdsByUserId(userId);
-        return companyJpaRepository.findAllById(companyIds).stream()
-                .filter(e -> Boolean.TRUE.equals(e.getActive()))
-                .map(CompanyPersistenceMapper::toDomain)
-                .toList();
+    public Page<Company> findActiveCompaniesByUserId(UUID userId, Pageable pageable) {
+        return userCompanyJpaRepository.findActiveCompaniesByUserId(userId, pageable)
+                .map(CompanyPersistenceMapper::toDomain);
     }
 
     @Override
@@ -80,6 +81,12 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     public boolean hasAnyActiveMembership(UUID userId, UUID companyId) {
         return userCompanyJpaRepository
                 .existsByUserIdAndCompanyIdAndActiveTrue(userId, companyId);
+    }
+
+    @Override
+    public boolean hasAnyApprovedMembership(UUID userId) {
+        return userCompanyJpaRepository
+                .existsByUserIdAndActiveTrueAndApprovedTrue(userId);
     }
 
     @Override
@@ -103,28 +110,22 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     }
 
     @Override
-    public List<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId) {
+    public Page<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId, Pageable pageable) {
         return userCompanyJpaRepository
-                .findByCompanyIdAndActiveTrueAndApprovedTrue(companyId)
-                .stream()
-                .map(CompanyPersistenceMapper::toDomain)
-                .toList();
+                .findByCompanyIdAndActiveTrueAndApprovedTrue(companyId, pageable)
+                .map(CompanyPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId) {
+    public Page<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId, Pageable pageable) {
         return userCompanyJpaRepository
-                .findByCompanyIdAndActiveTrueAndApprovedFalse(companyId)
-                .stream()
-                .map(CompanyPersistenceMapper::toDomain)
-                .toList();
+                .findByCompanyIdAndActiveTrueAndApprovedFalse(companyId, pageable)
+                .map(CompanyPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<CompanyMembership> findPendingInvitationsByUserId(UUID userId) {
-        return userCompanyJpaRepository.findByUserIdAndActiveTrueAndApprovedFalse(userId)
-                .stream()
-                .map(CompanyPersistenceMapper::toDomain)
-                .toList();
+    public Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable) {
+        return userCompanyJpaRepository.findByUserIdAndActiveTrueAndApprovedFalse(userId, pageable)
+                .map(CompanyPersistenceMapper::toDomain);
     }
 }

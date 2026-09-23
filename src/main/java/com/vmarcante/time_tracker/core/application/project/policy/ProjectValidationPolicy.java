@@ -24,6 +24,20 @@ public class ProjectValidationPolicy {
         }
     }
 
+    public void validateClientName(String clientName) throws ApplicationException {
+        if (clientName == null || clientName.isBlank()) {
+            throw new ApplicationException("project.client.name.required", null);
+        }
+
+        String trimmed = clientName.trim();
+        if (trimmed.length() < 2) {
+            throw new ApplicationException("project.client.name.min.length", null);
+        }
+        if (trimmed.length() > 200) {
+            throw new ApplicationException("project.client.name.max.length", null);
+        }
+    }
+
     public void validateDates(LocalDate startDate, LocalDate endDate) throws ApplicationException {
         if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
             throw new ApplicationException("project.dates.invalid", null);

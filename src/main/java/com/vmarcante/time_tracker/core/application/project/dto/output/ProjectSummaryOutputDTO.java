@@ -8,6 +8,7 @@ import com.vmarcante.time_tracker.core.domain.project.model.Project;
 public record ProjectSummaryOutputDTO(
         UUID id,
         String name,
+        String clientName,
         ProjectStatus status,
         long teamCount,
         long memberCount) {
@@ -16,6 +17,7 @@ public record ProjectSummaryOutputDTO(
         return new ProjectSummaryOutputDTO(
                 project.getId(),
                 project.getName(),
+                project.getClientName(),
                 project.getStatus(),
                 teamCount,
                 memberCount);

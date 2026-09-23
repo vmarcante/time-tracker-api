@@ -1,12 +1,15 @@
 package com.vmarcante.time_tracker.core.application.team.in;
 
-import java.util.List;
 import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamMemberOutputDTO;
 
 public interface ListTeamMembersUseCase {
 
-    List<TeamMemberOutputDTO> execute(UUID companyId, UUID teamId) throws ApplicationException;
+    Page<TeamMemberOutputDTO> execute(UUID companyId, UUID teamId, Pageable pageable)
+            throws ApplicationException;
 }

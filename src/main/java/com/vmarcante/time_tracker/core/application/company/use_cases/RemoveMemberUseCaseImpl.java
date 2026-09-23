@@ -13,6 +13,8 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyReposito
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,16 +25,19 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
     private final CompanyRepository companyRepository;
     private final TeamRepository teamRepository;
     private final ProjectRepository projectRepository;
+    private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public RemoveMemberUseCaseImpl(
             CompanyRepository companyRepository,
             TeamRepository teamRepository,
             ProjectRepository projectRepository,
+            UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
         this.companyRepository = companyRepository;
         this.teamRepository = teamRepository;
         this.projectRepository = projectRepository;
+        this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
     }
 
@@ -68,6 +73,13 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
 
         teamRepository.deactivateMembershipsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
         projectRepository.deactivateAssignmentsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
+
+        if (!companyRepository.hasAnyApprovedMembership(target.getUserId())) {
+            userAuthRepository.findById(target.getUserId()).ifPresent(userAuth -> {
+                userAuth.setAffiliation(AffiliationStatus.INDEPENDENT);
+                userAuthRepository.save(userAuth);
+            });
+        }
 
         log.info("[Remove Member] Membership {} removed by {} "
                 + "(team memberships and project assignments deactivated)", membershipId, actorId);

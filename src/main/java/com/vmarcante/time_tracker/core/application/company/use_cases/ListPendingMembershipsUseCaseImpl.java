@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
@@ -35,7 +37,8 @@ public class ListPendingMembershipsUseCaseImpl implements ListPendingMemberships
     }
 
     @Override
-    public List<CompanyMemberOutputDTO> execute(UUID companyId) throws ApplicationException {
+    public Page<CompanyMemberOutputDTO> execute(UUID companyId, Pageable pageable)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -48,9 +51,14 @@ public class ListPendingMembershipsUseCaseImpl implements ListPendingMemberships
             throw new ApplicationException("company.permission.denied", null);
         }
 
-        List<CompanyMembership> pending = companyRepository.findPendingMembershipsByCompanyId(companyId);
+        Page<CompanyMembership> pending = companyRepository
+                .findPendingMembershipsByCompanyId(companyId, pageable);
 
-        List<UUID> userIds = pending.stream()
+        if (pending.isEmpty()) {
+            return pending.map(m -> CompanyMemberOutputDTO.from(m, null, null));
+        }
+
+        List<UUID> userIds = pending.getContent().stream()
                 .flatMap(m -> Stream.of(m.getUserId(), m.getApprovedBy()))
                 .filter(Objects::nonNull)
                 .distinct()
@@ -58,11 +66,9 @@ public class ListPendingMembershipsUseCaseImpl implements ListPendingMemberships
 
         Map<UUID, String> memberNames = personRepository.findNamesByIds(userIds);
 
-        return pending.stream()
-                .map(membership -> CompanyMemberOutputDTO.from(
-                        membership,
-                        memberNames.get(membership.getUserId()),
-                        memberNames.get(membership.getApprovedBy())))
-                .toList();
+        return pending.map(membership -> CompanyMemberOutputDTO.from(
+                membership,
+                memberNames.get(membership.getUserId()),
+                memberNames.get(membership.getApprovedBy())));
     }
 }
