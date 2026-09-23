@@ -15,6 +15,8 @@ public interface UserProjectJpaRepository extends JpaRepository<UserProjectJpaEn
 
     boolean existsByUserIdAndProjectIdAndTeamIdAndActiveTrue(UUID userId, UUID projectId, UUID teamId);
 
+    boolean existsByUserIdAndProjectIdAndActiveTrue(UUID userId, UUID projectId);
+
     List<UserProjectJpaEntity> findByProjectIdAndActiveTrue(UUID projectId);
 
     Page<UserProjectJpaEntity> findByProjectIdAndActiveTrue(UUID projectId, Pageable pageable);

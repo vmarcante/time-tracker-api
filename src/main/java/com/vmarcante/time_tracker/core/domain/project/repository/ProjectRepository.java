@@ -35,6 +35,8 @@ public interface ProjectRepository {
 
     Map<UUID, String> findNamesByIds(Collection<UUID> projectIds);
 
+    List<Project> findAllByIds(Collection<UUID> projectIds);
+
     TeamProject saveTeamLink(TeamProject link);
 
     Optional<TeamProject> findActiveTeamLink(UUID projectId, UUID teamId);
@@ -52,6 +54,8 @@ public interface ProjectRepository {
     Optional<ProjectAssignment> findAssignmentById(UUID assignmentId);
 
     boolean hasActiveAssignment(UUID userId, UUID projectId, UUID teamId);
+
+    boolean hasAnyActiveAssignment(UUID userId, UUID projectId);
 
     Page<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId, Pageable pageable);
 

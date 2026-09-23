@@ -71,6 +71,17 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     }
 
     @Override
+    public List<Project> findAllByIds(Collection<UUID> projectIds) {
+        if (projectIds == null || projectIds.isEmpty()) {
+            return List.of();
+        }
+        return projectJpaRepository.findAllById(projectIds)
+                .stream()
+                .map(ProjectPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public boolean existsActiveByIdAndCompanyId(UUID projectId, UUID companyId) {
         return projectJpaRepository.existsByIdAndCompanyIdAndActiveTrue(projectId, companyId);
     }
@@ -144,6 +155,11 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     public boolean hasActiveAssignment(UUID userId, UUID projectId, UUID teamId) {
         return userProjectJpaRepository
                 .existsByUserIdAndProjectIdAndTeamIdAndActiveTrue(userId, projectId, teamId);
+    }
+
+    @Override
+    public boolean hasAnyActiveAssignment(UUID userId, UUID projectId) {
+        return userProjectJpaRepository.existsByUserIdAndProjectIdAndActiveTrue(userId, projectId);
     }
 
     @Override
