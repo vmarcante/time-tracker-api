@@ -35,14 +35,14 @@ spec:
                 fieldRef:
                   fieldPath: metadata.name
             - name: JAVA_OPTS
-              value: "-Xms1g -Xmx2g -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+              value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
           resources:
             requests:
-              memory: "1536Mi"
-              cpu: "500m"
+              memory: "384Mi"
+              cpu: "250m"
             limits:
-              memory: "2560Mi"
-              cpu: "1000m"
+              memory: "512Mi"
+              cpu: "500m"
           livenessProbe:
             httpGet:
               path: /api/health
