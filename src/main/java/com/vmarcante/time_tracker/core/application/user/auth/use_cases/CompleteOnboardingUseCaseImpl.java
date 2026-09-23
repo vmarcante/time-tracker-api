@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.user.auth.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import com.vmarcante.time_tracker.core.application.user.auth.dto.input.Onboardin
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CompleteOnboardingOutputDTO;
 import com.vmarcante.time_tracker.core.application.user.auth.in.CompleteOnboardingUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
+import com.vmarcante.time_tracker.core.domain.company.event.MembershipRequestCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
@@ -29,14 +31,17 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
     private final UserAuthRepository userAuthRepository;
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CompleteOnboardingUseCaseImpl(
             UserAuthRepository userAuthRepository,
             CompanyRepository companyRepository,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ApplicationEventPublisher eventPublisher) {
         this.userAuthRepository = userAuthRepository;
         this.companyRepository = companyRepository;
         this.securityContext = securityContext;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -88,7 +93,9 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
             membership.setActive(true);
             membership.setCreatedBy(userId);
             membership.setUpdatedBy(userId);
-            companyRepository.saveMembership(membership);
+            CompanyMembership saved = companyRepository.saveMembership(membership);
+            eventPublisher.publishEvent(new MembershipRequestCreatedEvent(
+                    saved.getId(), userId, company.getId()));
         }
 
         boolean membershipPending = !companyRepository.isMember(userId, company.getId());

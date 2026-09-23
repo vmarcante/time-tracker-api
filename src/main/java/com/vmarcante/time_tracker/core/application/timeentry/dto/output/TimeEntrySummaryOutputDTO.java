@@ -29,24 +29,35 @@ public record TimeEntrySummaryOutputDTO(
 
     public static TimeEntrySummaryOutputDTO from(TimeEntry entry, List<TimeEntrySession> sessions,
             List<Tag> tags, Project project, String userName) {
+                
         LocalDateTime now = LocalDateTime.now();
+
         LocalDateTime start = sessions.stream()
+                .filter(Objects::nonNull)
                 .map(TimeEntrySession::getStartTime)
                 .filter(Objects::nonNull)
                 .min(Comparator.naturalOrder())
                 .orElse(null);
+
         LocalDateTime end = sessions.stream()
+                .filter(Objects::nonNull)
                 .map(TimeEntrySession::getEndTime)
                 .filter(Objects::nonNull)
                 .max(Comparator.naturalOrder())
                 .orElse(null);
-        boolean running = sessions.stream().anyMatch(s -> s.getEndTime() == null);
+
+        boolean running = sessions.stream()
+                .filter(Objects::nonNull)
+                .anyMatch(s -> s.getEndTime() == null);
+
         long duration = sessions.stream()
+                .filter(Objects::nonNull)
                 .filter(s -> s.getStartTime() != null)
                 .mapToLong(s -> Math.max(0,
                         Duration.between(s.getStartTime(),
                                 s.getEndTime() != null ? s.getEndTime() : now).getSeconds()))
                 .sum();
+
         return new TimeEntrySummaryOutputDTO(
                 entry.getId(),
                 entry.getUserId(),

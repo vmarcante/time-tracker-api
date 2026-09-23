@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyReposito
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
+import com.vmarcante.time_tracker.core.domain.project.event.ProjectAssignedEvent;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
@@ -33,18 +35,21 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
     private final CompanyRepository companyRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
+    private final ApplicationEventPublisher eventPublisher;
 
     public AssignProjectMemberUseCaseImpl(
             ProjectRepository projectRepository,
             TeamRepository teamRepository,
             CompanyRepository companyRepository,
             PersonRepository personRepository,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ApplicationEventPublisher eventPublisher) {
         this.projectRepository = projectRepository;
         this.teamRepository = teamRepository;
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -108,6 +113,9 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
         assignment.setUpdatedBy(actorId);
 
         ProjectAssignment saved = projectRepository.saveAssignment(assignment);
+
+        eventPublisher.publishEvent(new ProjectAssignedEvent(
+                target.getId(), projectId, teamId, companyId));
 
         log.info("[Assign Project Member] User {} assigned to project {} via team {} by {}",
                 target.getId(), projectId, teamId, actorId);

@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMem
 import com.vmarcante.time_tracker.core.application.company.in.InviteMemberUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
+import com.vmarcante.time_tracker.core.domain.company.event.CompanyInvitationCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
@@ -27,14 +29,17 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
     private final CompanyRepository companyRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
+    private final ApplicationEventPublisher eventPublisher;
 
     public InviteMemberUseCaseImpl(
             CompanyRepository companyRepository,
             PersonRepository personRepository,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ApplicationEventPublisher eventPublisher) {
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -84,6 +89,9 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
         membership.setUpdatedBy(actorId);
 
         CompanyMembership saved = companyRepository.saveMembership(membership);
+
+        eventPublisher.publishEvent(new CompanyInvitationCreatedEvent(
+                saved.getId(), invitee.getId(), companyId, actorId));
 
         log.info("[Invite Member] User {} invited to company {} as {} by {}",
                 invitee.getId(), companyId, input.role(), actorId);

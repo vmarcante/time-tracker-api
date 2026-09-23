@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMem
 import com.vmarcante.time_tracker.core.application.company.in.ApproveMembershipRequestUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
+import com.vmarcante.time_tracker.core.domain.company.event.MembershipApprovedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
@@ -28,16 +30,19 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
     private final PersonRepository personRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ApproveMembershipRequestUseCaseImpl(
             CompanyRepository companyRepository,
             PersonRepository personRepository,
             UserAuthRepository userAuthRepository,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ApplicationEventPublisher eventPublisher) {
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
         this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -84,6 +89,8 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
 
         String memberName = personRepository.findNameById(target.getUserId()).orElse(null);
         String approverName = personRepository.findNameById(actorId).orElse(null);
+
+        eventPublisher.publishEvent(new MembershipApprovedEvent(membershipId, target.getUserId(), companyId));
 
         log.info("[Approve Membership] Membership {} approved by {}", membershipId, actorId);
 

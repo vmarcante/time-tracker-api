@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,6 +12,7 @@ import com.vmarcante.time_tracker.core.application.company.in.RequestToJoinCompa
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
+import com.vmarcante.time_tracker.core.domain.company.event.MembershipRequestCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
@@ -28,16 +30,19 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
     private final PersonRepository personRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RequestToJoinCompanyUseCaseImpl(
             CompanyRepository companyRepository,
             PersonRepository personRepository,
             UserAuthRepository userAuthRepository,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ApplicationEventPublisher eventPublisher) {
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
         this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -76,6 +81,8 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
         });
 
         String memberName = personRepository.findNameById(userId).orElse(null);
+
+        eventPublisher.publishEvent(new MembershipRequestCreatedEvent(saved.getId(), userId, companyId));
 
         log.info("[Request To Join] User {} requested to join company {}", userId, companyId);
 

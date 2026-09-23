@@ -3,12 +3,14 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.company.in.RejectMembershipRequestUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
+import com.vmarcante.time_tracker.core.domain.company.event.MembershipRejectedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -21,12 +23,15 @@ public class RejectMembershipRequestUseCaseImpl implements RejectMembershipReque
 
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
+    private final ApplicationEventPublisher eventPublisher;
 
     public RejectMembershipRequestUseCaseImpl(
             CompanyRepository companyRepository,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ApplicationEventPublisher eventPublisher) {
         this.companyRepository = companyRepository;
         this.securityContext = securityContext;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -62,6 +67,8 @@ public class RejectMembershipRequestUseCaseImpl implements RejectMembershipReque
         target.setActive(false);
         target.setUpdatedBy(actorId);
         companyRepository.saveMembership(target);
+
+        eventPublisher.publishEvent(new MembershipRejectedEvent(target.getUserId(), companyId));
 
         log.info("[Reject Membership] Membership {} rejected by {}", membershipId, actorId);
     }

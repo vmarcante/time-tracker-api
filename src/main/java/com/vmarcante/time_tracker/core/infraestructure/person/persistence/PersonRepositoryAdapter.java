@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.infraestructure.person.persistence;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -56,6 +57,17 @@ public class PersonRepositoryAdapter implements PersonRepository {
     public Optional<Person> findById(UUID id) {
         return jpaRepository.findById(id)
                 .map(PersonPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<Person> findAllByIds(Collection<UUID> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return jpaRepository.findAllById(ids)
+                .stream()
+                .map(PersonPersistenceMapper::toDomain)
+                .toList();
     }
 
     @Override

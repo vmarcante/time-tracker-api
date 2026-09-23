@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en-US">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html" charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request approved - Time Tracker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+
+<body marginheight="0" marginwidth="0" topmargin="0" leftmargin="0"
+    style="height: 100% !important; margin: 0; padding: 0; width: 100% !important; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+
+    <table width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #fafafa;" bgcolor="#fafafa">
+        <tbody>
+            <tr>
+                <td width="100%" valign="top" align="center" style="padding: 40px 20px;">
+                    <table width="600" cellspacing="0" cellpadding="0" border="0"
+                        style="background-color: #ffffff; border-radius: 16px; border: 1px solid #e5e7eb;">
+                        <tbody>
+                            <!-- Header -->
+                            <tr>
+                                <td
+                                    style="background-color: #ffffff; padding: 24px 32px; border-radius: 16px 16px 0 0; border-bottom: 1px solid #e5e7eb;">
+                                    <table cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
+                                        <tbody>
+                                            <tr>
+                                                <td style="vertical-align: middle; text-align: left;">
+                                                    <p style="margin: 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.1;">
+                                                        Time Tracker
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Body -->
+                            <tr>
+                                <td style="padding: 40px 32px; text-align: center;">
+                                    <h1 style="color: #0f172a; margin: 0 0 16px 0; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 24px; font-weight: 700; line-height: 1.3;">
+                                        Request approved!
+                                    </h1>
+
+                                    <p style="color: #334155; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 12px 0;">
+                                        Hi <strong th:text="${name}" style="color: #0f172a;">${name}</strong>,
+                                    </p>
+
+                                    <p style="color: #334155; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+                                        Your membership request to
+                                        <strong th:text="${companyName}" style="color: #0f172a;">${companyName}</strong>
+                                        was approved<span th:if="${role != null and !#strings.isEmpty(role)}"> — you joined as
+                                            <strong th:text="${role}" style="color: #0f172a;">${role}</strong></span>.
+                                    </p>
+
+                                    <p style="color: #334155; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+                                        Access the company to get started:
+                                    </p>
+
+                                    <div style="text-align: center; margin: 32px 0;">
+                                        <a th:href="${dashboardLink}" href="#"
+                                            style="display: inline-block; padding: 14px 32px; background-color: #4b5563; color: #ffffff; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 600; line-height: 1; text-decoration: none; border-radius: 8px; text-align: center;">
+                                            Open company
+                                        </a>
+                                    </div>
+
+                                    <p
+                                        style="color: #64748b; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; line-height: 1.6; margin: 24px 0 0 0; text-align: center;">
+                                        Or copy and paste this link into your browser:<br>
+                                        <a th:href="${dashboardLink}" th:text="${dashboardLink}" href="#"
+                                            style="color: #4b5563; word-break: break-all; text-decoration: underline;">
+                                            ${dashboardLink}
+                                        </a>
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td
+                                    style="background-color: #f3f6f7; padding: 32px; text-align: center; border-radius: 0 0 16px 16px; border-top: 1px solid #e5e7eb;">
+                                    <p style="color: #334155; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; margin: 0 0 8px 0;">
+                                        Best regards,<br>
+                                        <strong style="color: #0f172a;">Time Tracker Team</strong>
+                                    </p>
+
+                                    <p style="color: #64748b; font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; margin: 16px 0 0 0; line-height: 1.5;">
+                                        This is an automated message. Please do not reply to this email.<br>
+                                        If you have any questions, please contact us.
+                                    </p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+
+</html>

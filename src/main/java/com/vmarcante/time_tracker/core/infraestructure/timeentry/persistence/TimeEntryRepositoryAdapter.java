@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -108,7 +109,10 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
     public void replaceTags(UUID entryId, Collection<UUID> tagIds, UUID actorId) {
         List<TimeEntryTagJpaEntity> currentLinks = timeEntryTagJpaRepository.findByEntryIdAndActiveTrue(entryId);
         Set<UUID> desired = tagIds == null ? Set.of() : new HashSet<>(tagIds);
-        Set<UUID> current = currentLinks.stream().map(TimeEntryTagJpaEntity::getTagId).collect(Collectors.toSet());
+        Set<UUID> current = currentLinks.stream()
+                .filter(Objects::nonNull)
+                .map(TimeEntryTagJpaEntity::getTagId)
+                .collect(Collectors.toSet());
 
         currentLinks.stream()
                 .filter(link -> !desired.contains(link.getTagId()))

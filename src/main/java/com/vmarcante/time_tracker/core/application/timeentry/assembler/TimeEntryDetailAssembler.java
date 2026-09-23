@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.assembler;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
@@ -56,14 +57,26 @@ public class TimeEntryDetailAssembler {
             return new PageImpl<>(List.of(), page.getPageable(), page.getTotalElements());
         }
 
-        Set<UUID> entryIds = content.stream().map(TimeEntry::getId).collect(Collectors.toSet());
-        Set<UUID> projectIds = content.stream().map(TimeEntry::getProjectId).collect(Collectors.toSet());
-        Set<UUID> userIds = content.stream().map(TimeEntry::getUserId).collect(Collectors.toSet());
+        Set<UUID> entryIds = content.stream()
+                .filter(Objects::nonNull)
+                .map(TimeEntry::getId)
+                .collect(Collectors.toSet());
+                
+        Set<UUID> projectIds = content.stream()
+                .filter(Objects::nonNull)
+                .map(TimeEntry::getProjectId)
+                .collect(Collectors.toSet());
+                
+        Set<UUID> userIds = content.stream()
+                .filter(Objects::nonNull)
+                .map(TimeEntry::getUserId)
+                .collect(Collectors.toSet());
 
         Map<UUID, List<TimeEntrySession>> sessionsByEntry = sessionRepository.findActiveByEntryIds(entryIds);
         Map<UUID, List<Tag>> tagsByEntry = timeEntryRepository.findTagsGroupedByEntryIds(entryIds);
         Map<UUID, Project> projectsById = projectRepository.findAllByIds(projectIds)
                 .stream()
+                .filter(Objects::nonNull)
                 .collect(Collectors.toMap(Project::getId, Function.identity()));
         Map<UUID, String> namesByUserId = personRepository.findNamesByIds(userIds);
 

@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.infraestructure.timeentry.persistence;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -50,6 +51,7 @@ public class TimeEntrySessionRepositoryAdapter implements TimeEntrySessionReposi
         return sessionJpaRepository.findByEntryIdInAndActiveTrueOrderByStartTimeAsc(entryIds)
                 .stream()
                 .map(TimeEntryPersistenceMapper::toDomain)
+                .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(TimeEntrySession::getEntryId));
     }
 
