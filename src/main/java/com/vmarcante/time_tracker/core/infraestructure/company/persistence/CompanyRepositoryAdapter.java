@@ -128,4 +128,9 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
         return userCompanyJpaRepository.findByUserIdAndActiveTrueAndApprovedFalse(userId, pageable)
                 .map(CompanyPersistenceMapper::toDomain);
     }
+
+    @Override
+    public long countPendingInvitationsByUserId(UUID userId) {
+        return userCompanyJpaRepository.countByUserIdAndActiveTrueAndApprovedFalse(userId);
+    }
 }

@@ -7,9 +7,11 @@ import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CurrentUserOutputDTO;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
+import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 
@@ -21,14 +23,17 @@ public class CurrentUserDataOrchestrator {
 
     private final UserAuthRepository userAuthRepository;
     private final PersonRepository personRepository;
+    private final CompanyRepository companyRepository;
     private final SecurityContextPort context;
 
     public CurrentUserDataOrchestrator(
             UserAuthRepository userAuthRepository,
             PersonRepository personRepository,
+            CompanyRepository companyRepository,
             SecurityContextPort context) {
         this.userAuthRepository = userAuthRepository;
         this.personRepository = personRepository;
+        this.companyRepository = companyRepository;
         this.context = context;
     }
 
@@ -56,6 +61,11 @@ public class CurrentUserDataOrchestrator {
 
         UserAuth userAuth = userAuthOptional.get();
         Person person = personOptional.get();
-        return new CurrentUserOutputDTO(userAuth, person);
+
+        long pendingInvitations = userAuth.getAffiliation() == AffiliationStatus.PENDING
+                ? companyRepository.countPendingInvitationsByUserId(userId)
+                : 0;
+
+        return new CurrentUserOutputDTO(userAuth, person, pendingInvitations);
     }
 }

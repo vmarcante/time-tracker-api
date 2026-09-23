@@ -29,6 +29,7 @@ public class Cnpj {
     }
 
     public String digits() {
-        return value.replaceAll("[^\\d]", "");
+        String digits = value.replaceAll("[^\\d]", "");
+        return digits.length() < 14 ? CnpjValidator.leftPad(digits) : digits;
     }
 }

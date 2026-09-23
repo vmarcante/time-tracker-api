@@ -2,7 +2,7 @@ package com.vmarcante.time_tracker.core.shared.vo;
 
 public class CnpjValidator {
 
-    private static final String CNPJ_PATTERN = "^\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}$";
+    private static final String CNPJ_FORMATTED_PATTERN = "^\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}$";
 
     private CnpjValidator() {
     }
@@ -13,12 +13,22 @@ public class CnpjValidator {
         }
 
         String trimmed = cnpj.trim();
+        String digits = trimmed.replaceAll("\\D", "");
 
-        if (!trimmed.matches(CNPJ_PATTERN)) {
+        if (trimmed.matches("^\\d+$")) {
+            if (digits.length() > 14) {
+                return false;
+            }
+            digits = leftPad(digits);
+        } else if (!trimmed.matches(CNPJ_FORMATTED_PATTERN)) {
             return false;
         }
 
-        return hasValidCheckDigits(trimmed);
+        return hasValidCheckDigits(digits);
+    }
+
+    static String leftPad(String digits) {
+        return String.format("%14s", digits).replace(' ', '0');
     }
 
     private static boolean hasValidCheckDigits(String cnpj) {

@@ -15,9 +15,10 @@ public record CurrentUserOutputDTO(
         AffiliationStatus affiliation,
         String email,
         String phone,
-        String locale) {
+        String locale,
+        long pendingInvitations) {
 
-    public CurrentUserOutputDTO(UserAuth auth, Person person) {
+    public CurrentUserOutputDTO(UserAuth auth, Person person, long pendingInvitations) {
         this(
                 auth.getId(),
                 auth.getUsername(),
@@ -26,7 +27,8 @@ public record CurrentUserOutputDTO(
                 auth.getAffiliation(),
                 person.getEmail().address(),
                 person.getPhone().number(),
-                person.getLocale());
+                person.getLocale(),
+                pendingInvitations);
     }
 
 }

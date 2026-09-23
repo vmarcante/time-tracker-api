@@ -36,6 +36,8 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
 
     Page<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId, Pageable pageable);
 
+    long countByUserIdAndActiveTrueAndApprovedFalse(UUID userId);
+
     @Query("""
             SELECT c FROM UserCompanyJpaEntity uc
             JOIN CompanyJpaEntity c ON c.id = uc.companyId

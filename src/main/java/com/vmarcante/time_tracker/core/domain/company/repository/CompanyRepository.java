@@ -44,4 +44,6 @@ public interface CompanyRepository {
     Page<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId, Pageable pageable);
 
     Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable);
+
+    long countPendingInvitationsByUserId(UUID userId);
 }
