@@ -19,7 +19,12 @@
     Image repository name. Default: time-tracker-api
 
 .PARAMETER Version
-    Image tag. If omitted, uses the latest Git tag or short commit hash.
+    Nome/tag da imagem definido manualmente (prioridade 1).
+
+.PARAMETER VersionStrategy
+    Estrategia de resolucao automatica do nome quando -Version nao e informado.
+    Valores: Auto (padrao), Tag, Timestamp, Sha, Latest.
+    Auto aplica a prioridade: Tag > Timestamp > Sha > Latest.
 
 .PARAMETER Namespace
     Kubernetes namespace. Default: time-tracker
@@ -37,7 +42,10 @@
     .\k8s\deploy.ps1
 
 .EXAMPLE
-    .\k8s\deploy.ps1 -Registry "meu-registry" -Version "v1.2.3"
+    .\k8s\deploy.ps1 -Version "v1.2.3"
+
+.EXAMPLE
+    .\k8s\deploy.ps1 -VersionStrategy Timestamp
 
 .EXAMPLE
     .\k8s\deploy.ps1 -Image "vmarcante/time-tracker-api:v1.2.3" -SkipPortForward
@@ -50,7 +58,12 @@ param (
 
     [string] $Repository = "time-tracker-api",
 
+    # Prioridade 1: nome/tag manual
     [string] $Version,
+
+    # Estrategia de auto-deteccao (usado quando -Version nao e informado)
+    [ValidateSet("Auto", "Tag", "Timestamp", "Sha", "Latest")]
+    [string] $VersionStrategy = "Auto",
 
     [string] $Namespace = "time-tracker",
 
@@ -69,33 +82,105 @@ function Test-CommandAvailable {
     return $null -ne (Get-Command $Name -ErrorAction SilentlyContinue)
 }
 
-function Get-GitVersion {
+# Retorna a tag Git exata do HEAD (nao usa git describe, que pode retornar v1.0-3-gabc)
+function Get-GitTag {
     try {
-        $tag = git describe --tags --always 2>$null
-        if ($LASTEXITCODE -eq 0 -and $tag) {
-            return $tag
-        }
+        [string]$tag = git tag --points-at HEAD 2>$null | Select-Object -First 1
+        if ($LASTEXITCODE -eq 0 -and $tag) { return $tag.Trim() }
     }
     catch { }
+    return $null
+}
 
+# Retorna o SHA curto do commit atual
+function Get-GitSha {
     try {
-        $sha = git rev-parse --short HEAD 2>$null
-        if ($LASTEXITCODE -eq 0 -and $sha) {
-            return $sha
-        }
+        [string]$sha = git rev-parse --short HEAD 2>$null
+        if ($LASTEXITCODE -eq 0 -and $sha) { return $sha.Trim() }
     }
     catch { }
+    return $null
+}
 
-    return "latest"
+# Resolve o nome da versao conforme a estrategia escolhida.
+# Prioridade no modo Auto: 2.Tag > 3.Horario > 4.Sha > 5.Latest
+function Resolve-ImageVersion {
+    param (
+        [ValidateSet("Auto", "Tag", "Timestamp", "Sha", "Latest")]
+        [string]$Strategy
+    )
+
+    switch ($Strategy) {
+
+        "Tag" {
+            [string]$tag = Get-GitTag
+            if ($tag) {
+                Write-Host "Versao: tag '$tag'" -ForegroundColor Green
+                return $tag
+            }
+            throw "Nenhuma tag Git encontrada no HEAD. Crie uma tag ou use -VersionStrategy Auto."
+        }
+
+        "Timestamp" {
+            [string]$ts = Get-Date -Format "yyyyMMdd-HHmm"
+            Write-Host "Versao: horario '$ts'" -ForegroundColor Cyan
+            return $ts
+        }
+
+        "Sha" {
+            [string]$sha = Get-GitSha
+            if ($sha) {
+                Write-Host "Versao: SHA Git '$sha'" -ForegroundColor Cyan
+                return $sha
+            }
+            throw "SHA Git nao disponivel. Verifique se o repositorio Git esta inicializado."
+        }
+
+        "Latest" {
+            Write-Host "Versao: 'latest'" -ForegroundColor Yellow
+            return "latest"
+        }
+
+        default { # Auto — aplica prioridade completa
+            # 2. Tag Git exata no HEAD
+            [string]$tag = Get-GitTag
+            if ($tag) {
+                Write-Host "Versao (auto): tag '$tag'" -ForegroundColor Green
+                return $tag
+            }
+
+            # 3. Horario
+            try {
+                [string]$ts = Get-Date -Format "yyyyMMdd-HHmm"
+                Write-Host "Versao (auto): horario '$ts' (sem tag)" -ForegroundColor Yellow
+                return $ts
+            }
+            catch { }
+
+            # 4. SHA Git
+            [string]$sha = Get-GitSha
+            if ($sha) {
+                Write-Host "Versao (auto): SHA '$sha' (sem tag, sem horario)" -ForegroundColor Yellow
+                return $sha
+            }
+
+            # 5. Latest
+            Write-Host "Versao (auto): 'latest' (fallback final)" -ForegroundColor Red
+            return "latest"
+        }
+    }
 }
 
 Write-Host "== Kubernetes Deploy Script ==" -ForegroundColor Cyan
 
 # --- Resolve image name ---
 if (-not $Image) {
-    if (-not $Version) {
-        $Version = Get-GitVersion
-        Write-Host "Versao detectada pelo Git: $Version" -ForegroundColor Yellow
+    if ($Version) {
+        # Prioridade 1: nome manual via -Version
+        Write-Host "Versao manual: '$Version'" -ForegroundColor Cyan
+    }
+    else {
+        $Version = Resolve-ImageVersion -Strategy $VersionStrategy
     }
     $Image = "$Registry/$Repository`:$Version"
 }
