@@ -51,13 +51,17 @@ public class EmailSenderService implements EmailService {
                 emailData.templateData(),
                 emailData.locale());
 
+        // TODO - REMOVE OVERRIDE
+        String emailTo = emailData.to();
+        emailTo = "vinirosamarcante@gmail.com";
+
         try {
             if (emailData.hasAttachments()) {
-                sendEmailWithAttachments(emailData.to(), emailData.subject(), htmlContent, emailData);
+                sendEmailWithAttachments(emailTo, emailData.subject(), htmlContent, emailData);
             } else {
-                sendEmail(emailData.to(), emailData.subject(), htmlContent);
+                sendEmail(emailTo, emailData.subject(), htmlContent);
             }
-            log.debug("[ Email Sender ] - Email dispatched successfully to: {}", emailData.to());
+            log.debug("[ Email Sender ] - Email dispatched successfully to: {}", emailTo);
         } catch (Exception e) {
 
             if (trackFailure) {

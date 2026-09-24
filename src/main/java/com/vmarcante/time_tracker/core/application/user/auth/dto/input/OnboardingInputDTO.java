@@ -4,5 +4,6 @@ import com.vmarcante.time_tracker.core.shared.vo.Cnpj;
 
 public record OnboardingInputDTO(
         Cnpj document,
-        Boolean independent) {
+        Boolean independent,
+        String requestReason) {
 }

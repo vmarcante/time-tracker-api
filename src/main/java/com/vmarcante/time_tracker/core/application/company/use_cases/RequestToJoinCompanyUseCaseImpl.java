@@ -17,8 +17,6 @@ import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
-import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
-import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -28,26 +26,23 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
 
     private final CompanyRepository companyRepository;
     private final PersonRepository personRepository;
-    private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
 
     public RequestToJoinCompanyUseCaseImpl(
             CompanyRepository companyRepository,
             PersonRepository personRepository,
-            UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
-        this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
         this.eventPublisher = eventPublisher;
     }
 
     @Override
     @Transactional
-    public CompanyMemberOutputDTO execute(UUID companyId) throws ApplicationException {
+    public CompanyMemberOutputDTO execute(UUID companyId, String requestReason) throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -63,22 +58,22 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
             throw new ApplicationException("company.member.already.exists", null);
         }
 
+        if (requestReason != null && requestReason.length() > 500) {
+            throw new ApplicationException("membership.request.reason.too.long", null);
+        }
+
         CompanyMembership membership = new CompanyMembership();
         membership.setUserId(userId);
         membership.setCompanyId(companyId);
         membership.setRole(CompanyRole.MEMBER);
         membership.setOrigin(MembershipOrigin.REQUEST);
         membership.setApproved(false);
+        membership.setRequestReason(requestReason);
         membership.setActive(true);
         membership.setCreatedBy(userId);
         membership.setUpdatedBy(userId);
 
         CompanyMembership saved = companyRepository.saveMembership(membership);
-
-        userAuthRepository.findById(userId).ifPresent(userAuth -> {
-            userAuth.setAffiliation(AffiliationStatus.COMPANY);
-            userAuthRepository.save(userAuth);
-        });
 
         String memberName = personRepository.findNameById(userId).orElse(null);
 

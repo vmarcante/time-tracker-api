@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
+import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
@@ -125,12 +126,20 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
 
     @Override
     public Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable) {
-        return userCompanyJpaRepository.findByUserIdAndActiveTrueAndApprovedFalse(userId, pageable)
+        return userCompanyJpaRepository
+                .findByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.INVITE, pageable)
                 .map(CompanyPersistenceMapper::toDomain);
     }
 
     @Override
     public long countPendingInvitationsByUserId(UUID userId) {
-        return userCompanyJpaRepository.countByUserIdAndActiveTrueAndApprovedFalse(userId);
+        return userCompanyJpaRepository
+                .countByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.INVITE);
+    }
+
+    @Override
+    public Optional<String> findPendingRequestCompanyNameByUserId(UUID userId) {
+        return userCompanyJpaRepository
+                .findPendingCompanyNameByUserIdAndOrigin(userId, MembershipOrigin.REQUEST);
     }
 }

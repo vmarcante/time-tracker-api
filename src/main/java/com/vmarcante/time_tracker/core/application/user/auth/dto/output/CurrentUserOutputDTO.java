@@ -16,9 +16,10 @@ public record CurrentUserOutputDTO(
         String email,
         String phone,
         String locale,
-        long pendingInvitations) {
+        long pendingInvitations,
+        String pendingCompanyName) {
 
-    public CurrentUserOutputDTO(UserAuth auth, Person person, long pendingInvitations) {
+    public CurrentUserOutputDTO(UserAuth auth, Person person, long pendingInvitations, String pendingCompanyName) {
         this(
                 auth.getId(),
                 auth.getUsername(),
@@ -28,7 +29,8 @@ public record CurrentUserOutputDTO(
                 person.getEmail().address(),
                 person.getPhone().number(),
                 person.getLocale(),
-                pendingInvitations);
+                pendingInvitations,
+                pendingCompanyName);
     }
 
 }

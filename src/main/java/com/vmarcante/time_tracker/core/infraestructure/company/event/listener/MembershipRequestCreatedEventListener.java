@@ -74,15 +74,21 @@ public class MembershipRequestCreatedEventListener {
                     .filter(Objects::nonNull)
                     .map(CompanyMembership::getUserId)
                     .collect(Collectors.toSet());
+
             List<Person> approverPersons = personRepository.findAllByIds(approverIds);
 
             String companyName = companyRepository.findById(event.getCompanyId())
                     .map(c -> c.getLegalName())
                     .orElse("");
+            
+            String requestReason = companyRepository.findMembershipById(event.getMembershipId())
+                    .map(CompanyMembership::getRequestReason)
+                    .orElse(null);
+                    
             String pendingLink = frontendUrl + "/companies/" + event.getCompanyId() + "/members/pending";
 
             for (Person approver : approverPersons) {
-                sendToApprover(approver, requester, companyName, pendingLink);
+                sendToApprover(approver, requester, companyName, pendingLink, requestReason);
             }
 
             log.info("[Membership Request Event] Request emails sent to {} approver(s) | Company: {}",
@@ -93,7 +99,8 @@ public class MembershipRequestCreatedEventListener {
         }
     }
 
-    private void sendToApprover(Person approver, Person requester, String companyName, String pendingLink) {
+    private void sendToApprover(Person approver, Person requester, String companyName, String pendingLink,
+            String requestReason) {
         try {
             if (approver.getEmail() == null
                     || !StringValidationUtils.containsContent(approver.getEmail().address())) {
@@ -106,6 +113,7 @@ public class MembershipRequestCreatedEventListener {
             templateData.put("requesterEmail",
                     requester.getEmail() != null ? requester.getEmail().address() : "");
             templateData.put("companyName", companyName);
+            templateData.put("requestReason", requestReason);
             templateData.put("pendingLink", pendingLink);
 
             boolean isPortuguese = "pt".equalsIgnoreCase(approver.getLocale());

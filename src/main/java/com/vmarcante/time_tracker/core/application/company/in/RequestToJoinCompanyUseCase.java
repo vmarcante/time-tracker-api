@@ -7,5 +7,5 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 
 public interface RequestToJoinCompanyUseCase {
 
-    CompanyMemberOutputDTO execute(UUID companyId) throws ApplicationException;
+    CompanyMemberOutputDTO execute(UUID companyId, String requestReason) throws ApplicationException;
 }

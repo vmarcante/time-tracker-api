@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
+
 public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEntity, UUID> {
 
     Optional<UserCompanyJpaEntity> findByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(
@@ -36,7 +38,19 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
 
     Page<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId, Pageable pageable);
 
-    long countByUserIdAndActiveTrueAndApprovedFalse(UUID userId);
+    Page<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalseAndOrigin(
+            UUID userId, MembershipOrigin origin, Pageable pageable);
+
+    long countByUserIdAndActiveTrueAndApprovedFalseAndOrigin(UUID userId, MembershipOrigin origin);
+
+    @Query("""
+            SELECT c.legalName FROM UserCompanyJpaEntity uc
+            JOIN CompanyJpaEntity c ON c.id = uc.companyId
+            WHERE uc.userId = :userId AND uc.active = true AND uc.approved = false
+            AND uc.origin = :origin AND c.active = true
+            """)
+    Optional<String> findPendingCompanyNameByUserIdAndOrigin(
+            @Param("userId") UUID userId, @Param("origin") MembershipOrigin origin);
 
     @Query("""
             SELECT c FROM UserCompanyJpaEntity uc

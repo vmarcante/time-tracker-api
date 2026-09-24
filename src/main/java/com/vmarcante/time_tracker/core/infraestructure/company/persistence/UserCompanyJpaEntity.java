@@ -62,6 +62,9 @@ public class UserCompanyJpaEntity implements BaseActiveEntityInterface<UUID, Int
     @Column(name = "C0009_ORIGIN", nullable = false, length = 10)
     private MembershipOrigin origin;
 
+    @Column(name = "C0009_REQUEST_REASON", length = 500)
+    private String requestReason;
+
     @Column(name = "C0009_APPROVED", nullable = false)
     private Boolean approved;
 

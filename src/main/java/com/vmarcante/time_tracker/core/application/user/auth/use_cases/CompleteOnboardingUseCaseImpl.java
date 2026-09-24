@@ -80,8 +80,9 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
                 .filter(c -> Boolean.TRUE.equals(c.getActive()))
                 .orElseThrow(() -> new ApplicationException("company.not.found", null));
 
-        userAuth.setAffiliation(AffiliationStatus.COMPANY);
-        userAuthRepository.save(userAuth);
+        if (input.requestReason() != null && input.requestReason().length() > 500) {
+            throw new ApplicationException("membership.request.reason.too.long", null);
+        }
 
         if (!companyRepository.hasAnyActiveMembership(userId, company.getId())) {
             CompanyMembership membership = new CompanyMembership();
@@ -90,6 +91,7 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
             membership.setRole(CompanyRole.MEMBER);
             membership.setOrigin(MembershipOrigin.REQUEST);
             membership.setApproved(false);
+            membership.setRequestReason(input.requestReason());
             membership.setActive(true);
             membership.setCreatedBy(userId);
             membership.setUpdatedBy(userId);

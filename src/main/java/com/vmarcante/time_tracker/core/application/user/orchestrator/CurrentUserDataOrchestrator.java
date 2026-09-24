@@ -62,10 +62,14 @@ public class CurrentUserDataOrchestrator {
         UserAuth userAuth = userAuthOptional.get();
         Person person = personOptional.get();
 
-        long pendingInvitations = userAuth.getAffiliation() == AffiliationStatus.PENDING
-                ? companyRepository.countPendingInvitationsByUserId(userId)
-                : 0;
+        long pendingInvitations = 0;
+        String pendingCompanyName = null;
 
-        return new CurrentUserOutputDTO(userAuth, person, pendingInvitations);
+        if (userAuth.getAffiliation() == AffiliationStatus.PENDING) {
+            pendingInvitations = companyRepository.countPendingInvitationsByUserId(userId);
+            pendingCompanyName = companyRepository.findPendingRequestCompanyNameByUserId(userId).orElse(null);
+        }
+
+        return new CurrentUserOutputDTO(userAuth, person, pendingInvitations, pendingCompanyName);
     }
 }

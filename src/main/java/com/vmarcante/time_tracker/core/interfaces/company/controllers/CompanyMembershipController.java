@@ -32,6 +32,7 @@ import com.vmarcante.time_tracker.core.application.company.in.ListMyInvitationsU
 import com.vmarcante.time_tracker.core.application.company.in.ListPendingMembershipsUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.RejectMembershipRequestUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCase;
+import com.vmarcante.time_tracker.core.application.company.dto.input.RequestToJoinInputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.RequestToJoinCompanyUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
@@ -98,8 +99,10 @@ public class CompanyMembershipController extends BaseResponseController {
     @PostMapping("/{companyId}/join")
     @Operation(summary = "Request to join", description = "Requests to join a company as MEMBER (pending company approval)")
     public ResponseEntity<ApiResponseDTO<CompanyMemberOutputDTO>> requestToJoin(
-            @PathVariable UUID companyId) throws ApplicationException {
-        return created(requestToJoinCompanyUseCase.execute(companyId));
+            @PathVariable UUID companyId,
+            @RequestBody(required = false) RequestToJoinInputDTO input) throws ApplicationException {
+        String requestReason = input != null ? input.requestReason() : null;
+        return created(requestToJoinCompanyUseCase.execute(companyId, requestReason));
     }
 
     @AuthSecure
