@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -22,19 +22,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final TeamRepository teamRepository;
     private final ProjectRepository projectRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public RemoveMemberUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             TeamRepository teamRepository,
             ProjectRepository projectRepository,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.teamRepository = teamRepository;
         this.projectRepository = projectRepository;
         this.userAuthRepository = userAuthRepository;
@@ -51,10 +51,10 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
-        CompanyMembership target = companyRepository.findMembershipById(membershipId)
+        CompanyMembership target = membershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
                 .filter(m -> Boolean.TRUE.equals(m.getActive()))
                 .orElseThrow(() -> new ApplicationException("company.membership.not.found", null));
@@ -69,12 +69,12 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
 
         target.setActive(false);
         target.setUpdatedBy(actorId);
-        companyRepository.saveMembership(target);
+        membershipRepository.saveMembership(target);
 
         teamRepository.deactivateMembershipsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
         projectRepository.deactivateAssignmentsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
 
-        if (!companyRepository.hasAnyApprovedMembership(target.getUserId())) {
+        if (!membershipRepository.hasAnyApprovedMembership(target.getUserId())) {
             userAuthRepository.findById(target.getUserId()).ifPresent(userAuth -> {
                 userAuth.setAffiliation(AffiliationStatus.INDEPENDENT);
                 userAuthRepository.save(userAuth);

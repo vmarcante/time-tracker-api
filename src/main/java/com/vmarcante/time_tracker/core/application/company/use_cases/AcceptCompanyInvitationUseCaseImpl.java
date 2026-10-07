@@ -12,7 +12,7 @@ import com.vmarcante.time_tracker.core.application.company.in.AcceptCompanyInvit
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
@@ -24,17 +24,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AcceptCompanyInvitationUseCaseImpl implements AcceptCompanyInvitationUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public AcceptCompanyInvitationUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
@@ -50,7 +50,7 @@ public class AcceptCompanyInvitationUseCaseImpl implements AcceptCompanyInvitati
 
         UUID userId = currentUserId.get();
 
-        CompanyMembership membership = companyRepository.findPendingMembership(userId, companyId)
+        CompanyMembership membership = membershipRepository.findPendingMembership(userId, companyId)
                 .filter(m -> m.getOrigin() == MembershipOrigin.INVITE)
                 .orElseThrow(() -> new ApplicationException("company.invitation.not.found", null));
 
@@ -59,7 +59,7 @@ public class AcceptCompanyInvitationUseCaseImpl implements AcceptCompanyInvitati
         membership.setApprovedBy(userId);
         membership.setUpdatedBy(userId);
 
-        CompanyMembership saved = companyRepository.saveMembership(membership);
+        CompanyMembership saved = membershipRepository.saveMembership(membership);
 
         userAuthRepository.findById(userId).ifPresent(userAuth -> {
             userAuth.setAffiliation(AffiliationStatus.COMPANY);

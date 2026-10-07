@@ -12,7 +12,7 @@ import com.vmarcante.time_tracker.core.application.company.in.ChangeMemberRoleUs
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -23,17 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final TeamRepository teamRepository;
     private final SecurityContextPort securityContext;
 
     public ChangeMemberRoleUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             TeamRepository teamRepository,
             SecurityContextPort securityContext) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.teamRepository = teamRepository;
         this.securityContext = securityContext;
@@ -58,10 +58,10 @@ public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
             throw new ApplicationException("company.member.role.owner.not.assignable", null);
         }
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
-        CompanyMembership target = companyRepository.findMembershipById(membershipId)
+        CompanyMembership target = membershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
                 .filter(m -> Boolean.TRUE.equals(m.getActive()))
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
@@ -79,7 +79,7 @@ public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
         target.setRole(input.role());
         target.setUpdatedBy(actorId);
 
-        CompanyMembership saved = companyRepository.saveMembership(target);
+        CompanyMembership saved = membershipRepository.saveMembership(target);
 
         if (input.role() == CompanyRole.MEMBER) {
             teamRepository.demoteLeadsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);

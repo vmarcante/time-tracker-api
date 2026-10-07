@@ -10,7 +10,7 @@ import com.vmarcante.time_tracker.core.application.company.in.DeclineCompanyInvi
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -19,13 +19,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DeclineCompanyInvitationUseCaseImpl implements DeclineCompanyInvitationUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public DeclineCompanyInvitationUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
     }
 
@@ -39,13 +39,13 @@ public class DeclineCompanyInvitationUseCaseImpl implements DeclineCompanyInvita
 
         UUID userId = currentUserId.get();
 
-        CompanyMembership membership = companyRepository.findPendingMembership(userId, companyId)
+        CompanyMembership membership = membershipRepository.findPendingMembership(userId, companyId)
                 .filter(m -> m.getOrigin() == MembershipOrigin.INVITE)
                 .orElseThrow(() -> new ApplicationException("company.invitation.not.found", null));
 
         membership.setActive(false);
         membership.setUpdatedBy(userId);
-        companyRepository.saveMembership(membership);
+        membershipRepository.saveMembership(membership);
 
         log.info("[Decline Invitation] User {} declined invitation to company {}", userId, companyId);
     }

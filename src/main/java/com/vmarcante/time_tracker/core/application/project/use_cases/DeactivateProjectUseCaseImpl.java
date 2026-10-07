@@ -10,7 +10,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.application.project.in.DeactivateProjectUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -22,15 +22,15 @@ import lombok.extern.slf4j.Slf4j;
 public class DeactivateProjectUseCaseImpl implements DeactivateProjectUseCase {
 
     private final ProjectRepository projectRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public DeactivateProjectUseCaseImpl(
             ProjectRepository projectRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
     }
 
@@ -44,7 +44,7 @@ public class DeactivateProjectUseCaseImpl implements DeactivateProjectUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {

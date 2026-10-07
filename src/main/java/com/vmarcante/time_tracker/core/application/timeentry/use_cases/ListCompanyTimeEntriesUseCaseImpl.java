@@ -14,7 +14,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntr
 import com.vmarcante.time_tracker.core.application.timeentry.in.ListCompanyTimeEntriesUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -23,17 +23,17 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntriesUseCase {
 
     private final TimeEntryRepository timeEntryRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final TimeEntryDetailAssembler assembler;
     private final SecurityContextPort securityContext;
 
     public ListCompanyTimeEntriesUseCaseImpl(
             TimeEntryRepository timeEntryRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             TimeEntryDetailAssembler assembler,
             SecurityContextPort securityContext) {
         this.timeEntryRepository = timeEntryRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.assembler = assembler;
         this.securityContext = securityContext;
     }
@@ -47,7 +47,7 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
         }
         UUID actorId = currentUserId.get();
 
-        CompanyMembership membership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership membership = membershipRepository.findMembership(actorId, companyId)
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 

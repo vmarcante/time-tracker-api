@@ -9,4 +9,5 @@ public class MembershipRejectedEvent {
 
     private final UUID memberUserId;
     private final UUID companyId;
+    private final String rejectionReason;
 }

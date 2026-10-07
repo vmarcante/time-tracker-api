@@ -59,6 +59,10 @@ public class MembershipRejectedEventListener {
             templateData.put("name", member.getName());
             templateData.put("companyName", companyName);
             templateData.put("homeLink", frontendUrl);
+            
+            if (StringValidationUtils.containsContent(event.getRejectionReason())) {
+                templateData.put("rejectionReason", event.getRejectionReason());
+            }
 
             boolean isPortuguese = "pt".equalsIgnoreCase(member.getLocale());
             String subject = isPortuguese

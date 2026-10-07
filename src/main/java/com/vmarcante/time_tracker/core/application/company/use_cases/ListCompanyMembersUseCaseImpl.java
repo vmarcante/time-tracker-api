@@ -15,22 +15,22 @@ import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMem
 import com.vmarcante.time_tracker.core.application.company.in.ListCompanyMembersUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
 public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public ListCompanyMembersUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
     }
@@ -43,11 +43,11 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!companyRepository.isMember(currentUserId.get(), companyId)) {
+        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 
-        Page<CompanyMembership> members = companyRepository
+        Page<CompanyMembership> members = membershipRepository
                 .findApprovedMembershipsByCompanyId(companyId, pageable);
 
         if (members.isEmpty()) {

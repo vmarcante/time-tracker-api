@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.company.event.CompanyInvitationCreatedEvent;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.email.model.EmailData;
 import com.vmarcante.time_tracker.core.domain.email.service.EmailService;
@@ -25,16 +26,19 @@ public class CompanyInvitationCreatedEventListener {
 
     private final EmailService emailService;
     private final PersonRepository personRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final String frontendUrl;
 
     public CompanyInvitationCreatedEventListener(
             EmailService emailService,
             PersonRepository personRepository,
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             @Value("${app.frontend.url:https://app.timetracker.com}") String frontendUrl) {
         this.emailService = emailService;
         this.personRepository = personRepository;
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.frontendUrl = frontendUrl;
     }
@@ -55,7 +59,7 @@ public class CompanyInvitationCreatedEventListener {
                     .map(c -> c.getLegalName())
                     .orElse("");
             String inviterName = personRepository.findNameById(event.getInviterUserId()).orElse("");
-            String role = companyRepository.findMembershipById(event.getMembershipId())
+            String role = membershipRepository.findMembershipById(event.getMembershipId())
                     .map(m -> m.getRole().name())
                     .orElse("");
 

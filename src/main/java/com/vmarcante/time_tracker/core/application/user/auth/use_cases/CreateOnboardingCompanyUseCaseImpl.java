@@ -17,6 +17,7 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -30,16 +31,19 @@ import lombok.extern.slf4j.Slf4j;
 public class CreateOnboardingCompanyUseCaseImpl implements CreateOnboardingCompanyUseCase {
 
     private final UserAuthRepository userAuthRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
     private final CreateCompanyValidationPolicy validationPolicy;
 
     public CreateOnboardingCompanyUseCaseImpl(
             UserAuthRepository userAuthRepository,
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             SecurityContextPort securityContext,
             CreateCompanyValidationPolicy validationPolicy) {
         this.userAuthRepository = userAuthRepository;
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.securityContext = securityContext;
         this.validationPolicy = validationPolicy;
@@ -92,7 +96,7 @@ public class CreateOnboardingCompanyUseCaseImpl implements CreateOnboardingCompa
         membership.setCreatedBy(userId);
         membership.setUpdatedBy(userId);
 
-        companyRepository.saveMembership(membership);
+        membershipRepository.saveMembership(membership);
 
         userAuth.setAffiliation(AffiliationStatus.COMPANY);
         userAuthRepository.save(userAuth);

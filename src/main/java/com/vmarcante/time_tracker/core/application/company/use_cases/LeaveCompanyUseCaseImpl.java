@@ -10,7 +10,7 @@ import com.vmarcante.time_tracker.core.application.company.in.LeaveCompanyUseCas
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -23,19 +23,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final TeamRepository teamRepository;
     private final ProjectRepository projectRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public LeaveCompanyUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             TeamRepository teamRepository,
             ProjectRepository projectRepository,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.teamRepository = teamRepository;
         this.projectRepository = projectRepository;
         this.userAuthRepository = userAuthRepository;
@@ -52,7 +52,7 @@ public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
 
         UUID userId = currentUserId.get();
 
-        CompanyMembership membership = companyRepository.findMembership(userId, companyId)
+        CompanyMembership membership = membershipRepository.findMembership(userId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (membership.getRole() == CompanyRole.OWNER) {
@@ -61,12 +61,12 @@ public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
 
         membership.setActive(false);
         membership.setUpdatedBy(userId);
-        companyRepository.saveMembership(membership);
+        membershipRepository.saveMembership(membership);
 
         teamRepository.deactivateMembershipsByUserIdAndCompanyId(userId, companyId, userId);
         projectRepository.deactivateAssignmentsByUserIdAndCompanyId(userId, companyId, userId);
 
-        if (!companyRepository.hasAnyApprovedMembership(userId)) {
+        if (!membershipRepository.hasAnyApprovedMembership(userId)) {
             userAuthRepository.findById(userId).ifPresent(userAuth -> {
                 userAuth.setAffiliation(AffiliationStatus.INDEPENDENT);
                 userAuthRepository.save(userAuth);

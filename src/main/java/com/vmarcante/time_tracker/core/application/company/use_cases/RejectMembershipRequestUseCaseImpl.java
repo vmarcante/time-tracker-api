@@ -7,12 +7,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.vmarcante.time_tracker.core.application.company.dto.input.RejectMembershipInputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.RejectMembershipRequestUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.event.MembershipRejectedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,22 +22,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RejectMembershipRequestUseCaseImpl implements RejectMembershipRequestUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
 
     public RejectMembershipRequestUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
         this.eventPublisher = eventPublisher;
     }
 
     @Override
     @Transactional
-    public void execute(UUID companyId, UUID membershipId) throws ApplicationException {
+    public void execute(UUID companyId, UUID membershipId, RejectMembershipInputDTO input) throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -44,10 +45,10 @@ public class RejectMembershipRequestUseCaseImpl implements RejectMembershipReque
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
-        CompanyMembership target = companyRepository.findMembershipById(membershipId)
+        CompanyMembership target = membershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
                 .filter(m -> Boolean.TRUE.equals(m.getActive()))
                 .orElseThrow(() -> new ApplicationException("company.membership.not.found", null));
@@ -64,11 +65,21 @@ public class RejectMembershipRequestUseCaseImpl implements RejectMembershipReque
             throw new ApplicationException("company.permission.denied", null);
         }
 
-        target.setActive(false);
-        target.setUpdatedBy(actorId);
-        companyRepository.saveMembership(target);
+        String rejectionReason = input != null && input.rejectionReason() != null
+                ? input.rejectionReason().trim()
+                : null;
 
-        eventPublisher.publishEvent(new MembershipRejectedEvent(target.getUserId(), companyId));
+        if (rejectionReason != null && rejectionReason.length() > 500) {
+            throw new ApplicationException("membership.rejection.reason.too.long", null);
+        }
+
+        target.setActive(false);
+        target.setRejectionReason(rejectionReason != null && rejectionReason.isEmpty() ? null : rejectionReason);
+        target.setUpdatedBy(actorId);
+        membershipRepository.saveMembership(target);
+
+        eventPublisher.publishEvent(new MembershipRejectedEvent(
+                target.getUserId(), companyId, target.getRejectionReason()));
 
         log.info("[Reject Membership] Membership {} rejected by {}", membershipId, actorId);
     }

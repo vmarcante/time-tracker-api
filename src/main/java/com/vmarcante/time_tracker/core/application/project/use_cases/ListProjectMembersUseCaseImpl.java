@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAssignmentOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.ListProjectMembersUseCase;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
@@ -23,17 +23,17 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase {
 
     private final ProjectRepository projectRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public ListProjectMembersUseCaseImpl(
             ProjectRepository projectRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
     }
@@ -46,7 +46,7 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!companyRepository.isMember(currentUserId.get(), companyId)) {
+        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 

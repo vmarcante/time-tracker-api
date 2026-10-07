@@ -19,6 +19,7 @@ import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.company.dto.input.ChangeMemberRoleInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.InviteMemberInputDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.RejectMembershipInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyInvitationOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.AcceptCompanyInvitationUseCase;
@@ -30,6 +31,7 @@ import com.vmarcante.time_tracker.core.application.company.in.LeaveCompanyUseCas
 import com.vmarcante.time_tracker.core.application.company.in.ListCompanyMembersUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.ListMyInvitationsUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.ListPendingMembershipsUseCase;
+import com.vmarcante.time_tracker.core.application.company.in.ListResolvedMembershipsUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.RejectMembershipRequestUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCase;
 import com.vmarcante.time_tracker.core.application.company.dto.input.RequestToJoinInputDTO;
@@ -55,6 +57,7 @@ public class CompanyMembershipController extends BaseResponseController {
     private final ListMyInvitationsUseCase listMyInvitationsUseCase;
     private final ListCompanyMembersUseCase listCompanyMembersUseCase;
     private final ListPendingMembershipsUseCase listPendingMembershipsUseCase;
+    private final ListResolvedMembershipsUseCase listResolvedMembershipsUseCase;
     private final ChangeMemberRoleUseCase changeMemberRoleUseCase;
     private final RemoveMemberUseCase removeMemberUseCase;
     private final LeaveCompanyUseCase leaveCompanyUseCase;
@@ -69,6 +72,7 @@ public class CompanyMembershipController extends BaseResponseController {
             ListMyInvitationsUseCase listMyInvitationsUseCase,
             ListCompanyMembersUseCase listCompanyMembersUseCase,
             ListPendingMembershipsUseCase listPendingMembershipsUseCase,
+            ListResolvedMembershipsUseCase listResolvedMembershipsUseCase,
             ChangeMemberRoleUseCase changeMemberRoleUseCase,
             RemoveMemberUseCase removeMemberUseCase,
             LeaveCompanyUseCase leaveCompanyUseCase) {
@@ -81,6 +85,7 @@ public class CompanyMembershipController extends BaseResponseController {
         this.listMyInvitationsUseCase = listMyInvitationsUseCase;
         this.listCompanyMembersUseCase = listCompanyMembersUseCase;
         this.listPendingMembershipsUseCase = listPendingMembershipsUseCase;
+        this.listResolvedMembershipsUseCase = listResolvedMembershipsUseCase;
         this.changeMemberRoleUseCase = changeMemberRoleUseCase;
         this.removeMemberUseCase = removeMemberUseCase;
         this.leaveCompanyUseCase = leaveCompanyUseCase;
@@ -128,6 +133,17 @@ public class CompanyMembershipController extends BaseResponseController {
     }
 
     @AuthSecure
+    @GetMapping("/{companyId}/members/resolved")
+    @Operation(summary = "List resolved memberships", description = "Lists all non-pending memberships (approved or rejected) of the company (approvers only)")
+    public ResponseEntity<ApiResponseDTO<PageWrapperDTO<CompanyMemberOutputDTO>>> listResolved(
+            @PathVariable UUID companyId,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size) throws ApplicationException {
+        Pageable pageable = PageableUtils.pageable(page, size, null);
+        return ok(PageWrapperDTO.of(listResolvedMembershipsUseCase.execute(companyId, pageable)));
+    }
+
+    @AuthSecure
     @PostMapping("/{companyId}/members/{membershipId}/approve")
     @Operation(summary = "Approve membership", description = "Approves a pending join request (role hierarchy applies)")
     public ResponseEntity<ApiResponseDTO<CompanyMemberOutputDTO>> approveMembership(
@@ -141,8 +157,9 @@ public class CompanyMembershipController extends BaseResponseController {
     @Operation(summary = "Reject membership", description = "Rejects a pending join request (role hierarchy applies)")
     public ResponseEntity<ApiResponseDTO<Void>> rejectMembership(
             @PathVariable UUID companyId,
-            @PathVariable UUID membershipId) throws ApplicationException {
-        rejectMembershipRequestUseCase.execute(companyId, membershipId);
+            @PathVariable UUID membershipId,
+            @RequestBody(required = false) RejectMembershipInputDTO input) throws ApplicationException {
+        rejectMembershipRequestUseCase.execute(companyId, membershipId, input);
         return noContent();
     }
 

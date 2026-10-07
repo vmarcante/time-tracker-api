@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.ListTeamProjectsUseCase;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
@@ -23,17 +23,17 @@ public class ListTeamProjectsUseCaseImpl implements ListTeamProjectsUseCase {
 
     private final ProjectRepository projectRepository;
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public ListTeamProjectsUseCaseImpl(
             ProjectRepository projectRepository,
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
     }
 
@@ -45,7 +45,7 @@ public class ListTeamProjectsUseCaseImpl implements ListTeamProjectsUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!companyRepository.isMember(currentUserId.get(), companyId)) {
+        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 

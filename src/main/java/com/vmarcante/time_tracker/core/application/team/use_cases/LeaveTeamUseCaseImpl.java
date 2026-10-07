@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.in.LeaveTeamUseCase;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
@@ -21,17 +21,17 @@ import lombok.extern.slf4j.Slf4j;
 public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
 
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final ProjectRepository projectRepository;
     private final SecurityContextPort securityContext;
 
     public LeaveTeamUseCaseImpl(
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             ProjectRepository projectRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.projectRepository = projectRepository;
         this.securityContext = securityContext;
     }
@@ -46,7 +46,7 @@ public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
 
         UUID userId = currentUserId.get();
 
-        if (!companyRepository.isMember(userId, companyId)) {
+        if (!membershipRepository.isMember(userId, companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 

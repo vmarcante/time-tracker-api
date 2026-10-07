@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CurrentUserOutputDTO;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
@@ -24,17 +24,17 @@ public class CurrentUserDataOrchestrator {
 
     private final UserAuthRepository userAuthRepository;
     private final PersonRepository personRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort context;
 
     public CurrentUserDataOrchestrator(
             UserAuthRepository userAuthRepository,
             PersonRepository personRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             SecurityContextPort context) {
         this.userAuthRepository = userAuthRepository;
         this.personRepository = personRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.context = context;
     }
 
@@ -67,14 +67,14 @@ public class CurrentUserDataOrchestrator {
         String pendingCompanyName = null;
 
         if (userAuth.getAffiliation() == AffiliationStatus.PENDING) {
-            pendingInvitations = companyRepository.countPendingInvitationsByUserId(userId);
-            pendingCompanyName = companyRepository.findPendingRequestCompanyNameByUserId(userId).orElse(null);
+            pendingInvitations = membershipRepository.countPendingInvitationsByUserId(userId);
+            pendingCompanyName = membershipRepository.findPendingRequestCompanyNameByUserId(userId).orElse(null);
         }
 
         CurrentUserOutputDTO dto = new CurrentUserOutputDTO(userAuth, person, pendingInvitations, pendingCompanyName);
 
         if (userAuth.getAffiliation() == AffiliationStatus.COMPANY) {
-            Optional<CompanyMembership> membership = companyRepository.findApprovedMembershipByUserId(userId);
+            Optional<CompanyMembership> membership = membershipRepository.findApprovedMembershipByUserId(userId);
             if (membership.isPresent()) {
                 dto = dto.withCompanyMembership(membership.get().getCompanyId(), membership.get().getRole());
             }

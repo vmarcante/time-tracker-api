@@ -10,7 +10,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.application.team.in.DeactivateTeamUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
@@ -23,17 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 public class DeactivateTeamUseCaseImpl implements DeactivateTeamUseCase {
 
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final ProjectRepository projectRepository;
     private final SecurityContextPort securityContext;
 
     public DeactivateTeamUseCaseImpl(
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             ProjectRepository projectRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.projectRepository = projectRepository;
         this.securityContext = securityContext;
     }
@@ -48,7 +48,7 @@ public class DeactivateTeamUseCaseImpl implements DeactivateTeamUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {

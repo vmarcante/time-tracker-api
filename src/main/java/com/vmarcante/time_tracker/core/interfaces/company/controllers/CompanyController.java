@@ -20,6 +20,7 @@ import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseContro
 import com.vmarcante.time_tracker.core.application.company.dto.input.CreateCompanyInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.UpdateCompanyInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyDetailOutputDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMenuOverviewOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CreateCompanyOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.CreateCompanyUseCase;
@@ -27,6 +28,7 @@ import com.vmarcante.time_tracker.core.application.company.in.DeactivateCompanyU
 import com.vmarcante.time_tracker.core.application.company.in.FindCompanyByIdUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.FindUserCompaniesUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.UpdateCompanyUseCase;
+import com.vmarcante.time_tracker.core.application.company.orchestrator.CompanyMenuOverviewOrchestrator;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
@@ -44,18 +46,21 @@ public class CompanyController extends BaseResponseController {
     private final FindUserCompaniesUseCase findUserCompaniesUseCase;
     private final UpdateCompanyUseCase updateCompanyUseCase;
     private final DeactivateCompanyUseCase deactivateCompanyUseCase;
+    private final CompanyMenuOverviewOrchestrator menuOverviewOrchestrator;
 
     public CompanyController(
             CreateCompanyUseCase createCompanyUseCase,
             FindCompanyByIdUseCase findCompanyByIdUseCase,
             FindUserCompaniesUseCase findUserCompaniesUseCase,
             UpdateCompanyUseCase updateCompanyUseCase,
-            DeactivateCompanyUseCase deactivateCompanyUseCase) {
+            DeactivateCompanyUseCase deactivateCompanyUseCase,
+            CompanyMenuOverviewOrchestrator menuOverviewOrchestrator) {
         this.createCompanyUseCase = createCompanyUseCase;
         this.findCompanyByIdUseCase = findCompanyByIdUseCase;
         this.findUserCompaniesUseCase = findUserCompaniesUseCase;
         this.updateCompanyUseCase = updateCompanyUseCase;
         this.deactivateCompanyUseCase = deactivateCompanyUseCase;
+        this.menuOverviewOrchestrator = menuOverviewOrchestrator;
     }
 
     @AuthSecure
@@ -74,6 +79,14 @@ public class CompanyController extends BaseResponseController {
             @RequestParam(required = false) Integer size) throws ApplicationException {
         Pageable pageable = PageableUtils.pageable(page, size, null);
         return ok(PageWrapperDTO.of(findUserCompaniesUseCase.execute(pageable)));
+    }
+
+    @AuthSecure
+    @GetMapping("/{id}/menu-overview")
+    @Operation(summary = "Company menu overview", description = "Returns summarized data for the company side menu (pending requests count, etc.)")
+    public ResponseEntity<ApiResponseDTO<CompanyMenuOverviewOutputDTO>> menuOverview(
+            @PathVariable UUID id) throws ApplicationException {
+        return ok(menuOverviewOrchestrator.execute(id));
     }
 
     @AuthSecure

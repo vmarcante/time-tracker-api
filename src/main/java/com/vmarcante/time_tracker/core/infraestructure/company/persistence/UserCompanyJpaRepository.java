@@ -43,6 +43,8 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
 
     long countByUserIdAndActiveTrueAndApprovedFalseAndOrigin(UUID userId, MembershipOrigin origin);
 
+    long countByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId);
+
     @Query("""
             SELECT c.legalName FROM UserCompanyJpaEntity uc
             JOIN CompanyJpaEntity c ON c.id = uc.companyId
@@ -67,4 +69,12 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
     List<UUID> findApprovedCompanyIdsByUserId(@Param("userId") UUID userId);
 
     Optional<UserCompanyJpaEntity> findFirstByUserIdAndActiveTrueAndApprovedTrue(UUID userId);
+
+    @Query("""
+            SELECT uc FROM UserCompanyJpaEntity uc
+            WHERE uc.companyId = :companyId AND (uc.approved = true OR uc.active = false)
+            ORDER BY uc.updatedAt DESC
+            """)
+    Page<UserCompanyJpaEntity> findResolvedByCompanyId(
+            @Param("companyId") UUID companyId, Pageable pageable);
 }

@@ -20,6 +20,7 @@ public class CompanyMembership extends BaseActiveDomainModel<UUID, Integer> {
     private MembershipOrigin origin;
     private Boolean approved;
     private String requestReason;
+    private String rejectionReason;
     private LocalDateTime approvedAt;
     private UUID approvedBy;
     private UUID createdBy;

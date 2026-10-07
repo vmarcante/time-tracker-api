@@ -12,7 +12,7 @@ import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAss
 import com.vmarcante.time_tracker.core.application.project.in.GetUnlinkImpactUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
@@ -25,19 +25,19 @@ public class GetUnlinkImpactUseCaseImpl implements GetUnlinkImpactUseCase {
 
     private final ProjectRepository projectRepository;
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public GetUnlinkImpactUseCaseImpl(
             ProjectRepository projectRepository,
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
     }
@@ -50,7 +50,7 @@ public class GetUnlinkImpactUseCaseImpl implements GetUnlinkImpactUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        CompanyMembership actorMembership = companyRepository
+        CompanyMembership actorMembership = membershipRepository
                 .findMembership(currentUserId.get(), companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 

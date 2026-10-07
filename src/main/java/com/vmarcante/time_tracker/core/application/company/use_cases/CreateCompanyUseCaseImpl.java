@@ -16,6 +16,7 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
@@ -27,16 +28,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CreateCompanyUseCaseImpl implements CreateCompanyUseCase {
 
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final CreateCompanyValidationPolicy validationPolicy;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public CreateCompanyUseCaseImpl(
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             CreateCompanyValidationPolicy validationPolicy,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.validationPolicy = validationPolicy;
         this.userAuthRepository = userAuthRepository;
@@ -83,7 +87,7 @@ public class CreateCompanyUseCaseImpl implements CreateCompanyUseCase {
         membership.setCreatedBy(userId);
         membership.setUpdatedBy(userId);
 
-        companyRepository.saveMembership(membership);
+        membershipRepository.saveMembership(membership);
 
         userAuthRepository.findById(userId).ifPresent(userAuth -> {
             userAuth.setAffiliation(AffiliationStatus.COMPANY);

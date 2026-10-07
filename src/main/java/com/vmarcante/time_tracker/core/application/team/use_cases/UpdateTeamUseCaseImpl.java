@@ -15,7 +15,7 @@ import com.vmarcante.time_tracker.core.application.team.in.UpdateTeamUseCase;
 import com.vmarcante.time_tracker.core.application.team.policy.TeamValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
@@ -29,19 +29,19 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
 
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final TeamValidationPolicy validationPolicy;
     private final SecurityContextPort securityContext;
 
     public UpdateTeamUseCaseImpl(
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             TeamValidationPolicy validationPolicy,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.validationPolicy = validationPolicy;
         this.securityContext = securityContext;
@@ -58,7 +58,7 @@ public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {

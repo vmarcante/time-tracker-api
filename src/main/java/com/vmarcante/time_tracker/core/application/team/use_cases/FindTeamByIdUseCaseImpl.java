@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.in.FindTeamByIdUseCase;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
@@ -21,17 +21,17 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class FindTeamByIdUseCaseImpl implements FindTeamByIdUseCase {
 
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public FindTeamByIdUseCaseImpl(
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
     }
@@ -43,7 +43,7 @@ public class FindTeamByIdUseCaseImpl implements FindTeamByIdUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!companyRepository.isMember(currentUserId.get(), companyId)) {
+        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 

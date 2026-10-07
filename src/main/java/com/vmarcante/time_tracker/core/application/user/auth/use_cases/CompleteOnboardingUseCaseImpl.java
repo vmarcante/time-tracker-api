@@ -16,6 +16,7 @@ import com.vmarcante.time_tracker.core.domain.company.event.MembershipRequestCre
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -29,16 +30,19 @@ import lombok.extern.slf4j.Slf4j;
 public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase {
 
     private final UserAuthRepository userAuthRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
 
     public CompleteOnboardingUseCaseImpl(
             UserAuthRepository userAuthRepository,
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
         this.userAuthRepository = userAuthRepository;
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.securityContext = securityContext;
         this.eventPublisher = eventPublisher;
@@ -84,7 +88,7 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
             throw new ApplicationException("membership.request.reason.too.long", null);
         }
 
-        if (!companyRepository.hasAnyActiveMembership(userId, company.getId())) {
+        if (!membershipRepository.hasAnyActiveMembership(userId, company.getId())) {
             CompanyMembership membership = new CompanyMembership();
             membership.setUserId(userId);
             membership.setCompanyId(company.getId());
@@ -95,12 +99,12 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
             membership.setActive(true);
             membership.setCreatedBy(userId);
             membership.setUpdatedBy(userId);
-            CompanyMembership saved = companyRepository.saveMembership(membership);
+            CompanyMembership saved = membershipRepository.saveMembership(membership);
             eventPublisher.publishEvent(new MembershipRequestCreatedEvent(
                     saved.getId(), userId, company.getId()));
         }
 
-        boolean membershipPending = !companyRepository.isMember(userId, company.getId());
+        boolean membershipPending = !membershipRepository.isMember(userId, company.getId());
 
         log.info("[Onboarding] User {} affiliated with company {} (pending: {})",
                 userId, company.getId(), membershipPending);

@@ -14,7 +14,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.event.MembershipApprovedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
@@ -26,19 +26,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipRequestUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
 
     public ApproveMembershipRequestUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
@@ -55,10 +55,10 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
-        CompanyMembership target = companyRepository.findMembershipById(membershipId)
+        CompanyMembership target = membershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
                 .filter(m -> Boolean.TRUE.equals(m.getActive()))
                 .orElseThrow(() -> new ApplicationException("company.membership.not.found", null));
@@ -80,7 +80,7 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
         target.setApprovedBy(actorId);
         target.setUpdatedBy(actorId);
 
-        CompanyMembership saved = companyRepository.saveMembership(target);
+        CompanyMembership saved = membershipRepository.saveMembership(target);
 
         userAuthRepository.findById(target.getUserId()).ifPresent(userAuth -> {
             userAuth.setAffiliation(AffiliationStatus.COMPANY);

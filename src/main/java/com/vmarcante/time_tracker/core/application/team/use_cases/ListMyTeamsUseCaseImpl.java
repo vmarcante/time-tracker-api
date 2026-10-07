@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.in.ListMyTeamsUseCase;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
@@ -22,17 +22,17 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListMyTeamsUseCaseImpl implements ListMyTeamsUseCase {
 
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public ListMyTeamsUseCaseImpl(
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
     }
@@ -47,7 +47,7 @@ public class ListMyTeamsUseCaseImpl implements ListMyTeamsUseCase {
 
         UUID userId = currentUserId.get();
 
-        if (!companyRepository.isMember(userId, companyId)) {
+        if (!membershipRepository.isMember(userId, companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 

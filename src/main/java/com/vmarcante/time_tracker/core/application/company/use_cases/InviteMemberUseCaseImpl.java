@@ -15,7 +15,7 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.event.CompanyInvitationCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -26,17 +26,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
 
     public InviteMemberUseCaseImpl(
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
         this.eventPublisher = eventPublisher;
@@ -52,7 +52,7 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (input.role() == null) {
@@ -74,7 +74,7 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
             throw new ApplicationException("company.member.cannot.invite.self", null);
         }
 
-        if (companyRepository.hasAnyActiveMembership(invitee.getId(), companyId)) {
+        if (membershipRepository.hasAnyActiveMembership(invitee.getId(), companyId)) {
             throw new ApplicationException("company.member.already.exists", null);
         }
 
@@ -88,7 +88,7 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
         membership.setCreatedBy(actorId);
         membership.setUpdatedBy(actorId);
 
-        CompanyMembership saved = companyRepository.saveMembership(membership);
+        CompanyMembership saved = membershipRepository.saveMembership(membership);
 
         eventPublisher.publishEvent(new CompanyInvitationCreatedEvent(
                 saved.getId(), invitee.getId(), companyId, actorId));

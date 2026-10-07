@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.event.MembershipRequestCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.email.model.EmailData;
 import com.vmarcante.time_tracker.core.domain.email.service.EmailService;
@@ -33,16 +34,19 @@ public class MembershipRequestCreatedEventListener {
 
     private final EmailService emailService;
     private final PersonRepository personRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final String frontendUrl;
 
     public MembershipRequestCreatedEventListener(
             EmailService emailService,
             PersonRepository personRepository,
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             @Value("${app.frontend.url:https://app.timetracker.com}") String frontendUrl) {
         this.emailService = emailService;
         this.personRepository = personRepository;
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.frontendUrl = frontendUrl;
     }
@@ -58,8 +62,7 @@ public class MembershipRequestCreatedEventListener {
                 return;
             }
 
-            List<CompanyMembership> approvers = companyRepository
-                    .findApprovedMembershipsByCompanyId(event.getCompanyId(), Pageable.unpaged())
+            List<CompanyMembership> approvers = membershipRepository.findApprovedMembershipsByCompanyId(event.getCompanyId(), Pageable.unpaged())
                     .getContent()
                     .stream()
                     .filter(m -> m.getRole() == CompanyRole.OWNER || m.getRole() == CompanyRole.ADMIN)
@@ -81,7 +84,7 @@ public class MembershipRequestCreatedEventListener {
                     .map(c -> c.getLegalName())
                     .orElse("");
             
-            String requestReason = companyRepository.findMembershipById(event.getMembershipId())
+            String requestReason = membershipRepository.findMembershipById(event.getMembershipId())
                     .map(CompanyMembership::getRequestReason)
                     .orElse(null);
                     

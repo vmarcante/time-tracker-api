@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.FindCompanyByIdUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -17,12 +18,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FindCompanyByIdUseCaseImpl implements FindCompanyByIdUseCase {
 
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
 
     public FindCompanyByIdUseCaseImpl(
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             SecurityContextPort securityContext) {
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.securityContext = securityContext;
     }
@@ -36,7 +40,7 @@ public class FindCompanyByIdUseCaseImpl implements FindCompanyByIdUseCase {
 
         UUID userId = currentUserId.get();
 
-        if (!companyRepository.isMember(userId, companyId)) {
+        if (!membershipRepository.isMember(userId, companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 

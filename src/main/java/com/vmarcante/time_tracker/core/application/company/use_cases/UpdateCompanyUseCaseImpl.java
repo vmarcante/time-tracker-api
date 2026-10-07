@@ -13,6 +13,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -22,12 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UpdateCompanyUseCaseImpl implements UpdateCompanyUseCase {
 
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
 
     public UpdateCompanyUseCaseImpl(
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             SecurityContextPort securityContext) {
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.securityContext = securityContext;
     }
@@ -42,7 +46,7 @@ public class UpdateCompanyUseCaseImpl implements UpdateCompanyUseCase {
 
         UUID userId = currentUserId.get();
 
-        Optional<CompanyMembership> membership = companyRepository.findMembership(userId, companyId);
+        Optional<CompanyMembership> membership = membershipRepository.findMembership(userId, companyId);
         if (membership.isEmpty()) {
             throw new ApplicationException("company.access.denied", null);
         }

@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.in.ListTeamMembersUseCase;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
@@ -22,17 +22,17 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
 
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public ListTeamMembersUseCaseImpl(
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
     }
@@ -45,7 +45,7 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!companyRepository.isMember(currentUserId.get(), companyId)) {
+        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 

@@ -65,6 +65,9 @@ public class UserCompanyJpaEntity implements BaseActiveEntityInterface<UUID, Int
     @Column(name = "C0009_REQUEST_REASON", length = 500)
     private String requestReason;
 
+    @Column(name = "C0009_REJECTION_REASON", length = 500)
+    private String rejectionReason;
+
     @Column(name = "C0009_APPROVED", nullable = false)
     private Boolean approved;
 

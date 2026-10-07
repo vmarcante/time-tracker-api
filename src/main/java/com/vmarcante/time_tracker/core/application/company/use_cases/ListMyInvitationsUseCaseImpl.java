@@ -13,18 +13,22 @@ import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyInv
 import com.vmarcante.time_tracker.core.application.company.in.ListMyInvitationsUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
 public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
 
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
 
     public ListMyInvitationsUseCaseImpl(
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             SecurityContextPort securityContext) {
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.securityContext = securityContext;
     }
@@ -36,8 +40,7 @@ public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        Page<CompanyMembership> invitations = companyRepository
-                .findPendingInvitationsByUserId(currentUserId.get(), pageable);
+        Page<CompanyMembership> invitations = membershipRepository.findPendingInvitationsByUserId(currentUserId.get(), pageable);
 
         if (invitations.isEmpty()) {
             return invitations.map(m -> CompanyInvitationOutputDTO.from(m, null));

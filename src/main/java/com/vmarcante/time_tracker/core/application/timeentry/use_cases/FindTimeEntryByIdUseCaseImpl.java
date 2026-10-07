@@ -11,7 +11,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntr
 import com.vmarcante.time_tracker.core.application.timeentry.in.FindTimeEntryByIdUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -20,17 +20,17 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class FindTimeEntryByIdUseCaseImpl implements FindTimeEntryByIdUseCase {
 
     private final TimeEntryRepository timeEntryRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final TimeEntryDetailAssembler assembler;
     private final SecurityContextPort securityContext;
 
     public FindTimeEntryByIdUseCaseImpl(
             TimeEntryRepository timeEntryRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             TimeEntryDetailAssembler assembler,
             SecurityContextPort securityContext) {
         this.timeEntryRepository = timeEntryRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.assembler = assembler;
         this.securityContext = securityContext;
     }
@@ -57,7 +57,7 @@ public class FindTimeEntryByIdUseCaseImpl implements FindTimeEntryByIdUseCase {
         if (entry.getCompanyId() == null) {
             return false;
         }
-        Optional<CompanyMembership> membership = companyRepository.findMembership(userId, entry.getCompanyId());
+        Optional<CompanyMembership> membership = membershipRepository.findMembership(userId, entry.getCompanyId());
         boolean isManager = membership
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
                 .map(m -> m.getRole().canManage(CompanyRole.MEMBER))

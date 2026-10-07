@@ -14,6 +14,7 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.event.MembershipRequestCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -24,16 +25,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseCase {
 
+    private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
 
     public RequestToJoinCompanyUseCaseImpl(
+            CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
+        this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -54,7 +58,7 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
                 .filter(c -> Boolean.TRUE.equals(c.getActive()))
                 .orElseThrow(() -> new ApplicationException("company.not.found", null));
 
-        if (companyRepository.hasAnyActiveMembership(userId, companyId)) {
+        if (membershipRepository.hasAnyActiveMembership(userId, companyId)) {
             throw new ApplicationException("company.member.already.exists", null);
         }
 
@@ -73,7 +77,7 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
         membership.setCreatedBy(userId);
         membership.setUpdatedBy(userId);
 
-        CompanyMembership saved = companyRepository.saveMembership(membership);
+        CompanyMembership saved = membershipRepository.saveMembership(membership);
 
         String memberName = personRepository.findNameById(userId).orElse(null);
 

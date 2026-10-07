@@ -15,7 +15,7 @@ import com.vmarcante.time_tracker.core.application.project.in.UpdateProjectUseCa
 import com.vmarcante.time_tracker.core.application.project.policy.ProjectValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -27,17 +27,17 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
 
     private final ProjectRepository projectRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final ProjectValidationPolicy validationPolicy;
     private final SecurityContextPort securityContext;
 
     public UpdateProjectUseCaseImpl(
             ProjectRepository projectRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             ProjectValidationPolicy validationPolicy,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.validationPolicy = validationPolicy;
         this.securityContext = securityContext;
     }
@@ -53,7 +53,7 @@ public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {

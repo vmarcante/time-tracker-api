@@ -13,7 +13,7 @@ import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAss
 import com.vmarcante.time_tracker.core.application.project.in.AssignProjectMemberUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
@@ -32,7 +32,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
 
     private final ProjectRepository projectRepository;
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
@@ -40,13 +40,13 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
     public AssignProjectMemberUseCaseImpl(
             ProjectRepository projectRepository,
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
         this.projectRepository = projectRepository;
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
         this.eventPublisher = eventPublisher;
@@ -64,7 +64,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
@@ -93,7 +93,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
         Person target = personRepository.findByEmail(input.email().address())
                 .orElseThrow(() -> new ApplicationException("user.not.found", null));
 
-        companyRepository.findMembership(target.getId(), companyId)
+        membershipRepository.findMembership(target.getId(), companyId)
                 .orElseThrow(() -> new ApplicationException("team.member.not.company.member", null));
 
         if (!teamRepository.isTeamMember(target.getId(), teamId)) {

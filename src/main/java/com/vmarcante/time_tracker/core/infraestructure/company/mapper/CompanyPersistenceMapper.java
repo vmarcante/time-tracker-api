@@ -48,6 +48,7 @@ public class CompanyPersistenceMapper {
         membership.setOrigin(entity.getOrigin());
         membership.setApproved(entity.getApproved());
         membership.setRequestReason(entity.getRequestReason());
+        membership.setRejectionReason(entity.getRejectionReason());
         membership.setApprovedAt(entity.getApprovedAt());
         membership.setApprovedBy(entity.getApprovedBy());
         membership.setActive(entity.getActive());
@@ -67,6 +68,7 @@ public class CompanyPersistenceMapper {
         entity.setOrigin(membership.getOrigin());
         entity.setApproved(membership.getApproved());
         entity.setRequestReason(membership.getRequestReason());
+        entity.setRejectionReason(membership.getRejectionReason());
         entity.setApprovedAt(membership.getApprovedAt());
         entity.setApprovedBy(membership.getApprovedBy());
         entity.setActive(membership.getActive());

@@ -12,7 +12,7 @@ import com.vmarcante.time_tracker.core.application.team.dto.output.TeamMemberOut
 import com.vmarcante.time_tracker.core.application.team.in.AssignTeamLeadUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
@@ -27,17 +27,17 @@ import lombok.extern.slf4j.Slf4j;
 public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
 
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public AssignTeamLeadUseCaseImpl(
             TeamRepository teamRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
     }
@@ -53,7 +53,7 @@ public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = companyRepository.findMembership(actorId, companyId)
+        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
@@ -67,7 +67,7 @@ public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
         Person target = personRepository.findByEmail(input.email().address())
                 .orElseThrow(() -> new ApplicationException("user.not.found", null));
 
-        CompanyMembership targetCompanyMembership = companyRepository
+        CompanyMembership targetCompanyMembership = membershipRepository
                 .findMembership(target.getId(), companyId)
                 .orElseThrow(() -> new ApplicationException("team.member.not.company.member", null));
 

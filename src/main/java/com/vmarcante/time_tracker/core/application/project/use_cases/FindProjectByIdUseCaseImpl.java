@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.FindProjectByIdUseCase;
-import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -19,15 +19,15 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class FindProjectByIdUseCaseImpl implements FindProjectByIdUseCase {
 
     private final ProjectRepository projectRepository;
-    private final CompanyRepository companyRepository;
+    private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public FindProjectByIdUseCaseImpl(
             ProjectRepository projectRepository,
-            CompanyRepository companyRepository,
+            CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
-        this.companyRepository = companyRepository;
+        this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
     }
 
@@ -38,7 +38,7 @@ public class FindProjectByIdUseCaseImpl implements FindProjectByIdUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!companyRepository.isMember(currentUserId.get(), companyId)) {
+        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
             throw new ApplicationException("company.access.denied", null);
         }
 
