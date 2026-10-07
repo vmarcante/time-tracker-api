@@ -25,4 +25,6 @@ public interface PersonRepository {
     Optional<String> findNameById(UUID id);
 
     Map<UUID, String> findNamesByIds(Collection<UUID> ids);
+
+    void updateLocale(UUID personId, String locale);
 }

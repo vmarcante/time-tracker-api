@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CurrentUserOutputDTO;
+import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -70,6 +71,15 @@ public class CurrentUserDataOrchestrator {
             pendingCompanyName = companyRepository.findPendingRequestCompanyNameByUserId(userId).orElse(null);
         }
 
-        return new CurrentUserOutputDTO(userAuth, person, pendingInvitations, pendingCompanyName);
+        CurrentUserOutputDTO dto = new CurrentUserOutputDTO(userAuth, person, pendingInvitations, pendingCompanyName);
+
+        if (userAuth.getAffiliation() == AffiliationStatus.COMPANY) {
+            Optional<CompanyMembership> membership = companyRepository.findApprovedMembershipByUserId(userId);
+            if (membership.isPresent()) {
+                dto = dto.withCompanyMembership(membership.get().getCompanyId(), membership.get().getRole());
+            }
+        }
+
+        return dto;
     }
 }

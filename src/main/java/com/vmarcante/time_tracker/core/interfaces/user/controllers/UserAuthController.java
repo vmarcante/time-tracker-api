@@ -1,6 +1,9 @@
 package com.vmarcante.time_tracker.core.interfaces.user.controllers;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,17 +34,29 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 @RequestMapping("/public/auth")
 @Tag(name = "Authentication", description = "Authentication and Register endpoints")
 public class UserAuthController extends BaseResponseController {
 
+        private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
+
         private final AuthenticateUserUseCase authenticateUserUseCase;
         private final LogoutUserUseCase logoutUserUseCase;
         private final RefreshTokenUseCase refreshTokenUseCase;
         private final RequestPasswordResetUseCase requestPasswordResetUseCase;
         private final ResetPasswordUseCase resetPasswordUseCase;
+
+        @Value("${app.cookie.secure:true}")
+        private boolean cookieSecure;
+
+        @Value("${jwt.refresh-token.expiration:604800000}")
+        private long refreshTokenExpirationMs;
+
+        @Value("${server.servlet.context-path:}")
+        private String contextPath;
 
         public UserAuthController(
                         AuthenticateUserUseCase authenticateUserUseCase,
@@ -58,7 +73,7 @@ public class UserAuthController extends BaseResponseController {
 
         @PostMapping
         @RateLimit(maxRequests = 10, windowSeconds = 60, key = "auth:login")
-        @Operation(summary = "Authenticate user", description = "Authenticates user and returns access and refresh tokens")
+        @Operation(summary = "Authenticate user", description = "Authenticates user and returns the access token; refresh token is delivered via HttpOnly cookie")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "User authenticated successfully"),
                         @ApiResponse(responseCode = "401", description = "Invalid credentials"),
@@ -68,32 +83,46 @@ public class UserAuthController extends BaseResponseController {
         public ResponseEntity<ApiResponseDTO<AuthenticationOutputDTO>> login(
                         @RequestBody UserLoginInputDTO input,
                         @RequestHeader(value = "User-Agent", required = false) String userAgent,
-                        HttpServletRequest request) throws ApplicationException {
+                        HttpServletRequest request,
+                        HttpServletResponse httpResponse) throws ApplicationException {
 
                 String ipAddress = HttpRequestUtils.getClientIpAddress(request);
                 String deviceInfo = UserAgentUtils.extractDeviceInfo(userAgent);
 
                 AuthenticationOutputDTO response = authenticateUserUseCase.execute(input, deviceInfo, ipAddress,
                                 userAgent);
+
+                HttpRequestUtils.setHttpOnlyCookie(httpResponse, REFRESH_TOKEN_COOKIE, response.refreshToken(),
+                                contextPath + "/public/auth", refreshTokenExpirationMs, cookieSecure);
+
                 return ok(response);
         }
 
         @PostMapping("/refresh")
         @RateLimit(maxRequests = 20, windowSeconds = 60, key = "auth:refresh")
-        @Operation(summary = "Refresh access token", description = "Generates a new access token using a valid refresh token from Authorization header")
+        @Operation(summary = "Refresh access token", description = "Generates a new access token using the refresh token from HttpOnly cookie")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "200", description = "Token refreshed successfully"),
-                        @ApiResponse(responseCode = "400", description = "Invalid or missing refresh token"),
+                        @ApiResponse(responseCode = "400", description = "Missing refresh token cookie"),
                         @ApiResponse(responseCode = "401", description = "Expired or invalid token"),
                         @ApiResponse(responseCode = "403", description = "User not confirmed"),
                         @ApiResponse(responseCode = "429", description = "Too many requests")
         })
         public ResponseEntity<ApiResponseDTO<AuthenticationOutputDTO>> refreshToken(
-                        @RequestHeader(value = "Authorization", required = true) String authorizationHeader)
-                        throws ApplicationException {
-                RefreshTokenInputDTO input = new RefreshTokenInputDTO(authorizationHeader);
-                AuthenticationOutputDTO newAccessToken = refreshTokenUseCase.execute(input);
-                return ok(newAccessToken);
+                        @CookieValue(value = REFRESH_TOKEN_COOKIE, required = false) String refreshTokenCookie,
+                        HttpServletResponse httpResponse) throws ApplicationException {
+
+                if (refreshTokenCookie == null || refreshTokenCookie.isBlank()) {
+                        throw new ApplicationException("user.refresh.token.required", null, HttpStatus.BAD_REQUEST);
+                }
+
+                RefreshTokenInputDTO input = new RefreshTokenInputDTO(refreshTokenCookie);
+                AuthenticationOutputDTO result = refreshTokenUseCase.execute(input);
+
+                HttpRequestUtils.setHttpOnlyCookie(httpResponse, REFRESH_TOKEN_COOKIE, result.refreshToken(),
+                                contextPath + "/public/auth", refreshTokenExpirationMs, cookieSecure);
+
+                return ok(result);
         }
 
         @PostMapping("/request-reset")
@@ -133,14 +162,16 @@ public class UserAuthController extends BaseResponseController {
 
         @DeleteMapping("/session")
         @RateLimit(maxRequests = 10, windowSeconds = 60, key = "auth:logout")
-        @Operation(summary = "Logout user", description = "Logs out the current user, invalidates all sessions and clears the security context")
+        @Operation(summary = "Logout user", description = "Logs out the current user, invalidates all sessions and clears the refresh token cookie")
         @ApiResponses(value = {
                         @ApiResponse(responseCode = "204", description = "User logged out successfully"),
                         @ApiResponse(responseCode = "401", description = "Not authenticated"),
                         @ApiResponse(responseCode = "429", description = "Too many requests")
         })
-        public ResponseEntity<ApiResponseDTO<Void>> logout() throws ApplicationException {
+        public ResponseEntity<ApiResponseDTO<Void>> logout(HttpServletResponse httpResponse) throws ApplicationException {
                 logoutUserUseCase.execute();
+                HttpRequestUtils.expireCookie(httpResponse, REFRESH_TOKEN_COOKIE,
+                                contextPath + "/public/auth", cookieSecure);
                 return noContent();
         }
 

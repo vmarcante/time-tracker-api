@@ -65,4 +65,6 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
             WHERE uc.userId = :userId AND uc.active = true AND uc.approved = true
             """)
     List<UUID> findApprovedCompanyIdsByUserId(@Param("userId") UUID userId);
+
+    Optional<UserCompanyJpaEntity> findFirstByUserIdAndActiveTrueAndApprovedTrue(UUID userId);
 }

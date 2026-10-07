@@ -142,4 +142,11 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
         return userCompanyJpaRepository
                 .findPendingCompanyNameByUserIdAndOrigin(userId, MembershipOrigin.REQUEST);
     }
+
+    @Override
+    public Optional<CompanyMembership> findApprovedMembershipByUserId(UUID userId) {
+        return userCompanyJpaRepository
+                .findFirstByUserIdAndActiveTrueAndApprovedTrue(userId)
+                .map(CompanyPersistenceMapper::toDomain);
+    }
 }

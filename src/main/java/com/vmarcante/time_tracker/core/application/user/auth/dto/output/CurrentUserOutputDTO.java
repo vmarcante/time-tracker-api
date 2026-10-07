@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.user.auth.dto.output;
 
 import java.util.UUID;
 
+import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
@@ -17,7 +18,9 @@ public record CurrentUserOutputDTO(
         String phone,
         String locale,
         long pendingInvitations,
-        String pendingCompanyName) {
+        String pendingCompanyName,
+        UUID companyId,
+        CompanyRole companyRole) {
 
     public CurrentUserOutputDTO(UserAuth auth, Person person, long pendingInvitations, String pendingCompanyName) {
         this(
@@ -30,7 +33,15 @@ public record CurrentUserOutputDTO(
                 person.getPhone().number(),
                 person.getLocale(),
                 pendingInvitations,
-                pendingCompanyName);
+                pendingCompanyName,
+                null,
+                null);
     }
 
+    public CurrentUserOutputDTO withCompanyMembership(UUID companyId, CompanyRole companyRole) {
+        return new CurrentUserOutputDTO(
+                id, username, name, role, affiliation, email, phone, locale,
+                pendingInvitations, pendingCompanyName,
+                companyId, companyRole);
+    }
 }

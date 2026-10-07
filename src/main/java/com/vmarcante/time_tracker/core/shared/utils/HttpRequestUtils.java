@@ -1,6 +1,12 @@
 package com.vmarcante.time_tracker.core.shared.utils;
 
+import java.time.Duration;
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
+
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public final class HttpRequestUtils {
 
@@ -44,5 +50,41 @@ public final class HttpRequestUtils {
             return authHeader.substring(BEARER_PREFIX.length());
         }
         return null;
+    }
+
+    public static void setHttpOnlyCookie(
+            HttpServletResponse response,
+            String cookieName,
+            String value,
+            String path,
+            long expirationMs,
+            boolean secure) {
+
+        ResponseCookie cookie = ResponseCookie.from(cookieName, value)
+                .httpOnly(true)
+                .secure(secure)
+                .path(path)
+                .maxAge(Duration.ofMillis(expirationMs))
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    public static void expireCookie(
+            HttpServletResponse response,
+            String cookieName,
+            String path,
+            boolean secure) {
+
+        ResponseCookie cookie = ResponseCookie.from(cookieName, "")
+                .httpOnly(true)
+                .secure(secure)
+                .path(path)
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

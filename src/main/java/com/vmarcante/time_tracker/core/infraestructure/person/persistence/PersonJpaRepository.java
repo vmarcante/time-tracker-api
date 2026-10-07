@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -24,5 +25,9 @@ public interface PersonJpaRepository
 
     @Query("SELECT p.id, p.name FROM PersonJpaEntity p WHERE p.id IN :ids")
     List<Object[]> findIdAndNameByIds(@Param("ids") Collection<UUID> ids);
+
+    @Modifying
+    @Query("UPDATE PersonJpaEntity p SET p.locale = :locale WHERE p.id = :id")
+    void updateLocaleById(@Param("id") UUID id, @Param("locale") String locale);
 
 }

@@ -48,4 +48,6 @@ public interface CompanyRepository {
     long countPendingInvitationsByUserId(UUID userId);
 
     Optional<String> findPendingRequestCompanyNameByUserId(UUID userId);
+
+    Optional<CompanyMembership> findApprovedMembershipByUserId(UUID userId);
 }

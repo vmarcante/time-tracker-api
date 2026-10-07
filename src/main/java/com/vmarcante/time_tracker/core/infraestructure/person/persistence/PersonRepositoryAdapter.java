@@ -82,4 +82,9 @@ public class PersonRepositoryAdapter implements PersonRepository {
                         row -> (UUID) row[0],
                         row -> (String) row[1]));
     }
+
+    @Override
+    public void updateLocale(UUID personId, String locale) {
+        jpaRepository.updateLocaleById(personId, locale);
+    }
 }
