@@ -11,7 +11,9 @@ import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.person.dto.UpdatePersonLocaleInputDTO;
+import com.vmarcante.time_tracker.core.application.person.dto.UpdatePersonProfileInputDTO;
 import com.vmarcante.time_tracker.core.application.person.in.UpdatePersonLocaleUseCase;
+import com.vmarcante.time_tracker.core.application.person.in.UpdatePersonProfileUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CurrentUserOutputDTO;
 import com.vmarcante.time_tracker.core.application.user.orchestrator.CurrentUserDataOrchestrator;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
@@ -20,9 +22,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 
 @RestController
 @RequestMapping("/person")
@@ -31,12 +30,15 @@ public class PersonController extends BaseResponseController {
 
     private final CurrentUserDataOrchestrator currentUserDataOrchestrator;
     private final UpdatePersonLocaleUseCase updatePersonLocaleUseCase;
+    private final UpdatePersonProfileUseCase updatePersonProfileUseCase;
 
     public PersonController(
             CurrentUserDataOrchestrator currentUserDataOrchestrator,
-            UpdatePersonLocaleUseCase updatePersonLocaleUseCase) {
+            UpdatePersonLocaleUseCase updatePersonLocaleUseCase,
+            UpdatePersonProfileUseCase updatePersonProfileUseCase) {
         this.currentUserDataOrchestrator = currentUserDataOrchestrator;
         this.updatePersonLocaleUseCase = updatePersonLocaleUseCase;
+        this.updatePersonProfileUseCase = updatePersonProfileUseCase;
     }
 
     @AuthSecure(allowPendingOnboarding = true)
@@ -58,15 +60,24 @@ public class PersonController extends BaseResponseController {
             @ApiResponse(responseCode = "401", description = "Not authenticated")
     })
     public ResponseEntity<ApiResponseDTO<Void>> updateLocale(
-            @Valid @RequestBody UpdateLocaleRequest body) throws ApplicationException {
-        updatePersonLocaleUseCase.execute(new UpdatePersonLocaleInputDTO(body.locale()));
+            @RequestBody UpdatePersonLocaleInputDTO input) throws ApplicationException {
+        updatePersonLocaleUseCase.execute(input);
         return noContent();
     }
 
-    /** Request body para PATCH /person/me/locale */
-    public record UpdateLocaleRequest(
-            @NotBlank
-            @Pattern(regexp = "^[a-z]{2}-[A-Z]{2}$", message = "Locale must be in BCP-47 format, e.g. pt-BR")
-            String locale) {
+    @AuthSecure
+    @PatchMapping("/me/profile")
+    @Operation(
+            summary = "Update user profile",
+            description = "Updates the authenticated user's name, phone and age")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Profile updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid input"),
+            @ApiResponse(responseCode = "401", description = "Not authenticated")
+    })
+    public ResponseEntity<ApiResponseDTO<Void>> updateProfile(
+            @RequestBody UpdatePersonProfileInputDTO input) throws ApplicationException {
+        updatePersonProfileUseCase.execute(input);
+        return noContent();
     }
 }
