@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,10 +48,10 @@ public class ListResolvedMembershipsUseCaseImpl implements ListResolvedMembershi
         }
 
         CompanyMembership actorMembership = membershipRepository.findMembership(currentUserId.get(), companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MEMBER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Page<CompanyMembership> resolved = membershipRepository

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,23 +55,23 @@ public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Project project = projectRepository.findById(projectId)
                 .filter(p -> p.getCompanyId().equals(companyId))
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
-                .orElseThrow(() -> new ApplicationException("project.not.found", null));
+                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
         if (input.name() != null) {
             validationPolicy.validateName(input.name());
             String newName = input.name().trim();
             if (!newName.equalsIgnoreCase(project.getName())
                     && projectRepository.existsActiveByCompanyIdAndName(companyId, newName)) {
-                throw new ApplicationException("project.name.already.exists", null);
+                throw new ApplicationException("project.name.already.exists", null, HttpStatus.CONFLICT);
             }
             project.setName(newName);
         }

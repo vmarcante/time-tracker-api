@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +53,7 @@ public class UpdatePersonalProjectUseCaseImpl implements UpdatePersonalProjectUs
             String newName = input.name().trim();
             if (!newName.equalsIgnoreCase(project.getName())
                     && projectRepository.existsActiveByUserIdAndName(userId, newName)) {
-                throw new ApplicationException("project.name.already.exists", null);
+                throw new ApplicationException("project.name.already.exists", null, HttpStatus.CONFLICT);
             }
             project.setName(newName);
         }
@@ -89,6 +90,6 @@ public class UpdatePersonalProjectUseCaseImpl implements UpdatePersonalProjectUs
                 .filter(p -> p.getCompanyId() == null)
                 .filter(p -> userId.equals(p.getUserId()))
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
-                .orElseThrow(() -> new ApplicationException("project.not.found", null));
+                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
     }
 }

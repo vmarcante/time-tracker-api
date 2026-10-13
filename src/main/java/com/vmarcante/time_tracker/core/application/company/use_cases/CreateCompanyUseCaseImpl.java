@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,7 +61,7 @@ public class CreateCompanyUseCaseImpl implements CreateCompanyUseCase {
         validationPolicy.validate(input);
 
         if (companyRepository.existsByDocument(input.document().digits())) {
-            throw new ApplicationException("company.document.already.exists", null);
+            throw new ApplicationException("company.document.already.exists", null, HttpStatus.CONFLICT);
         }
 
         Company company = new Company();

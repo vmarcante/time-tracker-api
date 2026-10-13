@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,7 +53,7 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         CompanyMembership target = membershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
@@ -64,7 +65,7 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
         }
 
         if (!actorMembership.getRole().canManage(target.getRole())) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         target.setActive(false);

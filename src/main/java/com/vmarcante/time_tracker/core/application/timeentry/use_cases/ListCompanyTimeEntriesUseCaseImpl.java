@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,7 +50,7 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
 
         CompanyMembership membership = membershipRepository.findMembership(actorId, companyId)
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         Page<TimeEntry> entries;
         if (membership.getRole().canManage(CompanyRole.MEMBER)) {

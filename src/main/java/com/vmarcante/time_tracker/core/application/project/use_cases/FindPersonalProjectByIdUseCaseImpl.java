@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -38,7 +39,7 @@ public class FindPersonalProjectByIdUseCaseImpl implements FindPersonalProjectBy
                 .filter(p -> p.getCompanyId() == null)
                 .filter(p -> userId.equals(p.getUserId()))
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
-                .orElseThrow(() -> new ApplicationException("project.not.found", null));
+                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
         return ProjectDetailOutputDTO.from(project, 0, 0);
     }

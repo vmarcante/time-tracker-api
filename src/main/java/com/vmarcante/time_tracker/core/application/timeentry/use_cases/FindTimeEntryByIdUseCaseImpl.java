@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -47,7 +48,7 @@ public class FindTimeEntryByIdUseCaseImpl implements FindTimeEntryByIdUseCase {
                 .orElseThrow(() -> new ApplicationException("timeentry.not.found", null));
 
         if (!userId.equals(entry.getUserId()) && !canViewAsHierarchy(userId, entry)) {
-            throw new ApplicationException("timeentry.access.denied", null);
+            throw new ApplicationException("timeentry.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         return assembler.toDetail(entry);

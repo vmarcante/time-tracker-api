@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (input.role() == null) {
             throw new ApplicationException("company.member.role.required", null);
@@ -64,18 +65,18 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
         }
 
         if (!actorMembership.getRole().canManage(input.role())) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Person invitee = personRepository.findByEmail(input.email().address())
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         if (invitee.getId().equals(actorId)) {
             throw new ApplicationException("company.member.cannot.invite.self", null);
         }
 
         if (membershipRepository.hasAnyActiveMembership(invitee.getId(), companyId)) {
-            throw new ApplicationException("company.member.already.exists", null);
+            throw new ApplicationException("company.member.already.exists", null, HttpStatus.CONFLICT);
         }
 
         CompanyMembership membership = new CompanyMembership();

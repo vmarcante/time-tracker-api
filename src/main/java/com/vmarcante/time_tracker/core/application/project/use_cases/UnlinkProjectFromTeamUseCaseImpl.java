@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,22 +50,22 @@ public class UnlinkProjectFromTeamUseCaseImpl implements UnlinkProjectFromTeamUs
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         if (!projectRepository.existsActiveByIdAndCompanyId(projectId, companyId)) {
-            throw new ApplicationException("project.not.found", null);
+            throw new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
-            throw new ApplicationException("team.not.found", null);
+            throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         TeamProject link = projectRepository.findActiveTeamLink(projectId, teamId)
-                .orElseThrow(() -> new ApplicationException("project.not.linked", null));
+                .orElseThrow(() -> new ApplicationException("project.not.linked", null, HttpStatus.CONFLICT));
 
         projectRepository.deactivateAssignmentsByProjectIdAndTeamId(projectId, teamId, actorId);
 

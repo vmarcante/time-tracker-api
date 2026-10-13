@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +60,7 @@ public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
         }
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         CompanyMembership target = membershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
@@ -73,7 +74,7 @@ public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
 
         if (!actorMembership.getRole().canManage(target.getRole())
                 || !actorMembership.getRole().canManage(input.role())) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         target.setRole(input.role());

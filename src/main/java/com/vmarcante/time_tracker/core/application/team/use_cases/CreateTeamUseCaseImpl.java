@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.team.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,16 +52,16 @@ public class CreateTeamUseCaseImpl implements CreateTeamUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         validationPolicy.validateName(input.name());
 
         if (teamRepository.existsActiveByCompanyIdAndName(companyId, input.name().trim())) {
-            throw new ApplicationException("team.name.already.exists", null);
+            throw new ApplicationException("team.name.already.exists", null, HttpStatus.CONFLICT);
         }
 
         Team team = new Team();

@@ -17,6 +17,7 @@ public record CurrentUserOutputDTO(
         String email,
         String phone,
         String locale,
+        Integer age,
         long pendingInvitations,
         String pendingCompanyName,
         UUID companyId,
@@ -32,6 +33,7 @@ public record CurrentUserOutputDTO(
                 person.getEmail().address(),
                 person.getPhone().number(),
                 person.getLocale(),
+                person.getAge(),
                 pendingInvitations,
                 pendingCompanyName,
                 null,
@@ -40,7 +42,7 @@ public record CurrentUserOutputDTO(
 
     public CurrentUserOutputDTO withCompanyMembership(UUID companyId, CompanyRole companyRole) {
         return new CurrentUserOutputDTO(
-                id, username, name, role, affiliation, email, phone, locale,
+                id, username, name, role, affiliation, email, phone, locale, age,
                 pendingInvitations, pendingCompanyName,
                 companyId, companyRole);
     }

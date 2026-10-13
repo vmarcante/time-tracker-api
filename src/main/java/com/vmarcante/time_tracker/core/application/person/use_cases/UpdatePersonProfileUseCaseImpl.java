@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.person.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +48,7 @@ public class UpdatePersonProfileUseCaseImpl implements UpdatePersonProfileUseCas
         validationPolicy.validate(input);
 
         Person person = personRepository.findById(userId)
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         person.setName(input.name().trim());
 

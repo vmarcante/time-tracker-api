@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.user.auth.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -66,10 +67,10 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
         }
 
         UserAuth userAuth = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         if (userAuth.getAffiliation() == AffiliationStatus.COMPANY) {
-            throw new ApplicationException("onboarding.already.completed", null);
+            throw new ApplicationException("onboarding.already.completed", null, HttpStatus.CONFLICT);
         }
 
         if (isIndependent) {

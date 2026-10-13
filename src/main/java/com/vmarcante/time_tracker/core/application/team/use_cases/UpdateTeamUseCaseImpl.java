@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,23 +60,23 @@ public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Team team = teamRepository.findById(teamId)
                 .filter(t -> t.getCompanyId().equals(companyId))
                 .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+                .orElseThrow(() -> new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND));
 
         if (input.name() != null && !input.name().isBlank()) {
             validationPolicy.validateName(input.name());
             String newName = input.name().trim();
             if (!newName.equalsIgnoreCase(team.getName())
                     && teamRepository.existsActiveByCompanyIdAndName(companyId, newName)) {
-                throw new ApplicationException("team.name.already.exists", null);
+                throw new ApplicationException("team.name.already.exists", null, HttpStatus.CONFLICT);
             }
             team.setName(newName);
         }

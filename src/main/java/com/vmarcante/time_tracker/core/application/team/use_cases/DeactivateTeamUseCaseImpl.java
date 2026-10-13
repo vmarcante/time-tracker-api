@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.team.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,16 +50,16 @@ public class DeactivateTeamUseCaseImpl implements DeactivateTeamUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Team team = teamRepository.findById(teamId)
                 .filter(t -> t.getCompanyId().equals(companyId))
                 .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+                .orElseThrow(() -> new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND));
 
         team.setActive(false);
         team.setUpdatedBy(actorId);

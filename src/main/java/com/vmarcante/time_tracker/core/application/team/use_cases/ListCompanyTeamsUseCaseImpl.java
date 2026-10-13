@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -46,7 +47,7 @@ public class ListCompanyTeamsUseCaseImpl implements ListCompanyTeamsUseCase {
         }
 
         if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
-            throw new ApplicationException("company.access.denied", null);
+            throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Page<Team> teams = teamRepository.findActiveByCompanyId(companyId, pageable);

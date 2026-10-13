@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -65,33 +66,33 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
-            throw new ApplicationException("team.not.found", null);
+            throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
                 || teamRepository.isTeamLead(actorId, teamId);
         if (!canManage) {
-            throw new ApplicationException("project.permission.denied", null);
+            throw new ApplicationException("project.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Project project = projectRepository.findById(projectId)
                 .filter(p -> p.getCompanyId().equals(companyId))
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
-                .orElseThrow(() -> new ApplicationException("project.not.found", null));
+                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
         if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new ApplicationException("project.not.active", null);
+            throw new ApplicationException("project.not.active", null, HttpStatus.CONFLICT);
         }
 
         if (!projectRepository.isProjectLinkedToTeam(projectId, teamId)) {
-            throw new ApplicationException("project.not.linked", null);
+            throw new ApplicationException("project.not.linked", null, HttpStatus.CONFLICT);
         }
 
         Person target = personRepository.findByEmail(input.email().address())
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         membershipRepository.findMembership(target.getId(), companyId)
                 .orElseThrow(() -> new ApplicationException("team.member.not.company.member", null));
@@ -101,7 +102,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
         }
 
         if (projectRepository.hasActiveAssignment(target.getId(), projectId, teamId)) {
-            throw new ApplicationException("project.assignment.exists", null);
+            throw new ApplicationException("project.assignment.exists", null, HttpStatus.CONFLICT);
         }
 
         ProjectAssignment assignment = new ProjectAssignment();

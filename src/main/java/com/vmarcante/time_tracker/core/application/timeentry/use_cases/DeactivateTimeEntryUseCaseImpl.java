@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +49,7 @@ public class DeactivateTimeEntryUseCaseImpl implements DeactivateTimeEntryUseCas
 
         for (TimeEntrySession session : sessionRepository.findActiveByEntryId(entryId)) {
             if (session.getEndTime() == null) {
-                throw new ApplicationException("timeentry.running.cannot.deactivate", null);
+                throw new ApplicationException("timeentry.running.cannot.deactivate", null, HttpStatus.CONFLICT);
             }
             session.setActive(false);
             session.setUpdatedBy(userId);

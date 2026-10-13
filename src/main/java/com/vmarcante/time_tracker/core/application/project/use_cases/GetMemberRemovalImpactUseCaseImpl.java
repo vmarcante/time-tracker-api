@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -53,16 +54,16 @@ public class GetMemberRemovalImpactUseCaseImpl implements GetMemberRemovalImpact
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
-            throw new ApplicationException("team.not.found", null);
+            throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
                 || teamRepository.isTeamLead(actorId, teamId);
         if (!canManage) {
-            throw new ApplicationException("team.permission.denied", null);
+            throw new ApplicationException("team.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         TeamMembership membership = teamRepository.findMembershipById(membershipId)

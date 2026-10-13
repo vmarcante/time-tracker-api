@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserContextData;
@@ -22,6 +21,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
 import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
+import com.vmarcante.time_tracker.core.infraestructure.security.exception.SecurityException;
 import com.vmarcante.time_tracker.core.shared.utils.HttpRequestUtils;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -87,20 +87,20 @@ public class SecurityInterceptor implements HandlerInterceptor {
         if (token == null) {
             log.warn("[SecurityInterceptor] Missing Authorization header | URI={}", 
                 request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         if (!jwtPort.validateToken(token)) {
             log.warn("[SecurityInterceptor] Invalid token | URI={}", 
                 request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         String tokenType = jwtPort.extractTokenType(token);
         if (!"access".equals(tokenType)) {
             log.warn("[SecurityInterceptor] Invalid token type: {} | URI={}", 
                 tokenType, request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         // Validate issuer
@@ -108,7 +108,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
         if (!expectedIssuer.equals(tokenIssuer)) {
             log.warn("[SecurityInterceptor] Invalid issuer: {} | Expected: {} | URI={}", 
                 tokenIssuer, expectedIssuer, request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         // Validate audience
@@ -116,7 +116,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
         if (!expectedAudience.equals(tokenAudience)) {
             log.warn("[SecurityInterceptor] Invalid audience: {} | Expected: {} | URI={}", 
                 tokenAudience, expectedAudience, request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         UUID userId = jwtPort.extractUserId(token);
@@ -125,7 +125,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
         if (userAuth.isEmpty()) {
             log.warn("[SecurityInterceptor] User not found for token | URI={}", 
                 request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         UserAuth user = userAuth.get();
@@ -133,19 +133,19 @@ public class SecurityInterceptor implements HandlerInterceptor {
         if (!user.getUserConfirmed()) {
             log.warn("[SecurityInterceptor] User not confirmed | User: {} | URI={}", 
                 user.getUsername(), request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         if (!user.getActive()) {
             log.warn("[SecurityInterceptor] User not active | User: {} | URI={}", 
                 user.getUsername(), request.getRequestURI(), requestId);
-            throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+            throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
         }
 
         if (user.getAffiliation() == AffiliationStatus.PENDING && !authSecure.allowPendingOnboarding()) {
             log.warn("[SecurityInterceptor] Onboarding pending | User: {} | URI={}",
                 user.getUsername(), request.getRequestURI(), requestId);
-            throw new ApplicationException("user.onboarding.pending", null, HttpStatus.FORBIDDEN);
+            throw new SecurityException("user.onboarding.pending", null, HttpStatus.FORBIDDEN);
         }
 
         if (authSecure.acceptedRoles() != null && authSecure.acceptedRoles().length > 0) {
@@ -155,7 +155,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
             if (currentRoleLevel < maxRoleLeve) {
                 log.warn("[SecurityInterceptor] User role not accepted | User: {} | URI={}", 
                     user.getUsername(), request.getRequestURI(), requestId);
-                throw new ApplicationException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
+                throw new SecurityException("user.session.invalid", null, HttpStatus.UNAUTHORIZED);
             }
         }
 

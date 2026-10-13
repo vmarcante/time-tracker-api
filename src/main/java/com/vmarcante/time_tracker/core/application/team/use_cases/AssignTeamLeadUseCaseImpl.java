@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.team.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,18 +55,18 @@ public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
-            throw new ApplicationException("team.not.found", null);
+            throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         Person target = personRepository.findByEmail(input.email().address())
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         CompanyMembership targetCompanyMembership = membershipRepository
                 .findMembership(target.getId(), companyId)
@@ -76,7 +77,7 @@ public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
         }
 
         if (teamRepository.isTeamLead(target.getId(), teamId)) {
-            throw new ApplicationException("team.lead.already.assigned", null);
+            throw new ApplicationException("team.lead.already.assigned", null, HttpStatus.CONFLICT);
         }
 
         Optional<TeamMembership> previousLead = teamRepository.findLeadMembership(teamId);

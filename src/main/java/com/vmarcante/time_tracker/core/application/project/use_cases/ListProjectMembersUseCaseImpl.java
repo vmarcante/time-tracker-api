@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,13 +48,13 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
         }
 
         if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
-            throw new ApplicationException("company.access.denied", null);
+            throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Project project = projectRepository.findById(projectId)
                 .filter(p -> companyId.equals(p.getCompanyId()))
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
-                .orElseThrow(() -> new ApplicationException("project.not.found", null));
+                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
         Page<ProjectAssignment> assignments = projectRepository
                 .findActiveAssignmentsByProjectId(projectId, pageable);

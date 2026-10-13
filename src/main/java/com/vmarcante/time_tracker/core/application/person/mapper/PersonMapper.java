@@ -10,7 +10,7 @@ public class PersonMapper {
         person.setName(input.name());
         person.setEmail(input.email());
         person.setPhone(input.phone());
-        person.setLocale(input.locale() != null ? input.locale() : "pt");
+        person.setLocale(input.locale() != null ? input.locale() : "pt-BR");
         person.setAge(input.age());
         return person;
     }

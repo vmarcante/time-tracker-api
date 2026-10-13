@@ -50,7 +50,7 @@ public class ConfirmUserRegistrationUseCaseImpl implements ConfirmUserRegistrati
 
         if (userAuth.getUserConfirmed()) {
             log.info("[Confirm Registration] User already confirmed | User ID: {}", userAuth.getId());
-            throw new ApplicationException("user.already.confirmed", null, HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("user.already.confirmed", null, HttpStatus.CONFLICT);
         }
 
         userAuth.setUserConfirmed(true);

@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.user.orchestrator;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -51,13 +52,13 @@ public class CurrentUserDataOrchestrator {
         Optional<UserAuth> userAuthOptional = userAuthRepository.findById(userId);
         if (userAuthOptional.isEmpty()) {
             log.warn("[Current User Data] User not found");
-            throw new ApplicationException("user.not.found", null);
+            throw new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         Optional<Person> personOptional = personRepository.findById(userId);
         if (personOptional.isEmpty()) {
             log.warn("[Current User Data] Person not found");
-            throw new ApplicationException("user.not.found", null);
+            throw new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         UserAuth userAuth = userAuthOptional.get();

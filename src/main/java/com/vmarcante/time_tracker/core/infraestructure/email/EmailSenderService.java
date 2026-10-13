@@ -10,6 +10,7 @@ import com.vmarcante.time_tracker.core.domain.email.model.EmailData;
 import com.vmarcante.time_tracker.core.domain.email.model.EmailFile;
 import com.vmarcante.time_tracker.core.domain.email.service.EmailService;
 import com.vmarcante.time_tracker.core.infraestructure.email.persistence.FailedEmailPersistenceAdapter;
+import com.vmarcante.time_tracker.core.infraestructure.exception.InfraestructureException;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +98,7 @@ public class EmailSenderService implements EmailService {
             log.info("[ Email Sender ] - Email sent successfully to: {}", (Object) to);
         } catch (Exception e) {
             log.error("[ Email Sender ] - Failed to send email to: {}", to, e);
-            throw new Exception("Failed to send email: " + e.getMessage(), e);
+            throw new InfraestructureException("infraestructure.email.send.failed", e);
         }
     }
 
@@ -141,7 +142,7 @@ public class EmailSenderService implements EmailService {
             log.info("[ Email Sender ] - Email with attachments sent successfully to: {}", (Object) to);
         } catch (Exception e) {
             log.error("[ Email Sender ] - Failed to send email with attachments to: {}", to, e);
-            throw new Exception("Failed to send email with attachments: " + e.getMessage(), e);
+            throw new InfraestructureException("infraestructure.email.send.failed", e);
         }
     }
 

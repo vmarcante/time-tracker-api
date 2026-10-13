@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,7 +65,7 @@ public class UpdateSessionUseCaseImpl implements UpdateSessionUseCase {
         validationPolicy.validateSessionTimes(input.startTime(), input.endTime());
         if (input.endTime() == null && session.getEndTime() != null
                 && sessionRepository.existsRunningByUserId(userId)) {
-            throw new ApplicationException("timeentry.timer.already.running", null);
+            throw new ApplicationException("timeentry.timer.already.running", null, HttpStatus.CONFLICT);
         }
 
         session.setStartTime(input.startTime());

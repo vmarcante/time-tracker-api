@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,7 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         CompanyMembership target = membershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
@@ -64,15 +65,15 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
                 .orElseThrow(() -> new ApplicationException("company.membership.not.found", null));
 
         if (Boolean.TRUE.equals(target.getApproved())) {
-            throw new ApplicationException("company.membership.already.approved", null);
+            throw new ApplicationException("company.membership.already.approved", null, HttpStatus.CONFLICT);
         }
 
         if (target.getOrigin() != MembershipOrigin.REQUEST) {
-            throw new ApplicationException("company.membership.not.request", null);
+            throw new ApplicationException("company.membership.not.request", null, HttpStatus.CONFLICT);
         }
 
         if (!actorMembership.getRole().canManage(target.getRole())) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         target.setApproved(true);

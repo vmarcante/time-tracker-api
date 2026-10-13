@@ -1,25 +1,21 @@
 package com.vmarcante.time_tracker.core.infraestructure.security.ratelimit;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 class RateLimitCounter {
-    
-    private AtomicInteger count;
+
+    private int count;
     private long expiresAt;
 
     public RateLimitCounter(int initialCount, long expiresAt) {
-        this.count = new AtomicInteger(initialCount);
+        this.count = initialCount;
         this.expiresAt = expiresAt;
     }
 
-    public int incrementAndGet() {
-        return count.incrementAndGet();
-    }
-
-    public int getCount() {
-        return count.get();
+    public synchronized int incrementAndGet() {
+        return ++count;
     }
 }

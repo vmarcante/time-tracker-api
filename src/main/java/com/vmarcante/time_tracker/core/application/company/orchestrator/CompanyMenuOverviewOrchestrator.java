@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.application.company.orchestrator;
 
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -41,10 +42,10 @@ public class CompanyMenuOverviewOrchestrator {
                 .orElseThrow(() -> new ApplicationException("user.authenticated.not", null));
 
         CompanyMembership actorMembership = membershipRepository.findMembership(userId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MEMBER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
     }
 }

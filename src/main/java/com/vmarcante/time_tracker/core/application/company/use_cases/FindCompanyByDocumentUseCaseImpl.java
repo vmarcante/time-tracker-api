@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -38,10 +39,10 @@ public class FindCompanyByDocumentUseCaseImpl implements FindCompanyByDocumentUs
         }
 
         UserAuth userAuth = userAuthRepository.findById(currentUserId.get())
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         if (userAuth.getAffiliation() != AffiliationStatus.PENDING) {
-            throw new ApplicationException("onboarding.already.completed", null);
+            throw new ApplicationException("onboarding.already.completed", null, HttpStatus.CONFLICT);
         }
 
         String digits = document == null ? "" : document.replaceAll("\\D", "");

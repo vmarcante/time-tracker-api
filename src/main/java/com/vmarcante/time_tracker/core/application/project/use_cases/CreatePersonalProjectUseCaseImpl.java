@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +51,7 @@ public class CreatePersonalProjectUseCaseImpl implements CreatePersonalProjectUs
         validationPolicy.validateDates(input.startDate(), input.endDate());
 
         if (projectRepository.existsActiveByUserIdAndName(userId, input.name().trim())) {
-            throw new ApplicationException("project.name.already.exists", null);
+            throw new ApplicationException("project.name.already.exists", null, HttpStatus.CONFLICT);
         }
 
         Project project = new Project();

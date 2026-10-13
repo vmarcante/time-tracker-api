@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.team.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,11 +48,11 @@ public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
         UUID userId = currentUserId.get();
 
         if (!membershipRepository.isMember(userId, companyId)) {
-            throw new ApplicationException("company.access.denied", null);
+            throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
-            throw new ApplicationException("team.not.found", null);
+            throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         TeamMembership membership = teamRepository.findMembership(userId, teamId)

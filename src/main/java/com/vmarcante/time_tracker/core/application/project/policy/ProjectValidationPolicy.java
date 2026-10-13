@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.application.project.policy;
 
 import java.time.LocalDate;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Component;
 
@@ -47,7 +48,7 @@ public class ProjectValidationPolicy {
     public void validateStatusTransition(ProjectStatus current, ProjectStatus target)
             throws ApplicationException {
         if (current == target) {
-            throw new ApplicationException("project.status.already", null);
+            throw new ApplicationException("project.status.already", null, HttpStatus.CONFLICT);
         }
 
         boolean allowed = switch (target) {
@@ -57,7 +58,7 @@ public class ProjectValidationPolicy {
         };
 
         if (!allowed) {
-            throw new ApplicationException("project.status.invalid.transition", null);
+            throw new ApplicationException("project.status.invalid.transition", null, HttpStatus.CONFLICT);
         }
     }
 }

@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -41,11 +42,11 @@ public class LookupPersonForInviteUseCaseImpl implements LookupPersonForInviteUs
                 .orElseThrow(() -> new ApplicationException("user.authenticated.not", null));
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         // Only roles that can manage at least MEMBER (MANAGER, ADMIN, OWNER) may lookup invitees
         if (!actorMembership.getRole().canManage(CompanyRole.MEMBER)) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Optional<Person> found = personRepository.findByEmail(email);

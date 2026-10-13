@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,12 +49,12 @@ public class UpdateCompanyUseCaseImpl implements UpdateCompanyUseCase {
 
         Optional<CompanyMembership> membership = membershipRepository.findMembership(userId, companyId);
         if (membership.isEmpty()) {
-            throw new ApplicationException("company.access.denied", null);
+            throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         CompanyRole role = membership.get().getRole();
         if (role != CompanyRole.OWNER && role != CompanyRole.MANAGER) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Company company = companyRepository.findById(companyId)

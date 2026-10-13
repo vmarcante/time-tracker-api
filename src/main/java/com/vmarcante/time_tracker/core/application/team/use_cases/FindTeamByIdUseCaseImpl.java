@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 
@@ -44,13 +45,13 @@ public class FindTeamByIdUseCaseImpl implements FindTeamByIdUseCase {
         }
 
         if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
-            throw new ApplicationException("company.access.denied", null);
+            throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Team team = teamRepository.findById(teamId)
                 .filter(t -> t.getCompanyId().equals(companyId))
                 .filter(t -> Boolean.TRUE.equals(t.getActive()))
-                .orElseThrow(() -> new ApplicationException("team.not.found", null));
+                .orElseThrow(() -> new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND));
 
         Optional<TeamMembership> lead = teamRepository.findLeadMembership(teamId);
         UUID leadUserId = lead.isPresent() ? lead.get().getUserId() : null;

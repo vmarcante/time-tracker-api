@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,7 +59,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
         UUID userId = currentUserId.get();
 
         if (sessionRepository.existsRunningByUserId(userId)) {
-            throw new ApplicationException("timeentry.timer.already.running", null);
+            throw new ApplicationException("timeentry.timer.already.running", null, HttpStatus.CONFLICT);
         }
 
         TimeEntry entry;
@@ -91,16 +92,16 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
             throw new ApplicationException("timeentry.project.required", null);
         }
         Project project = projectRepository.findById(input.projectId())
-                .orElseThrow(() -> new ApplicationException("project.not.found", null));
+                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
         if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new ApplicationException("project.not.active", null);
+            throw new ApplicationException("project.not.active", null, HttpStatus.CONFLICT);
         }
         if (project.getCompanyId() == null) {
             if (!userId.equals(project.getUserId())) {
-                throw new ApplicationException("timeentry.project.access.denied", null);
+                throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
             }
         } else if (!projectRepository.hasAnyActiveAssignment(userId, project.getId())) {
-            throw new ApplicationException("timeentry.project.access.denied", null);
+            throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         String name = input.name() == null || input.name().isBlank()

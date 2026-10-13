@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +52,7 @@ public class UpdateTagUseCaseImpl implements UpdateTagUseCase {
 
         if (!tag.getName().equalsIgnoreCase(input.name().trim())
                 && tagRepository.existsActiveByUserIdAndNameIgnoreCase(userId, input.name().trim())) {
-            throw new ApplicationException("tag.name.already.exists", null);
+            throw new ApplicationException("tag.name.already.exists", null, HttpStatus.CONFLICT);
         }
 
         tag.setName(input.name().trim());

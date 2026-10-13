@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +66,7 @@ public class CreateTimeEntryUseCaseImpl implements CreateTimeEntryUseCase {
         List<UUID> tagIds = input.tagIds() == null ? List.of() : input.tagIds();
         List<Tag> tags = tagRepository.findActiveByIdsAndUserId(tagIds, userId);
         if (tags.size() != tagIds.size()) {
-            throw new ApplicationException("timeentry.tag.not.found", null);
+            throw new ApplicationException("timeentry.tag.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         TimeEntry entry = new TimeEntry();
@@ -88,16 +89,16 @@ public class CreateTimeEntryUseCaseImpl implements CreateTimeEntryUseCase {
 
     private Project resolveProjectForLogging(UUID userId, UUID projectId) throws ApplicationException {
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ApplicationException("project.not.found", null));
+                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
         if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new ApplicationException("project.not.active", null);
+            throw new ApplicationException("project.not.active", null, HttpStatus.CONFLICT);
         }
         if (project.getCompanyId() == null) {
             if (!userId.equals(project.getUserId())) {
-                throw new ApplicationException("timeentry.project.access.denied", null);
+                throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
             }
         } else if (!projectRepository.hasAnyActiveAssignment(userId, projectId)) {
-            throw new ApplicationException("timeentry.project.access.denied", null);
+            throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
         }
         return project;
     }

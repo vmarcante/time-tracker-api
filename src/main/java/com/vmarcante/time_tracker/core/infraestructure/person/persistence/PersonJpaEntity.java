@@ -98,7 +98,7 @@ public class PersonJpaEntity implements BaseAuthEntityInterface<UUID, Integer> {
             this.active = true;
         }
         if (this.locale == null || this.locale.isEmpty()) {
-            this.locale = "pt";
+            this.locale = "pt-BR";
         }
     }
 

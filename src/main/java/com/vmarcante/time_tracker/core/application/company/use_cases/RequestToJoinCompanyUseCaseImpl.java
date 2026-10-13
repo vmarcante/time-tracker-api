@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,7 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
                 .orElseThrow(() -> new ApplicationException("company.not.found", null));
 
         if (membershipRepository.hasAnyActiveMembership(userId, companyId)) {
-            throw new ApplicationException("company.member.already.exists", null);
+            throw new ApplicationException("company.member.already.exists", null, HttpStatus.CONFLICT);
         }
 
         if (requestReason != null && requestReason.length() > 500) {

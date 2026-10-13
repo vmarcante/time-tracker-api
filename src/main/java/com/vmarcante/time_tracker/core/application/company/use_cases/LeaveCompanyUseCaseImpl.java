@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +54,7 @@ public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
         UUID userId = currentUserId.get();
 
         CompanyMembership membership = membershipRepository.findMembership(userId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (membership.getRole() == CompanyRole.OWNER) {
             throw new ApplicationException("company.owner.cannot.leave", null);

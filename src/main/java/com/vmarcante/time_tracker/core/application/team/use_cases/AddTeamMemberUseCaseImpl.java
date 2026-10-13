@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.team.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,26 +55,26 @@ public class AddTeamMemberUseCaseImpl implements AddTeamMemberUseCase {
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
-            throw new ApplicationException("team.not.found", null);
+            throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
                 || teamRepository.isTeamLead(actorId, teamId);
         if (!canManage) {
-            throw new ApplicationException("team.permission.denied", null);
+            throw new ApplicationException("team.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Person target = personRepository.findByEmail(input.email().address())
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         membershipRepository.findMembership(target.getId(), companyId)
                 .orElseThrow(() -> new ApplicationException("team.member.not.company.member", null));
 
         if (teamRepository.hasAnyActiveMembership(target.getId(), teamId)) {
-            throw new ApplicationException("team.member.already.exists", null);
+            throw new ApplicationException("team.member.already.exists", null, HttpStatus.CONFLICT);
         }
 
         TeamMembership membership = new TeamMembership();

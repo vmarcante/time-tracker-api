@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.user.auth.use_cases;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,14 +64,14 @@ public class CreateOnboardingCompanyUseCaseImpl implements CreateOnboardingCompa
                 input.legalName(), input.tradeName(), input.document(), null, null));
 
         UserAuth userAuth = userAuthRepository.findById(userId)
-                .orElseThrow(() -> new ApplicationException("user.not.found", null));
+                .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
         if (userAuth.getAffiliation() != AffiliationStatus.PENDING) {
-            throw new ApplicationException("onboarding.already.completed", null);
+            throw new ApplicationException("onboarding.already.completed", null, HttpStatus.CONFLICT);
         }
 
         if (companyRepository.existsByDocument(input.document().digits())) {
-            throw new ApplicationException("company.document.already.exists", null);
+            throw new ApplicationException("company.document.already.exists", null, HttpStatus.CONFLICT);
         }
 
         Company company = new Company();

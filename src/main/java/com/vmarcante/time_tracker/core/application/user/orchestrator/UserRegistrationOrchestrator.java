@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.application.user.orchestrator;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class UserRegistrationOrchestrator {
 
         if (!checkUsernameAvailabilityUseCase.execute(input.username())) {
             log.warn("[User Registration] Attempt to register with unavailable username: {}", input.username());
-            throw new ApplicationException("user.username.unavailable", null);
+            throw new ApplicationException("user.username.unavailable", null, HttpStatus.CONFLICT);
         }
 
         // Check if a pre-registered Person exists for this email (no UserAuth yet)
@@ -69,7 +70,7 @@ public class UserRegistrationOrchestrator {
 
         if (!isPreRegistered && !checkEmailAvailabilityUseCase.execute(input.email().address())) {
             log.warn("[User Registration] Attempt to register with unavailable email: {}", input.email().address());
-            throw new ApplicationException("user.email.unavailable", null);
+            throw new ApplicationException("user.email.unavailable", null, HttpStatus.CONFLICT);
         }
 
         Person person;

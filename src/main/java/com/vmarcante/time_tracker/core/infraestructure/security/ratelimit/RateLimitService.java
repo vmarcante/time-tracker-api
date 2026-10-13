@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.data.redis.cache.RedisCache;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,15 +37,7 @@ public class RateLimitService {
     }
 
     private boolean isRedisBackedCache() {
-        try {
-            if (redisTemplate == null) {
-                return false;
-            }
-            Cache cache = cacheManager.getCache(CACHE_NAME);
-            return cache instanceof RedisCache;
-        } catch (Exception e) {
-            return false;
-        }
+        return redisTemplate != null && cacheManager instanceof RedisCacheManager;
     }
 
     public boolean isAllowed(String key, int maxRequests, int windowSeconds) {

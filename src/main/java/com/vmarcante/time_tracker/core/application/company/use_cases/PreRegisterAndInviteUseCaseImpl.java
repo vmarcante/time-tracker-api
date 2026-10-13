@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,12 @@ public class PreRegisterAndInviteUseCaseImpl implements PreRegisterAndInviteUseC
         UUID actorId = currentUserId.get();
 
         CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
-                .orElseThrow(() -> new ApplicationException("company.access.denied", null));
+                .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         validateInput(input, actorMembership.getRole());
 
         if (personRepository.existsByEmail(input.email())) {
-            throw new ApplicationException("user.email.unavailable", null);
+            throw new ApplicationException("user.email.unavailable", null, HttpStatus.CONFLICT);
         }
 
         Person person = buildPerson(input);
@@ -106,7 +107,7 @@ public class PreRegisterAndInviteUseCaseImpl implements PreRegisterAndInviteUseC
         }
 
         if (!actorRole.canManage(input.role())) {
-            throw new ApplicationException("company.permission.denied", null);
+            throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
     }
 
@@ -115,7 +116,7 @@ public class PreRegisterAndInviteUseCaseImpl implements PreRegisterAndInviteUseC
         person.setName(input.name().trim());
         person.setEmail(new Email(input.email()));
         person.setAge(input.age());
-        person.setLocale("pt");
+        person.setLocale("pt-BR");
 
         if (StringValidationUtils.containsContent(input.phone())) {
             person.setPhone(new Phone(input.phone()));
