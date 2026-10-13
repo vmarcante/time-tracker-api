@@ -17,5 +17,7 @@ public interface UserAuthRepository {
 
     boolean existsByUsername(String username);
 
+    boolean existsByPersonId(UUID personId);
+
     Optional<UserAuth> findByUsernameWithPerson(String username);
 }

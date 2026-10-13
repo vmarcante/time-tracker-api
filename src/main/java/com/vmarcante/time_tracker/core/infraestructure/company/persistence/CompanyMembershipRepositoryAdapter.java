@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
-import com.vmarcante.time_tracker.core.infraestructure.company.mapper.CompanyPersistenceMapper;
+import com.vmarcante.time_tracker.core.infraestructure.company.mapper.CompanyMembershipPersistenceMapper;
 
 @Component
 public class CompanyMembershipRepositoryAdapter implements CompanyMembershipRepository {
@@ -23,8 +23,8 @@ public class CompanyMembershipRepositoryAdapter implements CompanyMembershipRepo
 
     @Override
     public CompanyMembership saveMembership(CompanyMembership membership) {
-        UserCompanyJpaEntity entity = CompanyPersistenceMapper.toEntity(membership);
-        return CompanyPersistenceMapper.toDomain(userCompanyJpaRepository.save(entity));
+        UserCompanyJpaEntity entity = CompanyMembershipPersistenceMapper.toEntity(membership);
+        return CompanyMembershipPersistenceMapper.toDomain(userCompanyJpaRepository.save(entity));
     }
 
     @Override
@@ -49,55 +49,55 @@ public class CompanyMembershipRepositoryAdapter implements CompanyMembershipRepo
     public Optional<CompanyMembership> findMembership(UUID userId, UUID companyId) {
         return userCompanyJpaRepository
                 .findByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(userId, companyId)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<CompanyMembership> findPendingMembership(UUID userId, UUID companyId) {
         return userCompanyJpaRepository
                 .findByUserIdAndCompanyIdAndActiveTrueAndApprovedFalse(userId, companyId)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<CompanyMembership> findMembershipById(UUID membershipId) {
         return userCompanyJpaRepository.findById(membershipId)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId, Pageable pageable) {
         return userCompanyJpaRepository
                 .findByCompanyIdAndActiveTrueAndApprovedTrue(companyId, pageable)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId, Pageable pageable) {
         return userCompanyJpaRepository
                 .findByCompanyIdAndActiveTrueAndApprovedFalse(companyId, pageable)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findResolvedMembershipsByCompanyId(UUID companyId, Pageable pageable) {
         return userCompanyJpaRepository
                 .findResolvedByCompanyId(companyId, pageable)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable) {
         return userCompanyJpaRepository
                 .findByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.INVITE, pageable)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<CompanyMembership> findApprovedMembershipByUserId(UUID userId) {
         return userCompanyJpaRepository
                 .findFirstByUserIdAndActiveTrueAndApprovedTrue(userId)
-                .map(CompanyPersistenceMapper::toDomain);
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override

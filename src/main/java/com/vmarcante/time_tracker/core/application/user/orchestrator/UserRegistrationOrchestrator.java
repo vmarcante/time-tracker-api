@@ -4,6 +4,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.CreateUserAuthDTO;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.input.CreateUserInputDTO;
@@ -15,6 +17,7 @@ import com.vmarcante.time_tracker.core.application.person.in.CheckEmailAvailabil
 import com.vmarcante.time_tracker.core.application.person.in.CreatePersonUseCase;
 import com.vmarcante.time_tracker.core.domain.user.auth.event.UserAuthCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
+import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 
@@ -29,6 +32,7 @@ public class UserRegistrationOrchestrator {
     private final CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase;
     private final CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase;
     private final PersonRepository personRepository;
+    private final UserAuthRepository userAuthRepository;
     private final ApplicationEventPublisher eventPublisher;
 
     public UserRegistrationOrchestrator(
@@ -37,12 +41,14 @@ public class UserRegistrationOrchestrator {
             CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase,
             CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase,
             PersonRepository personRepository,
+            UserAuthRepository userAuthRepository,
             ApplicationEventPublisher eventPublisher) {
         this.createUserUseCase = createUserUseCase;
         this.createPersonUseCase = createPersonUseCase;
         this.checkEmailAvailabilityUseCase = checkEmailAvailabilityUseCase;
         this.checkUsernameAvailabilityUseCase = checkUsernameAvailabilityUseCase;
         this.personRepository = personRepository;
+        this.userAuthRepository = userAuthRepository;
         this.eventPublisher = eventPublisher;
     }
 
@@ -56,20 +62,35 @@ public class UserRegistrationOrchestrator {
             throw new ApplicationException("user.username.unavailable", null);
         }
 
-        if (!checkEmailAvailabilityUseCase.execute(input.email().address())) {
+        // Check if a pre-registered Person exists for this email (no UserAuth yet)
+        Optional<Person> existingPerson = personRepository.findByEmail(input.email().address());
+        boolean isPreRegistered = existingPerson.isPresent()
+                && !userAuthRepository.existsByPersonId(existingPerson.get().getId());
+
+        if (!isPreRegistered && !checkEmailAvailabilityUseCase.execute(input.email().address())) {
             log.warn("[User Registration] Attempt to register with unavailable email: {}", input.email().address());
             throw new ApplicationException("user.email.unavailable", null);
         }
 
-        // Validates and create person
-        CreatePersonDTO personInput = new CreatePersonDTO(
-                input.name(),
-                input.age(),
-                input.email(),
-                input.phone(),
-                input.locale());
-
-        Person person = createPersonUseCase.execute(personInput);
+        Person person;
+        if (isPreRegistered) {
+            // Reuse the pre-registered Person, updating their data with what was provided
+            person = existingPerson.get();
+            person.setName(input.name());
+            person.setAge(input.age());
+            person.setPhone(input.phone());
+            person.setLocale(input.locale() != null ? input.locale() : person.getLocale());
+            person = personRepository.save(person);
+            log.info("[User Registration] Linking new UserAuth to pre-registered Person {}", person.getId());
+        } else {
+            CreatePersonDTO personInput = new CreatePersonDTO(
+                    input.name(),
+                    input.age(),
+                    input.email(),
+                    input.phone(),
+                    input.locale());
+            person = createPersonUseCase.execute(personInput);
+        }
 
         // Validates and create user authentication data
         CreateUserAuthDTO userAuthInput = new CreateUserAuthDTO(

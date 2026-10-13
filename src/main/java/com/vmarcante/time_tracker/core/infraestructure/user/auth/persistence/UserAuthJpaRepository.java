@@ -19,6 +19,8 @@ public interface UserAuthJpaRepository
 
     boolean existsByUsernameHash(String usernameHash);
 
+    boolean existsById(UUID id);
+
     @Query(" SELECT userAuth FROM UserAuthJpaEntity userAuth " +
            " LEFT JOIN FETCH userAuth.person " +
            " WHERE userAuth.usernameHash = :usernameHash")

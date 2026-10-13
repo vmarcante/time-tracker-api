@@ -19,9 +19,11 @@ import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.company.dto.input.ChangeMemberRoleInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.InviteMemberInputDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.PreRegisterAndInviteInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.RejectMembershipInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyInvitationOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.output.PersonInviteLookupOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.AcceptCompanyInvitationUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.ApproveMembershipRequestUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.ChangeMemberRoleUseCase;
@@ -32,6 +34,8 @@ import com.vmarcante.time_tracker.core.application.company.in.ListCompanyMembers
 import com.vmarcante.time_tracker.core.application.company.in.ListMyInvitationsUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.ListPendingMembershipsUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.ListResolvedMembershipsUseCase;
+import com.vmarcante.time_tracker.core.application.company.in.LookupPersonForInviteUseCase;
+import com.vmarcante.time_tracker.core.application.company.in.PreRegisterAndInviteUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.RejectMembershipRequestUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCase;
 import com.vmarcante.time_tracker.core.application.company.dto.input.RequestToJoinInputDTO;
@@ -49,6 +53,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class CompanyMembershipController extends BaseResponseController {
 
     private final InviteMemberUseCase inviteMemberUseCase;
+    private final LookupPersonForInviteUseCase lookupPersonForInviteUseCase;
+    private final PreRegisterAndInviteUseCase preRegisterAndInviteUseCase;
     private final RequestToJoinCompanyUseCase requestToJoinCompanyUseCase;
     private final ApproveMembershipRequestUseCase approveMembershipRequestUseCase;
     private final RejectMembershipRequestUseCase rejectMembershipRequestUseCase;
@@ -64,6 +70,8 @@ public class CompanyMembershipController extends BaseResponseController {
 
     public CompanyMembershipController(
             InviteMemberUseCase inviteMemberUseCase,
+            LookupPersonForInviteUseCase lookupPersonForInviteUseCase,
+            PreRegisterAndInviteUseCase preRegisterAndInviteUseCase,
             RequestToJoinCompanyUseCase requestToJoinCompanyUseCase,
             ApproveMembershipRequestUseCase approveMembershipRequestUseCase,
             RejectMembershipRequestUseCase rejectMembershipRequestUseCase,
@@ -77,6 +85,8 @@ public class CompanyMembershipController extends BaseResponseController {
             RemoveMemberUseCase removeMemberUseCase,
             LeaveCompanyUseCase leaveCompanyUseCase) {
         this.inviteMemberUseCase = inviteMemberUseCase;
+        this.lookupPersonForInviteUseCase = lookupPersonForInviteUseCase;
+        this.preRegisterAndInviteUseCase = preRegisterAndInviteUseCase;
         this.requestToJoinCompanyUseCase = requestToJoinCompanyUseCase;
         this.approveMembershipRequestUseCase = approveMembershipRequestUseCase;
         this.rejectMembershipRequestUseCase = rejectMembershipRequestUseCase;
@@ -92,12 +102,30 @@ public class CompanyMembershipController extends BaseResponseController {
     }
 
     @AuthSecure
+    @GetMapping("/{companyId}/members/lookup")
+    @Operation(summary = "Lookup person for invite", description = "Checks if a person exists by email and whether they are available to invite")
+    public ResponseEntity<ApiResponseDTO<PersonInviteLookupOutputDTO>> lookupPersonForInvite(
+            @PathVariable UUID companyId,
+            @RequestParam String email) throws ApplicationException {
+        return ok(lookupPersonForInviteUseCase.execute(companyId, email));
+    }
+
+    @AuthSecure
     @PostMapping("/{companyId}/members/invite")
     @Operation(summary = "Invite member", description = "Invites a user by email to join the company (role must be below the inviter's role)")
     public ResponseEntity<ApiResponseDTO<CompanyMemberOutputDTO>> inviteMember(
             @PathVariable UUID companyId,
             @RequestBody InviteMemberInputDTO input) throws ApplicationException {
         return created(inviteMemberUseCase.execute(companyId, input));
+    }
+
+    @AuthSecure
+    @PostMapping("/{companyId}/members/pre-register-and-invite")
+    @Operation(summary = "Pre-register and invite", description = "Pre-registers a person without an account and sends them an invitation email to complete registration")
+    public ResponseEntity<ApiResponseDTO<CompanyMemberOutputDTO>> preRegisterAndInvite(
+            @PathVariable UUID companyId,
+            @RequestBody PreRegisterAndInviteInputDTO input) throws ApplicationException {
+        return created(preRegisterAndInviteUseCase.execute(companyId, input));
     }
 
     @AuthSecure

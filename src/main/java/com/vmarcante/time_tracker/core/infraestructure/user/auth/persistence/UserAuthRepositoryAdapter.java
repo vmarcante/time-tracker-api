@@ -52,6 +52,11 @@ public class UserAuthRepositoryAdapter implements UserAuthRepository {
     }
 
     @Override
+    public boolean existsByPersonId(UUID personId) {
+        return jpaRepository.existsById(personId);
+    }
+
+    @Override
     public Optional<UserAuth> findByUsernameWithPerson(String username) {
         String usernameHash = EncryptedFieldHashUtils.generateSearchHash(username);
         return jpaRepository.findByUsernameHashWithPerson(usernameHash)

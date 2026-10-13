@@ -24,66 +24,67 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MembershipApprovedEventListener {
 
-    private final EmailService emailService;
-    private final PersonRepository personRepository;
-    private final CompanyMembershipRepository membershipRepository;
-    private final CompanyRepository companyRepository;
-    private final String frontendUrl;
+        private final EmailService emailService;
+        private final PersonRepository personRepository;
+        private final CompanyMembershipRepository membershipRepository;
+        private final CompanyRepository companyRepository;
+        private final String frontendUrl;
 
-    public MembershipApprovedEventListener(
-            EmailService emailService,
-            PersonRepository personRepository,
-            CompanyMembershipRepository membershipRepository,
-            CompanyRepository companyRepository,
-            @Value("${app.frontend.url:https://app.timetracker.com}") String frontendUrl) {
-        this.emailService = emailService;
-        this.personRepository = personRepository;
-        this.membershipRepository = membershipRepository;
-        this.companyRepository = companyRepository;
-        this.frontendUrl = frontendUrl;
-    }
-
-    @Async
-    @EventListener
-    public void handleMembershipApproved(MembershipApprovedEvent event) {
-        try {
-            Person member = personRepository.findById(event.getMemberUserId()).orElse(null);
-            if (member == null || member.getEmail() == null
-                    || !StringValidationUtils.containsContent(member.getEmail().address())) {
-                log.warn("[Membership Approved Event] Member person not found or without email | User: {}",
-                        event.getMemberUserId());
-                return;
-            }
-
-            String companyName = companyRepository.findById(event.getCompanyId())
-                    .map(c -> c.getLegalName())
-                    .orElse("");
-            String role = membershipRepository.findMembershipById(event.getMembershipId())
-                    .map(m -> m.getRole().name())
-                    .orElse("");
-
-            Map<String, Object> templateData = new HashMap<>();
-            templateData.put("name", member.getName());
-            templateData.put("companyName", companyName);
-            templateData.put("role", role);
-            templateData.put("dashboardLink", frontendUrl + "/companies/" + event.getCompanyId());
-
-            boolean isPortuguese = "pt".equalsIgnoreCase(member.getLocale());
-            String subject = isPortuguese
-                    ? "Solicitação aprovada - " + companyName
-                    : "Request approved - " + companyName;
-            Locale locale = isPortuguese
-                    ? Locale.forLanguageTag("pt-BR")
-                    : Locale.forLanguageTag("en-US");
-
-            emailService.sendEmail(new EmailData(
-                    member.getEmail().address(), subject, "membership_approved", templateData, locale));
-
-            log.info("[Membership Approved Event] Approval email sent | User: {} | Company: {}",
-                    event.getMemberUserId(), event.getCompanyId());
-        } catch (Exception e) {
-            log.error("[Membership Approved Event] Failed to send approval email | User: {}",
-                    event.getMemberUserId(), e);
+        public MembershipApprovedEventListener(
+                        EmailService emailService,
+                        PersonRepository personRepository,
+                        CompanyMembershipRepository membershipRepository,
+                        CompanyRepository companyRepository,
+                        @Value("${app.frontend.url:https://app.timetracker.com}") String frontendUrl) {
+                this.emailService = emailService;
+                this.personRepository = personRepository;
+                this.membershipRepository = membershipRepository;
+                this.companyRepository = companyRepository;
+                this.frontendUrl = frontendUrl;
         }
-    }
+
+        @Async
+        @EventListener
+        public void handleMembershipApproved(MembershipApprovedEvent event) {
+                try {
+                        Person member = personRepository.findById(event.getMemberUserId()).orElse(null);
+                        if (member == null || member.getEmail() == null
+                                        || !StringValidationUtils.containsContent(member.getEmail().address())) {
+                                log.warn("[Membership Approved Event] Member person not found or without email | User: {}",
+                                                event.getMemberUserId());
+                                return;
+                        }
+
+                        String companyName = companyRepository.findById(event.getCompanyId())
+                                        .map(c -> c.getLegalName())
+                                        .orElse("");
+                        String role = membershipRepository.findMembershipById(event.getMembershipId())
+                                        .map(m -> m.getRole().name())
+                                        .orElse("");
+
+                        Map<String, Object> templateData = new HashMap<>();
+                        templateData.put("name", member.getName());
+                        templateData.put("companyName", companyName);
+                        templateData.put("role", role);
+                        templateData.put("dashboardLink", frontendUrl + "/companies/" + event.getCompanyId());
+
+                        boolean isPortuguese = "pt".equalsIgnoreCase(member.getLocale());
+                        String subject = isPortuguese
+                                        ? "Solicitação aprovada - " + companyName
+                                        : "Request approved - " + companyName;
+                        Locale locale = isPortuguese
+                                        ? Locale.forLanguageTag("pt-BR")
+                                        : Locale.forLanguageTag("en-US");
+
+                        emailService.sendEmail(new EmailData(
+                                        member.getEmail().address(), subject, "membership_approved", templateData,
+                                        locale));
+
+                        log.info("[Membership Approved Event] Approval email sent | User: {} | Company: {}",
+                                        event.getMemberUserId(), event.getCompanyId());
+                } catch (Exception e) {
+                        log.error("[Membership Approved Event] Failed to send approval email | User: {}",
+                                        event.getMemberUserId(), e);
+                }
+        }
 }

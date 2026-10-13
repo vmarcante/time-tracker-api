@@ -21,17 +21,20 @@ public class EmailSenderService implements EmailService {
     private final JavaMailSender mailSender;
     private final EmailTemplateService templateService;
     private final FailedEmailPersistenceAdapter failedEmailAdapter;
+    private final EmailRecipientResolver recipientResolver;
     private final String fromEmail;
 
     public EmailSenderService(
             JavaMailSender mailSender,
             EmailTemplateService templateService,
             FailedEmailPersistenceAdapter failedEmailAdapter,
+            EmailRecipientResolver recipientResolver,
             @Value("${email.from.address:noreply@timetracker.com}") String fromEmail,
             @Value("${email.from.name:Time Tracker}") String fromName) {
         this.mailSender = mailSender;
         this.templateService = templateService;
         this.failedEmailAdapter = failedEmailAdapter;
+        this.recipientResolver = recipientResolver;
         this.fromEmail = fromName + " <" + fromEmail + ">";
     }
 
@@ -51,17 +54,15 @@ public class EmailSenderService implements EmailService {
                 emailData.templateData(),
                 emailData.locale());
 
-        // TODO - REMOVE OVERRIDE
-        String emailTo = emailData.to();
-        emailTo = "vinirosamarcante@gmail.com";
+        String[] recipients = recipientResolver.resolve(emailData.to());
 
         try {
             if (emailData.hasAttachments()) {
-                sendEmailWithAttachments(emailTo, emailData.subject(), htmlContent, emailData);
+                sendEmailWithAttachments(recipients, emailData.subject(), htmlContent, emailData);
             } else {
-                sendEmail(emailTo, emailData.subject(), htmlContent);
+                sendEmail(recipients, emailData.subject(), htmlContent);
             }
-            log.debug("[ Email Sender ] - Email dispatched successfully to: {}", emailTo);
+            log.debug("[ Email Sender ] - Email dispatched successfully to: {}", (Object) recipients);
         } catch (Exception e) {
 
             if (trackFailure) {
@@ -77,7 +78,11 @@ public class EmailSenderService implements EmailService {
 
     @Override
     public void sendEmail(String to, String subject, String htmlContent) throws Exception {
-        log.info("[ Email Sender ] - Sending email to: {} | Subject: {}", to, subject);
+        sendEmail(new String[]{to}, subject, htmlContent);
+    }
+
+    private void sendEmail(String[] to, String subject, String htmlContent) throws Exception {
+        log.info("[ Email Sender ] - Sending email to: {} | Subject: {}", (Object) to, subject);
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -89,17 +94,17 @@ public class EmailSenderService implements EmailService {
             helper.setText(htmlContent, true);
 
             mailSender.send(message);
-            log.info("[ Email Sender ] - Email sent successfully to: {}", to);
+            log.info("[ Email Sender ] - Email sent successfully to: {}", (Object) to);
         } catch (Exception e) {
             log.error("[ Email Sender ] - Failed to send email to: {}", to, e);
             throw new Exception("Failed to send email: " + e.getMessage(), e);
         }
     }
 
-    private void sendEmailWithAttachments(String to, String subject, String htmlContent, EmailData emailData)
+    private void sendEmailWithAttachments(String[] to, String subject, String htmlContent, EmailData emailData)
             throws Exception {
         log.info("[ Email Sender ] - Sending email with {} attachment(s) to: {} | Subject: {}",
-                emailData.attachments().size(), to, subject);
+                emailData.attachments().size(), (Object) to, subject);
 
         try {
             MimeMessage message = mailSender.createMimeMessage();
@@ -130,14 +135,14 @@ public class EmailSenderService implements EmailService {
                         attachment.name(),
                         new ByteArrayResource(attachment.binary()),
                         attachment.mimeType());
-
             }
 
             mailSender.send(message);
-            log.info("[ Email Sender ] - Email with attachments sent successfully to: {}", to);
+            log.info("[ Email Sender ] - Email with attachments sent successfully to: {}", (Object) to);
         } catch (Exception e) {
             log.error("[ Email Sender ] - Failed to send email with attachments to: {}", to, e);
             throw new Exception("Failed to send email with attachments: " + e.getMessage(), e);
         }
     }
+
 }
