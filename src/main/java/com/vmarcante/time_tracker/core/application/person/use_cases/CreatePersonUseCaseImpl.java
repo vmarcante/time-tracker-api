@@ -7,7 +7,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.application.person.dto.CreatePersonDTO;
 import com.vmarcante.time_tracker.core.application.person.in.CreatePersonUseCase;
 import com.vmarcante.time_tracker.core.application.person.mapper.PersonMapper;
-import com.vmarcante.time_tracker.core.application.person.policy.CreatePersonInputValidationPolicy;
+import com.vmarcante.time_tracker.core.application.person.policy.PersonInputValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 
@@ -15,11 +15,11 @@ import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository
 public class CreatePersonUseCaseImpl implements CreatePersonUseCase {
 
     private final PersonRepository personRepository;
-    private final CreatePersonInputValidationPolicy validationPolicy;
+    private final PersonInputValidationPolicy validationPolicy;
 
     public CreatePersonUseCaseImpl(
             PersonRepository personRepository,
-            CreatePersonInputValidationPolicy validationPolicy) {
+            PersonInputValidationPolicy validationPolicy) {
         this.personRepository = personRepository;
         this.validationPolicy = validationPolicy;
     }
@@ -27,7 +27,8 @@ public class CreatePersonUseCaseImpl implements CreatePersonUseCase {
     @Override
     @Transactional
     public Person execute(CreatePersonDTO input) throws ApplicationException {
-        validationPolicy.validate(input);
+        validationPolicy.validateName(input.name());
+        validationPolicy.validateRequiredAge(input.age());
 
         Person person = PersonMapper.toModel(input);
         return personRepository.save(person);

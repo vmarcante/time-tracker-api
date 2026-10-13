@@ -12,6 +12,7 @@ import com.vmarcante.time_tracker.core.application.company.dto.input.PreRegister
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.PreRegisterAndInviteUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.person.policy.PersonInputValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.event.CompanyInvitationPreRegisteredEvent;
@@ -34,16 +35,19 @@ public class PreRegisterAndInviteUseCaseImpl implements PreRegisterAndInviteUseC
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
     private final ApplicationEventPublisher eventPublisher;
+    private final PersonInputValidationPolicy personInputValidationPolicy;
 
     public PreRegisterAndInviteUseCaseImpl(
             PersonRepository personRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            PersonInputValidationPolicy personInputValidationPolicy) {
         this.personRepository = personRepository;
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
         this.eventPublisher = eventPublisher;
+        this.personInputValidationPolicy = personInputValidationPolicy;
     }
 
     @Override
@@ -90,9 +94,8 @@ public class PreRegisterAndInviteUseCaseImpl implements PreRegisterAndInviteUseC
     }
 
     private void validateInput(PreRegisterAndInviteInputDTO input, CompanyRole actorRole) throws ApplicationException {
-        if (!StringValidationUtils.containsContent(input.name())) {
-            throw new ApplicationException("user.name.required", null);
-        }
+        personInputValidationPolicy.validateName(input.name());
+        personInputValidationPolicy.validateOptionalAge(input.age());
 
         if (!StringValidationUtils.containsContent(input.email())) {
             throw new ApplicationException("field.email.required", null);

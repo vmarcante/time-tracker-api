@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.person.dto.UpdatePersonProfileInputDTO;
 import com.vmarcante.time_tracker.core.application.person.in.UpdatePersonProfileUseCase;
-import com.vmarcante.time_tracker.core.application.person.policy.UpdatePersonProfileInputValidationPolicy;
+import com.vmarcante.time_tracker.core.application.person.policy.PersonInputValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -24,12 +24,12 @@ public class UpdatePersonProfileUseCaseImpl implements UpdatePersonProfileUseCas
 
     private final PersonRepository personRepository;
     private final SecurityContextPort context;
-    private final UpdatePersonProfileInputValidationPolicy validationPolicy;
+    private final PersonInputValidationPolicy validationPolicy;
 
     public UpdatePersonProfileUseCaseImpl(
             PersonRepository personRepository,
             SecurityContextPort context,
-            UpdatePersonProfileInputValidationPolicy validationPolicy) {
+            PersonInputValidationPolicy validationPolicy) {
         this.personRepository = personRepository;
         this.context = context;
         this.validationPolicy = validationPolicy;
@@ -45,7 +45,8 @@ public class UpdatePersonProfileUseCaseImpl implements UpdatePersonProfileUseCas
 
         UUID userId = currentUserId.get();
 
-        validationPolicy.validate(input);
+        validationPolicy.validateName(input.name());
+        validationPolicy.validateOptionalAge(input.age());
 
         Person person = personRepository.findById(userId)
                 .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));

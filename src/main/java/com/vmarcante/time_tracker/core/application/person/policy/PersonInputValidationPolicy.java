@@ -3,23 +3,21 @@ package com.vmarcante.time_tracker.core.application.person.policy;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.application.person.dto.UpdatePersonProfileInputDTO;
 import com.vmarcante.time_tracker.core.shared.utils.StringValidationUtils;
 
 @Component
-public class UpdatePersonProfileInputValidationPolicy {
+public class PersonInputValidationPolicy {
 
-    public void validate(UpdatePersonProfileInputDTO input) throws ApplicationException {
-        validateName(input.name());
-        validateAge(input.age());
-    }
-
-    private void validateName(String name) throws ApplicationException {
+    public void validateName(String name) throws ApplicationException {
         if (!StringValidationUtils.containsContent(name)) {
             throw new ApplicationException("user.name.required", null);
         }
 
         String trimmedName = name.trim();
+
+        if (!name.equals(trimmedName)) {
+            throw new ApplicationException("user.name.invalid.spacing", null);
+        }
 
         if (trimmedName.length() < 3) {
             throw new ApplicationException("user.name.min.length", null);
@@ -57,14 +55,26 @@ public class UpdatePersonProfileInputValidationPolicy {
         }
     }
 
+    public void validateRequiredAge(Integer age) throws ApplicationException {
+        if (age == null) {
+            throw new ApplicationException("user.age.required", null);
+        }
+
+        validateAgeRange(age);
+    }
+
     /**
-     * Age is optional in profile updates. If provided, must be between 18 and 120.
+     * Age is optional in profile updates and invitations. If provided, must be between 18 and 120.
      */
-    private void validateAge(Integer age) throws ApplicationException {
+    public void validateOptionalAge(Integer age) throws ApplicationException {
         if (age == null) {
             return;
         }
 
+        validateAgeRange(age);
+    }
+
+    private void validateAgeRange(Integer age) throws ApplicationException {
         if (age < 18) {
             throw new ApplicationException("user.age.min", null);
         }
