@@ -19,7 +19,8 @@ public class PersonPersistenceMapper {
         entity.setSeqId(person.getSeqId());
         entity.setCreatedBy(person.getCreatedBy());
         entity.setUpdatedBy(person.getUpdatedBy());
-        entity.setLocale(person.getLocale() != null ? person.getLocale() : "pt");
+        entity.setLocale(person.getLocale() != null ? person.getLocale() : "pt-BR");
+        entity.setActive(person.getActive() != null ? person.getActive() : true);
         return entity;
     }
 
@@ -35,7 +36,8 @@ public class PersonPersistenceMapper {
         person.setSeqId(entity.getSeqId());
         person.setCreatedBy(entity.getCreatedBy());
         person.setUpdatedBy(entity.getUpdatedBy());
-        person.setLocale(entity.getLocale() != null ? entity.getLocale() : "pt");
+        person.setLocale(entity.getLocale() != null ? entity.getLocale() : "pt-BR");
+        person.setActive(entity.getActive());
         return person;
     }
 }
