@@ -20,42 +20,42 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "TB0013_SYSTEM_CONFIG", schema = "dbo", indexes = {
-        @Index(name = "IX0013_SQ_ID", columnList = "C0013_SQ_ID", unique = true),
-        @Index(name = "IX0013_CONFIG_KEY", columnList = "C0013_CONFIG_KEY", unique = true),
-        @Index(name = "IX0013_ACTIVE", columnList = "C0013_ACTIVE")
+@Table(name = "TB0016_SYSTEM_CONFIG", schema = "dbo", indexes = {
+        @Index(name = "IX0016_SQ_ID", columnList = "C0016_SQ_ID", unique = true),
+        @Index(name = "IX0016_CONFIG_KEY", columnList = "C0016_CONFIG_KEY", unique = true),
+        @Index(name = "IX0016_ACTIVE", columnList = "C0016_ACTIVE")
 })
 @Data
 public class SystemConfigJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "C0013_ID")
+    @Column(name = "C0016_ID")
     private UUID id;
 
-    @Column(name = "C0013_CREATED_AT", nullable = false, updatable = false)
+    @Column(name = "C0016_CREATED_AT", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "C0013_UPDATED_AT", nullable = false)
+    @Column(name = "C0016_UPDATED_AT", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "C0013_ACTIVE", nullable = false)
+    @Column(name = "C0016_ACTIVE", nullable = false)
     private Boolean active;
 
-    @Column(name = "C0013_SQ_ID", nullable = false, updatable = false, insertable = false)
+    @Column(name = "C0016_SQ_ID", nullable = false, updatable = false, insertable = false)
     private Integer seqId;
 
-    @Column(name = "C0013_CONFIG_KEY", nullable = false, length = 100, unique = true)
+    @Column(name = "C0016_CONFIG_KEY", nullable = false, length = 100, unique = true)
     private String configKey;
 
-    @Column(name = "C0013_CONFIG_VALUE", length = 500)
+    @Column(name = "C0016_CONFIG_VALUE", length = 500)
     private String configValue;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "C0013_VALUE_TYPE", nullable = false, length = 50)
+    @Column(name = "C0016_VALUE_TYPE", nullable = false, length = 50)
     private SystemConfigValueType valueType;
 
-    @Column(name = "C0013_DESCRIPTION", columnDefinition = "TEXT")
+    @Column(name = "C0016_DESCRIPTION", columnDefinition = "TEXT")
     private String description;
 
     @PrePersist
