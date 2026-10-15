@@ -1,5 +1,6 @@
 package com.vmarcante.time_tracker.core.application.user.auth.use_cases;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +20,7 @@ import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
 import com.vmarcante.time_tracker.core.shared.utils.StringValidationUtils;
+import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,7 +80,7 @@ public class RefreshTokenUseCaseImpl implements RefreshTokenUseCase {
         if (sessionId != null) {
             log.debug("[Refresh Token] Cache HIT - validating session from DB");
             Optional<UserSession> sessionOpt = userSessionRepository.findById(sessionId);
-            if (sessionOpt.isPresent()) {
+            if (sessionOpt.isPresent() && token.equals(sessionOpt.get().getRefreshToken())) {
                 session = sessionOpt.get();
             }
         }
@@ -130,8 +132,13 @@ public class RefreshTokenUseCaseImpl implements RefreshTokenUseCase {
         LocalDateTime expiryDate = LocalDateTime.now().plusSeconds(refreshTokenExpirationMs / 1000);
         session.setLastActivityAt(LocalDateTime.now());
         session.setRefreshToken(newRefreshToken);
+        session.setRefreshTokenHash(TokenHashUtils.generateHash(newRefreshToken));
         session.setRefreshTokenExpiry(expiryDate);
         userSessionRepository.save(session);
+
+        refreshTokenCacheService.invalidateToken(token);
+        refreshTokenCacheService.cacheToken(
+                newRefreshToken, session.getId(), Duration.ofMillis(refreshTokenExpirationMs));
 
         log.debug("[Refresh Token] Token refreshed successfully | User ID: {} | Username: {} | Session ID: {}",
                 userAuth.getId(), userAuth.getUsername(), session.getId());
