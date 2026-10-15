@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.interfaces.timeentry.controllers;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -24,11 +25,13 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.input.CreateTim
 import com.vmarcante.time_tracker.core.application.timeentry.dto.input.SetTimeEntryTagsInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.input.UpdateTimeEntryInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntryDetailOutputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntryProjectOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntrySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.in.CreateTimeEntryUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.DeactivateTimeEntryUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.FindTimeEntryByIdUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTimeEntriesUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTimeEntryProjectsUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.SetTimeEntryTagsUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.UpdateTimeEntryUseCase;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
@@ -47,6 +50,7 @@ public class TimeEntryController extends BaseResponseController {
     private final DeactivateTimeEntryUseCase deactivateTimeEntryUseCase;
     private final FindTimeEntryByIdUseCase findTimeEntryByIdUseCase;
     private final ListMyTimeEntriesUseCase listMyTimeEntriesUseCase;
+    private final ListMyTimeEntryProjectsUseCase listMyTimeEntryProjectsUseCase;
     private final SetTimeEntryTagsUseCase setTimeEntryTagsUseCase;
 
     public TimeEntryController(
@@ -55,12 +59,14 @@ public class TimeEntryController extends BaseResponseController {
             DeactivateTimeEntryUseCase deactivateTimeEntryUseCase,
             FindTimeEntryByIdUseCase findTimeEntryByIdUseCase,
             ListMyTimeEntriesUseCase listMyTimeEntriesUseCase,
+            ListMyTimeEntryProjectsUseCase listMyTimeEntryProjectsUseCase,
             SetTimeEntryTagsUseCase setTimeEntryTagsUseCase) {
         this.createTimeEntryUseCase = createTimeEntryUseCase;
         this.updateTimeEntryUseCase = updateTimeEntryUseCase;
         this.deactivateTimeEntryUseCase = deactivateTimeEntryUseCase;
         this.findTimeEntryByIdUseCase = findTimeEntryByIdUseCase;
         this.listMyTimeEntriesUseCase = listMyTimeEntriesUseCase;
+        this.listMyTimeEntryProjectsUseCase = listMyTimeEntryProjectsUseCase;
         this.setTimeEntryTagsUseCase = setTimeEntryTagsUseCase;
     }
 
@@ -77,12 +83,21 @@ public class TimeEntryController extends BaseResponseController {
     @Operation(summary = "List my time entries", description = "Lists the authenticated user's time entries with optional filters")
     public ResponseEntity<ApiResponseDTO<PageWrapperDTO<TimeEntrySummaryOutputDTO>>> list(
             @RequestParam(required = false) UUID projectId,
+            @RequestParam(required = false) List<UUID> tagIds,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) throws ApplicationException {
         Pageable pageable = PageableUtils.pageable(page, size, null);
-        return ok(PageWrapperDTO.of(listMyTimeEntriesUseCase.execute(projectId, from, to, pageable)));
+        return ok(PageWrapperDTO.of(listMyTimeEntriesUseCase.execute(projectId, tagIds, from, to, pageable)));
+    }
+
+    @AuthSecure
+    @GetMapping("/projects")
+    @Operation(summary = "List my entry projects", description = "Lists distinct projects that have time entries for the authenticated user, including inactive ones")
+    public ResponseEntity<ApiResponseDTO<List<TimeEntryProjectOutputDTO>>> listEntryProjects()
+            throws ApplicationException {
+        return ok(listMyTimeEntryProjectsUseCase.execute());
     }
 
     @AuthSecure

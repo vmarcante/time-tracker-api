@@ -21,8 +21,10 @@ public interface TimeEntryRepository {
 
     boolean existsActiveByIdAndUserId(UUID entryId, UUID userId);
 
-    Page<TimeEntry> findActiveByUserId(UUID userId, UUID projectId,
+    Page<TimeEntry> findActiveByUserId(UUID userId, UUID projectId, Collection<UUID> tagIds,
             LocalDateTime from, LocalDateTime to, Pageable pageable);
+
+    List<UUID> findDistinctProjectIdsByUserId(UUID userId);
 
     Page<TimeEntry> findActiveByCompanyId(UUID companyId, UUID userId, UUID projectId,
             LocalDateTime from, LocalDateTime to, Pageable pageable);

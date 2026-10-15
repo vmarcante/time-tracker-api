@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,15 +34,15 @@ public class ListMyTimeEntriesUseCaseImpl implements ListMyTimeEntriesUseCase {
     }
 
     @Override
-    public Page<TimeEntrySummaryOutputDTO> execute(UUID projectId, LocalDateTime from, LocalDateTime to,
-            Pageable pageable) throws ApplicationException {
+    public Page<TimeEntrySummaryOutputDTO> execute(UUID projectId, List<UUID> tagIds, LocalDateTime from,
+            LocalDateTime to, Pageable pageable) throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
         Page<TimeEntry> entries = timeEntryRepository.findActiveByUserId(
-                currentUserId.get(), projectId, from, to, pageable);
+                currentUserId.get(), projectId, tagIds, from, to, pageable);
 
         return assembler.toSummaryPage(entries);
     }

@@ -1,6 +1,8 @@
 package com.vmarcante.time_tracker.core.infraestructure.timeentry.persistence;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,19 +29,32 @@ public interface TimeEntryJpaRepository extends JpaRepository<TimeEntryJpaEntity
             + "AND member.approved = true AND member.active = true "
             + "AND pt.teamId = lead.teamId AND pt.projectId = e.projectId AND pt.active = true)";
 
+    String RECENT_FIRST_ORDER = " ORDER BY COALESCE(("
+            + "SELECT MAX(s.startTime) FROM TimeEntrySessionJpaEntity s "
+            + "WHERE s.entryId = e.id AND s.active = true), e.createdAt) DESC, e.seqId DESC";
+
     Optional<TimeEntryJpaEntity> findByIdAndActiveTrue(UUID id);
 
     boolean existsByIdAndUserIdAndActiveTrue(UUID id, UUID userId);
 
     @Query("SELECT e FROM TimeEntryJpaEntity e WHERE e.active = true AND e.userId = :userId "
-            + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER)
+            + "AND (:projectId IS NULL OR e.projectId = :projectId) "
+            + "AND (:#{#tagIds == null || #tagIds.isEmpty()} = true OR EXISTS ("
+            + "SELECT 1 FROM TimeEntryTagJpaEntity et "
+            + "WHERE et.entryId = e.id AND et.active = true AND et.tagId IN :tagIds)) "
+            + "AND " + RANGE_FILTER + RECENT_FIRST_ORDER)
     Page<TimeEntryJpaEntity> findActiveByUserId(@Param("userId") UUID userId,
-            @Param("projectId") UUID projectId,
+            @Param("projectId") UUID projectId, @Param("tagIds") Collection<UUID> tagIds,
             @Param("from") LocalDateTime from, @Param("to") LocalDateTime to, Pageable pageable);
+
+    @Query("SELECT DISTINCT e.projectId FROM TimeEntryJpaEntity e "
+            + "WHERE e.userId = :userId AND e.active = true AND e.projectId IS NOT NULL")
+    List<UUID> findDistinctProjectIdsByUserId(@Param("userId") UUID userId);
 
     @Query("SELECT e FROM TimeEntryJpaEntity e WHERE e.active = true AND e.companyId = :companyId "
             + "AND (:userId IS NULL OR e.userId = :userId) "
-            + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER)
+            + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER
+            + RECENT_FIRST_ORDER)
     Page<TimeEntryJpaEntity> findActiveByCompanyId(@Param("companyId") UUID companyId,
             @Param("userId") UUID userId, @Param("projectId") UUID projectId,
             @Param("from") LocalDateTime from, @Param("to") LocalDateTime to, Pageable pageable);
@@ -47,7 +62,7 @@ public interface TimeEntryJpaRepository extends JpaRepository<TimeEntryJpaEntity
     @Query("SELECT e FROM TimeEntryJpaEntity e WHERE e.active = true AND e.companyId = :companyId "
             + "AND (:userId IS NULL OR e.userId = :userId) "
             + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER
-            + " AND (e.userId = :leadId OR " + LEAD_SCOPE + ")")
+            + " AND (e.userId = :leadId OR " + LEAD_SCOPE + ")" + RECENT_FIRST_ORDER)
     Page<TimeEntryJpaEntity> findActiveLeadScope(@Param("companyId") UUID companyId,
             @Param("leadId") UUID leadId, @Param("userId") UUID userId, @Param("projectId") UUID projectId,
             @Param("from") LocalDateTime from, @Param("to") LocalDateTime to, Pageable pageable);

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
 
@@ -17,6 +18,7 @@ import com.vmarcante.time_tracker.core.application.company.in.ListCompanyMembers
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
+import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -61,11 +63,16 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
                 .distinct()
                 .toList();
 
-        Map<UUID, String> memberNames = personRepository.findNamesByIds(userIds);
+        Map<UUID, Person> persons = personRepository.findAllByIds(userIds).stream()
+                .collect(Collectors.toMap(p -> p.getId(), p -> p));
 
-        return members.map(membership -> CompanyMemberOutputDTO.from(
-                membership,
-                memberNames.get(membership.getUserId()),
-                memberNames.get(membership.getApprovedBy())));
+        return members.map(membership -> {
+            Person approver = persons.get(membership.getApprovedBy());
+            return CompanyMemberOutputDTO.fromPerson(
+                    membership,
+                    persons.get(membership.getUserId()),
+                    approver != null ? approver.getName() : null,
+                    null);
+        });
     }
 }

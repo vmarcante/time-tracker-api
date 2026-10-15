@@ -51,10 +51,15 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
     }
 
     @Override
-    public Page<TimeEntry> findActiveByUserId(UUID userId, UUID projectId,
+    public Page<TimeEntry> findActiveByUserId(UUID userId, UUID projectId, Collection<UUID> tagIds,
             LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return timeEntryJpaRepository.findActiveByUserId(userId, projectId, from, to, pageable)
+        return timeEntryJpaRepository.findActiveByUserId(userId, projectId, tagIds, from, to, pageable)
                 .map(TimeEntryPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<UUID> findDistinctProjectIdsByUserId(UUID userId) {
+        return timeEntryJpaRepository.findDistinctProjectIdsByUserId(userId);
     }
 
     @Override
