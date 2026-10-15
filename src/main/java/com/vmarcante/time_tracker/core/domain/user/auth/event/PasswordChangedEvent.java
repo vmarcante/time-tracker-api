@@ -8,4 +8,8 @@ import lombok.Data;
 public class PasswordChangedEvent {
 
     private final UUID userId;
+
+    public PasswordChangedEvent(UUID userId) {
+        this.userId = userId;
+    }
 }

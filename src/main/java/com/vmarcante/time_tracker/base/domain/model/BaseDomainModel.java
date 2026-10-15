@@ -10,4 +10,7 @@ public class BaseDomainModel<ID, SID> {
     private SID seqId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public BaseDomainModel() {
+    }
 }

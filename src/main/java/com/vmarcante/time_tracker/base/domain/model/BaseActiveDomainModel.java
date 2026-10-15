@@ -7,4 +7,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class BaseActiveDomainModel<ID, SID> extends BaseDomainModel<ID, SID> {
     private Boolean active;
+
+    public BaseActiveDomainModel() {
+    }
 }

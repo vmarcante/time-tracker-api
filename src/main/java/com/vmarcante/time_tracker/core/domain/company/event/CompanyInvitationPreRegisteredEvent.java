@@ -12,4 +12,17 @@ public class CompanyInvitationPreRegisteredEvent {
     private final UUID companyId;
     private final UUID inviterUserId;
     private final String inviteeEmail;
+
+    public CompanyInvitationPreRegisteredEvent(
+            UUID membershipId,
+            UUID inviteePersonId,
+            UUID companyId,
+            UUID inviterUserId,
+            String inviteeEmail) {
+        this.membershipId = membershipId;
+        this.inviteePersonId = inviteePersonId;
+        this.companyId = companyId;
+        this.inviterUserId = inviterUserId;
+        this.inviteeEmail = inviteeEmail;
+    }
 }
