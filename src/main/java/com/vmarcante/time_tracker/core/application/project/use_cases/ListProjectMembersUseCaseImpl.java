@@ -17,6 +17,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -24,16 +25,19 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public ListProjectMembersUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -56,7 +60,7 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
-        Page<ProjectAssignment> assignments = projectRepository
+        Page<ProjectAssignment> assignments = projectAssignmentRepository
                 .findActiveAssignmentsByProjectId(projectId, pageable);
 
         if (assignments.isEmpty()) {

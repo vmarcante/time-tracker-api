@@ -11,8 +11,8 @@ import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCas
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
-import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
-import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
@@ -24,20 +24,20 @@ import lombok.extern.slf4j.Slf4j;
 public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
 
     private final CompanyMembershipRepository membershipRepository;
-    private final TeamRepository teamRepository;
-    private final ProjectRepository projectRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public RemoveMemberUseCaseImpl(
             CompanyMembershipRepository membershipRepository,
-            TeamRepository teamRepository,
-            ProjectRepository projectRepository,
+            TeamMembershipRepository teamMembershipRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
         this.membershipRepository = membershipRepository;
-        this.teamRepository = teamRepository;
-        this.projectRepository = projectRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
     }
@@ -72,8 +72,8 @@ public class RemoveMemberUseCaseImpl implements RemoveMemberUseCase {
         target.setUpdatedBy(actorId);
         membershipRepository.saveMembership(target);
 
-        teamRepository.deactivateMembershipsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
-        projectRepository.deactivateAssignmentsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
+        teamMembershipRepository.deactivateMembershipsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
+        projectAssignmentRepository.deactivateAssignmentsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
 
         if (!membershipRepository.hasAnyApprovedMembership(target.getUserId())) {
             userAuthRepository.findById(target.getUserId()).ifPresent(userAuth -> {

@@ -18,6 +18,7 @@ import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -28,16 +29,19 @@ import lombok.extern.slf4j.Slf4j;
 public class AddTeamMemberUseCaseImpl implements AddTeamMemberUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public AddTeamMemberUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -62,7 +66,7 @@ public class AddTeamMemberUseCaseImpl implements AddTeamMemberUseCase {
         }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
-                || teamRepository.isTeamLead(actorId, teamId);
+                || teamMembershipRepository.isTeamLead(actorId, teamId);
         if (!canManage) {
             throw new ApplicationException("team.permission.denied", null, HttpStatus.FORBIDDEN);
         }
@@ -73,7 +77,7 @@ public class AddTeamMemberUseCaseImpl implements AddTeamMemberUseCase {
         membershipRepository.findMembership(target.getId(), companyId)
                 .orElseThrow(() -> new ApplicationException("team.member.not.company.member", null));
 
-        if (teamRepository.hasAnyActiveMembership(target.getId(), teamId)) {
+        if (teamMembershipRepository.hasAnyActiveMembership(target.getId(), teamId)) {
             throw new ApplicationException("team.member.already.exists", null, HttpStatus.CONFLICT);
         }
 
@@ -86,7 +90,7 @@ public class AddTeamMemberUseCaseImpl implements AddTeamMemberUseCase {
         membership.setCreatedBy(actorId);
         membership.setUpdatedBy(actorId);
 
-        TeamMembership saved = teamRepository.saveMembership(membership);
+        TeamMembership saved = teamMembershipRepository.saveMembership(membership);
 
         log.info("[Add Team Member] User {} added to team {} by {}", target.getId(), teamId, actorId);
 

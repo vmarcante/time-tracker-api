@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.project.orchestrator.ProjectTeamsSyncOrchestrator;
 import com.vmarcante.time_tracker.core.application.project.dto.input.UpdateProjectInputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.UpdateProjectUseCase;
@@ -18,7 +19,9 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,19 +31,28 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final ProjectValidationPolicy validationPolicy;
     private final SecurityContextPort securityContext;
+    private final ProjectTeamsSyncOrchestrator projectTeamsSyncOrchestrator;
 
     public UpdateProjectUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             CompanyMembershipRepository membershipRepository,
             ProjectValidationPolicy validationPolicy,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ProjectTeamsSyncOrchestrator projectTeamsSyncOrchestrator) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.membershipRepository = membershipRepository;
         this.validationPolicy = validationPolicy;
         this.securityContext = securityContext;
+        this.projectTeamsSyncOrchestrator = projectTeamsSyncOrchestrator;
     }
 
     @Override
@@ -98,11 +110,15 @@ public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
         project.setUpdatedBy(actorId);
         Project saved = projectRepository.save(project);
 
+        if (input.teams() != null) {
+            projectTeamsSyncOrchestrator.execute(companyId, projectId, input.teams(), actorId);
+        }
+
         log.info("[Update Project] Project {} updated by {}", projectId, actorId);
 
-        Map<UUID, Long> teamCounts = projectRepository
+        Map<UUID, Long> teamCounts = teamProjectRepository
                 .countActiveTeamsByProjectIds(List.of(projectId));
-        Map<UUID, Long> memberCounts = projectRepository
+        Map<UUID, Long> memberCounts = projectAssignmentRepository
                 .countActiveAssignmentsByProjectIds(List.of(projectId));
 
         return ProjectDetailOutputDTO.from(

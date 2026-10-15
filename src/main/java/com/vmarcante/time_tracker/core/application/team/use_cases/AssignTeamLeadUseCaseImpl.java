@@ -18,6 +18,7 @@ import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -28,16 +29,19 @@ import lombok.extern.slf4j.Slf4j;
 public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public AssignTeamLeadUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -76,14 +80,14 @@ public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
             throw new ApplicationException("team.lead.must.be.manager", null);
         }
 
-        if (teamRepository.isTeamLead(target.getId(), teamId)) {
+        if (teamMembershipRepository.isTeamLead(target.getId(), teamId)) {
             throw new ApplicationException("team.lead.already.assigned", null, HttpStatus.CONFLICT);
         }
 
-        Optional<TeamMembership> previousLead = teamRepository.findLeadMembership(teamId);
+        Optional<TeamMembership> previousLead = teamMembershipRepository.findLeadMembership(teamId);
 
         TeamMembership membership;
-        Optional<TeamMembership> existing = teamRepository.findMembership(target.getId(), teamId);
+        Optional<TeamMembership> existing = teamMembershipRepository.findMembership(target.getId(), teamId);
         if (existing.isPresent()) {
             membership = existing.get();
         } else {
@@ -97,13 +101,13 @@ public class AssignTeamLeadUseCaseImpl implements AssignTeamLeadUseCase {
         membership.setRole(TeamRole.LEAD);
         membership.setUpdatedBy(actorId);
 
-        TeamMembership saved = teamRepository.saveMembership(membership);
+        TeamMembership saved = teamMembershipRepository.saveMembership(membership);
 
         if (previousLead.isPresent()) {
             TeamMembership demoted = previousLead.get();
             demoted.setRole(TeamRole.MEMBER);
             demoted.setUpdatedBy(actorId);
-            teamRepository.saveMembership(demoted);
+            teamMembershipRepository.saveMembership(demoted);
         }
 
         log.info("[Assign Team Lead] User {} assigned as lead of team {} by {}",

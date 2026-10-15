@@ -13,7 +13,9 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -24,16 +26,22 @@ import lombok.extern.slf4j.Slf4j;
 public class UnlinkProjectFromTeamUseCaseImpl implements UnlinkProjectFromTeamUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final TeamRepository teamRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public UnlinkProjectFromTeamUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             TeamRepository teamRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.teamRepository = teamRepository;
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
@@ -64,14 +72,14 @@ public class UnlinkProjectFromTeamUseCaseImpl implements UnlinkProjectFromTeamUs
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        TeamProject link = projectRepository.findActiveTeamLink(projectId, teamId)
+        TeamProject link = teamProjectRepository.findActiveTeamLink(projectId, teamId)
                 .orElseThrow(() -> new ApplicationException("project.not.linked", null, HttpStatus.CONFLICT));
 
-        projectRepository.deactivateAssignmentsByProjectIdAndTeamId(projectId, teamId, actorId);
+        projectAssignmentRepository.deactivateAssignmentsByProjectIdAndTeamId(projectId, teamId, actorId);
 
         link.setActive(false);
         link.setUpdatedBy(actorId);
-        projectRepository.saveTeamLink(link);
+        teamProjectRepository.saveTeamLink(link);
 
         log.info("[Unlink Project from Team] Project {} unlinked from team {} by {} "
                 + "(member assignments deactivated)", projectId, teamId, actorId);

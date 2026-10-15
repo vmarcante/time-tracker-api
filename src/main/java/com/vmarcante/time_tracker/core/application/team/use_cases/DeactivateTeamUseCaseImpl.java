@@ -12,8 +12,10 @@ import com.vmarcante.time_tracker.core.application.team.in.DeactivateTeamUseCase
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
-import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -24,18 +26,24 @@ import lombok.extern.slf4j.Slf4j;
 public class DeactivateTeamUseCaseImpl implements DeactivateTeamUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
-    private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final SecurityContextPort securityContext;
 
     public DeactivateTeamUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
-            ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
-        this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.securityContext = securityContext;
     }
 
@@ -65,9 +73,9 @@ public class DeactivateTeamUseCaseImpl implements DeactivateTeamUseCase {
         team.setUpdatedBy(actorId);
         teamRepository.save(team);
 
-        teamRepository.deactivateMembershipsByTeamId(teamId, actorId);
-        projectRepository.deactivateAssignmentsByTeamId(teamId, actorId);
-        projectRepository.deactivateTeamLinksByTeamId(teamId, actorId);
+        teamMembershipRepository.deactivateMembershipsByTeamId(teamId, actorId);
+        projectAssignmentRepository.deactivateAssignmentsByTeamId(teamId, actorId);
+        teamProjectRepository.deactivateTeamLinksByTeamId(teamId, actorId);
 
         log.info("[Deactivate Team] Team {} deactivated by {} "
                 + "(memberships, project links and assignments deactivated)", teamId, actorId);

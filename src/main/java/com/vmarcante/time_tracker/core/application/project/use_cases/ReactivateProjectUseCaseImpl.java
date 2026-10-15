@@ -18,7 +18,9 @@ import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -28,16 +30,22 @@ import lombok.extern.slf4j.Slf4j;
 public class ReactivateProjectUseCaseImpl implements ReactivateProjectUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final ProjectValidationPolicy validationPolicy;
     private final SecurityContextPort securityContext;
 
     public ReactivateProjectUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             CompanyMembershipRepository membershipRepository,
             ProjectValidationPolicy validationPolicy,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.membershipRepository = membershipRepository;
         this.validationPolicy = validationPolicy;
         this.securityContext = securityContext;
@@ -73,9 +81,9 @@ public class ReactivateProjectUseCaseImpl implements ReactivateProjectUseCase {
 
         log.info("[Reactivate Project] Project {} reactivated by {}", projectId, actorId);
 
-        Map<UUID, Long> teamCounts = projectRepository
+        Map<UUID, Long> teamCounts = teamProjectRepository
                 .countActiveTeamsByProjectIds(List.of(projectId));
-        Map<UUID, Long> memberCounts = projectRepository
+        Map<UUID, Long> memberCounts = projectAssignmentRepository
                 .countActiveAssignmentsByProjectIds(List.of(projectId));
 
         return ProjectDetailOutputDTO.from(

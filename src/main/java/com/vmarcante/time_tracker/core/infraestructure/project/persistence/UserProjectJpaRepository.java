@@ -53,6 +53,14 @@ public interface UserProjectJpaRepository extends JpaRepository<UserProjectJpaEn
     @Query("""
             UPDATE UserProjectJpaEntity up
             SET up.active = false, up.updatedAt = CURRENT_TIMESTAMP, up.updatedBy = :updatedBy
+            WHERE up.id IN :assignmentIds AND up.active = true
+            """)
+    void deactivateByIdIn(@Param("assignmentIds") Collection<UUID> assignmentIds, @Param("updatedBy") UUID updatedBy);
+
+    @Modifying
+    @Query("""
+            UPDATE UserProjectJpaEntity up
+            SET up.active = false, up.updatedAt = CURRENT_TIMESTAMP, up.updatedBy = :updatedBy
             WHERE up.projectId = :projectId AND up.teamId = :teamId AND up.active = true
             """)
     void deactivateByProjectIdAndTeamId(

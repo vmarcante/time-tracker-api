@@ -15,7 +15,7 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
-import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -26,17 +26,17 @@ public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
 
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
-    private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final SecurityContextPort securityContext;
 
     public ChangeMemberRoleUseCaseImpl(
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
-            TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             SecurityContextPort securityContext) {
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
-        this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.securityContext = securityContext;
     }
 
@@ -83,7 +83,7 @@ public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
         CompanyMembership saved = membershipRepository.saveMembership(target);
 
         if (input.role() == CompanyRole.MEMBER) {
-            teamRepository.demoteLeadsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
+            teamMembershipRepository.demoteLeadsByUserIdAndCompanyId(target.getUserId(), companyId, actorId);
         }
 
         String memberName = personRepository.findNameById(target.getUserId()).orElse(null);

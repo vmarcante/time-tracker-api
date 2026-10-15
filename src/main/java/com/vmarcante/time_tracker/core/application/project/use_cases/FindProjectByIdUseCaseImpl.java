@@ -13,21 +13,29 @@ import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectDet
 import com.vmarcante.time_tracker.core.application.project.in.FindProjectByIdUseCase;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
 public class FindProjectByIdUseCaseImpl implements FindProjectByIdUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public FindProjectByIdUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
     }
@@ -48,9 +56,9 @@ public class FindProjectByIdUseCaseImpl implements FindProjectByIdUseCase {
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
-        Map<UUID, Long> teamCounts = projectRepository
+        Map<UUID, Long> teamCounts = teamProjectRepository
                 .countActiveTeamsByProjectIds(List.of(projectId));
-        Map<UUID, Long> memberCounts = projectRepository
+        Map<UUID, Long> memberCounts = projectAssignmentRepository
                 .countActiveAssignmentsByProjectIds(List.of(projectId));
 
         return ProjectDetailOutputDTO.from(

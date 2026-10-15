@@ -1,5 +1,6 @@
 package com.vmarcante.time_tracker.core.interfaces.team.controllers;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -23,10 +24,12 @@ import com.vmarcante.time_tracker.core.application.team.dto.input.UpdateTeamInpu
 import com.vmarcante.time_tracker.core.application.team.dto.output.CreateTeamOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamSummaryOutputDTO;
+import com.vmarcante.time_tracker.core.application.team.dto.output.TeamWithMembersOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.in.CreateTeamUseCase;
 import com.vmarcante.time_tracker.core.application.team.in.DeactivateTeamUseCase;
 import com.vmarcante.time_tracker.core.application.team.in.FindTeamByIdUseCase;
 import com.vmarcante.time_tracker.core.application.team.in.ListCompanyTeamsUseCase;
+import com.vmarcante.time_tracker.core.application.team.in.ListCompanyTeamsWithMembersUseCase;
 import com.vmarcante.time_tracker.core.application.team.in.ListMyTeamsUseCase;
 import com.vmarcante.time_tracker.core.application.team.in.UpdateTeamUseCase;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
@@ -45,6 +48,7 @@ public class TeamController extends BaseResponseController {
     private final DeactivateTeamUseCase deactivateTeamUseCase;
     private final FindTeamByIdUseCase findTeamByIdUseCase;
     private final ListCompanyTeamsUseCase listCompanyTeamsUseCase;
+    private final ListCompanyTeamsWithMembersUseCase listCompanyTeamsWithMembersUseCase;
     private final ListMyTeamsUseCase listMyTeamsUseCase;
 
     public TeamController(
@@ -53,12 +57,14 @@ public class TeamController extends BaseResponseController {
             DeactivateTeamUseCase deactivateTeamUseCase,
             FindTeamByIdUseCase findTeamByIdUseCase,
             ListCompanyTeamsUseCase listCompanyTeamsUseCase,
+            ListCompanyTeamsWithMembersUseCase listCompanyTeamsWithMembersUseCase,
             ListMyTeamsUseCase listMyTeamsUseCase) {
         this.createTeamUseCase = createTeamUseCase;
         this.updateTeamUseCase = updateTeamUseCase;
         this.deactivateTeamUseCase = deactivateTeamUseCase;
         this.findTeamByIdUseCase = findTeamByIdUseCase;
         this.listCompanyTeamsUseCase = listCompanyTeamsUseCase;
+        this.listCompanyTeamsWithMembersUseCase = listCompanyTeamsWithMembersUseCase;
         this.listMyTeamsUseCase = listMyTeamsUseCase;
     }
 
@@ -80,6 +86,14 @@ public class TeamController extends BaseResponseController {
             @RequestParam(required = false) Integer size) throws ApplicationException {
         Pageable pageable = PageableUtils.pageable(page, size, null);
         return ok(PageWrapperDTO.of(listCompanyTeamsUseCase.execute(companyId, pageable)));
+    }
+
+    @AuthSecure
+    @GetMapping("/with-members")
+    @Operation(summary = "Teams with members", description = "Lists all active teams of the company with their approved members")
+    public ResponseEntity<ApiResponseDTO<List<TeamWithMembersOutputDTO>>> listTeamsWithMembers(
+            @PathVariable UUID companyId) throws ApplicationException {
+        return ok(listCompanyTeamsWithMembersUseCase.execute(companyId));
     }
 
     @AuthSecure

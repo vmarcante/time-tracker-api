@@ -31,6 +31,8 @@ public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, 
 
     List<UserTeamJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId);
 
+    List<UserTeamJpaEntity> findByTeamIdInAndActiveTrueAndApprovedTrue(Collection<UUID> teamIds);
+
     Page<UserTeamJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId, Pageable pageable);
 
     @Query("""

@@ -20,6 +20,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -30,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final TeamValidationPolicy validationPolicy;
@@ -37,11 +39,13 @@ public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
 
     public UpdateTeamUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             TeamValidationPolicy validationPolicy,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.validationPolicy = validationPolicy;
@@ -93,13 +97,13 @@ public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
     }
 
     private TeamDetailOutputDTO buildDetail(Team team) {
-        Optional<TeamMembership> lead = teamRepository.findLeadMembership(team.getId());
+        Optional<TeamMembership> lead = teamMembershipRepository.findLeadMembership(team.getId());
         UUID leadUserId = lead.isPresent() ? lead.get().getUserId() : null;
         String leadName = leadUserId != null
                 ? personRepository.findNameById(leadUserId).orElse(null)
                 : null;
 
-        Map<UUID, Long> counts = teamRepository.countApprovedMembersByTeamIds(List.of(team.getId()));
+        Map<UUID, Long> counts = teamMembershipRepository.countApprovedMembersByTeamIds(List.of(team.getId()));
         long memberCount = counts.getOrDefault(team.getId(), 0L);
 
         return TeamDetailOutputDTO.from(team, leadUserId, leadName, memberCount);

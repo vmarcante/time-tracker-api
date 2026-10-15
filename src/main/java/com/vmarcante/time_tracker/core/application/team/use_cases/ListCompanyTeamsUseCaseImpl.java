@@ -16,6 +16,7 @@ import com.vmarcante.time_tracker.core.application.team.in.ListCompanyTeamsUseCa
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -23,16 +24,19 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListCompanyTeamsUseCaseImpl implements ListCompanyTeamsUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public ListCompanyTeamsUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -58,8 +62,8 @@ public class ListCompanyTeamsUseCaseImpl implements ListCompanyTeamsUseCase {
 
         List<UUID> teamIds = teams.getContent().stream().map(t -> t.getId()).toList();
 
-        Map<UUID, Long> memberCounts = teamRepository.countApprovedMembersByTeamIds(teamIds);
-        Map<UUID, UUID> leadUserIds = teamRepository.findLeadUserIdsByTeamIds(teamIds);
+        Map<UUID, Long> memberCounts = teamMembershipRepository.countApprovedMembersByTeamIds(teamIds);
+        Map<UUID, UUID> leadUserIds = teamMembershipRepository.findLeadUserIdsByTeamIds(teamIds);
         Map<UUID, String> leadNames = personRepository.findNamesByIds(leadUserIds.values());
 
         return teams.map(team -> {

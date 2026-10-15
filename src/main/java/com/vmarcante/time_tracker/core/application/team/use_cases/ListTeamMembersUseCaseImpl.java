@@ -16,6 +16,7 @@ import com.vmarcante.time_tracker.core.application.team.in.ListTeamMembersUseCas
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -23,16 +24,19 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
 
     public ListTeamMembersUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -54,7 +58,7 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        Page<TeamMembership> members = teamRepository
+        Page<TeamMembership> members = teamMembershipRepository
                 .findApprovedMembershipsByTeamId(teamId, pageable);
 
         if (members.isEmpty()) {

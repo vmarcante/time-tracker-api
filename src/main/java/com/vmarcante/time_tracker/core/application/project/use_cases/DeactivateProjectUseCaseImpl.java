@@ -13,7 +13,9 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -23,14 +25,20 @@ import lombok.extern.slf4j.Slf4j;
 public class DeactivateProjectUseCaseImpl implements DeactivateProjectUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public DeactivateProjectUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
     }
@@ -57,8 +65,8 @@ public class DeactivateProjectUseCaseImpl implements DeactivateProjectUseCase {
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
-        projectRepository.deactivateAssignmentsByProjectId(projectId, actorId);
-        projectRepository.deactivateTeamLinksByProjectId(projectId, actorId);
+        projectAssignmentRepository.deactivateAssignmentsByProjectId(projectId, actorId);
+        teamProjectRepository.deactivateTeamLinksByProjectId(projectId, actorId);
 
         project.setActive(false);
         project.setUpdatedBy(actorId);

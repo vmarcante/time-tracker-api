@@ -12,8 +12,9 @@ import com.vmarcante.time_tracker.core.application.team.in.RemoveTeamMemberUseCa
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
-import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -24,18 +25,21 @@ import lombok.extern.slf4j.Slf4j;
 public class RemoveTeamMemberUseCaseImpl implements RemoveTeamMemberUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
-    private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final SecurityContextPort securityContext;
 
     public RemoveTeamMemberUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
-            ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
-        this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.securityContext = securityContext;
     }
 
@@ -57,22 +61,22 @@ public class RemoveTeamMemberUseCaseImpl implements RemoveTeamMemberUseCase {
         }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
-                || teamRepository.isTeamLead(actorId, teamId);
+                || teamMembershipRepository.isTeamLead(actorId, teamId);
                 
         if (!canManage) {
             throw new ApplicationException("team.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
-        TeamMembership target = teamRepository.findMembershipById(membershipId)
+        TeamMembership target = teamMembershipRepository.findMembershipById(membershipId)
                 .filter(m -> m.getTeamId().equals(teamId))
                 .filter(m -> Boolean.TRUE.equals(m.getActive()))
                 .orElseThrow(() -> new ApplicationException("team.membership.not.found", null));
 
         target.setActive(false);
         target.setUpdatedBy(actorId);
-        teamRepository.saveMembership(target);
+        teamMembershipRepository.saveMembership(target);
 
-        projectRepository.deactivateAssignmentsByUserIdAndTeamId(target.getUserId(), teamId, actorId);
+        projectAssignmentRepository.deactivateAssignmentsByUserIdAndTeamId(target.getUserId(), teamId, actorId);
 
         log.info("[Remove Team Member] Membership {} removed from team {} by {} "
                 + "(project assignments deactivated)", membershipId, teamId, actorId);

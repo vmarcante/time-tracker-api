@@ -12,8 +12,8 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
-import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
-import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
@@ -25,20 +25,20 @@ import lombok.extern.slf4j.Slf4j;
 public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
 
     private final CompanyMembershipRepository membershipRepository;
-    private final TeamRepository teamRepository;
-    private final ProjectRepository projectRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
 
     public LeaveCompanyUseCaseImpl(
             CompanyMembershipRepository membershipRepository,
-            TeamRepository teamRepository,
-            ProjectRepository projectRepository,
+            TeamMembershipRepository teamMembershipRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext) {
         this.membershipRepository = membershipRepository;
-        this.teamRepository = teamRepository;
-        this.projectRepository = projectRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.userAuthRepository = userAuthRepository;
         this.securityContext = securityContext;
     }
@@ -64,8 +64,8 @@ public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
         membership.setUpdatedBy(userId);
         membershipRepository.saveMembership(membership);
 
-        teamRepository.deactivateMembershipsByUserIdAndCompanyId(userId, companyId, userId);
-        projectRepository.deactivateAssignmentsByUserIdAndCompanyId(userId, companyId, userId);
+        teamMembershipRepository.deactivateMembershipsByUserIdAndCompanyId(userId, companyId, userId);
+        projectAssignmentRepository.deactivateAssignmentsByUserIdAndCompanyId(userId, companyId, userId);
 
         if (!membershipRepository.hasAnyApprovedMembership(userId)) {
             userAuthRepository.findById(userId).ifPresent(userAuth -> {

@@ -13,7 +13,8 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
-import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -23,18 +24,21 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class UnassignProjectMemberUseCaseImpl implements UnassignProjectMemberUseCase {
 
-    private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public UnassignProjectMemberUseCaseImpl(
-            ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
-        this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
     }
@@ -58,12 +62,12 @@ public class UnassignProjectMemberUseCaseImpl implements UnassignProjectMemberUs
         }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
-                || teamRepository.isTeamLead(actorId, teamId);
+                || teamMembershipRepository.isTeamLead(actorId, teamId);
         if (!canManage) {
             throw new ApplicationException("project.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
-        ProjectAssignment assignment = projectRepository.findAssignmentById(assignmentId)
+        ProjectAssignment assignment = projectAssignmentRepository.findAssignmentById(assignmentId)
                 .filter(a -> a.getProjectId().equals(projectId))
                 .filter(a -> a.getTeamId().equals(teamId))
                 .filter(a -> Boolean.TRUE.equals(a.getActive()))
@@ -71,7 +75,7 @@ public class UnassignProjectMemberUseCaseImpl implements UnassignProjectMemberUs
 
         assignment.setActive(false);
         assignment.setUpdatedBy(actorId);
-        projectRepository.saveAssignment(assignment);
+        projectAssignmentRepository.saveAssignment(assignment);
 
         log.info("[Unassign Project Member] Assignment {} removed from project {} by {}",
                 assignmentId, projectId, actorId);

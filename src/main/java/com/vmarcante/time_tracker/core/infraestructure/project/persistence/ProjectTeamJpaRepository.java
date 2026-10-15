@@ -18,6 +18,8 @@ public interface ProjectTeamJpaRepository extends JpaRepository<ProjectTeamJpaEn
 
     Optional<ProjectTeamJpaEntity> findByProjectIdAndTeamIdAndActiveTrue(UUID projectId, UUID teamId);
 
+    List<ProjectTeamJpaEntity> findByProjectIdAndActiveTrue(UUID projectId);
+
     boolean existsByProjectIdAndTeamIdAndActiveTrue(UUID projectId, UUID teamId);
 
     @Query("""
@@ -57,6 +59,14 @@ public interface ProjectTeamJpaRepository extends JpaRepository<ProjectTeamJpaEn
             GROUP BY pt.projectId
             """)
     List<Object[]> countActiveTeamsByProjectIds(@Param("projectIds") Collection<UUID> projectIds);
+
+    @Modifying
+    @Query("""
+            UPDATE ProjectTeamJpaEntity pt
+            SET pt.active = false, pt.updatedAt = CURRENT_TIMESTAMP, pt.updatedBy = :updatedBy
+            WHERE pt.id IN :linkIds AND pt.active = true
+            """)
+    void deactivateByIdIn(@Param("linkIds") Collection<UUID> linkIds, @Param("updatedBy") UUID updatedBy);
 
     @Modifying
     @Query("""

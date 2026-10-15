@@ -14,6 +14,7 @@ import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -24,16 +25,19 @@ import lombok.extern.slf4j.Slf4j;
 public class LinkProjectToTeamUseCaseImpl implements LinkProjectToTeamUseCase {
 
     private final ProjectRepository projectRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final TeamRepository teamRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public LinkProjectToTeamUseCaseImpl(
             ProjectRepository projectRepository,
+            TeamProjectRepository teamProjectRepository,
             TeamRepository teamRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.teamRepository = teamRepository;
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
@@ -64,7 +68,7 @@ public class LinkProjectToTeamUseCaseImpl implements LinkProjectToTeamUseCase {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        if (projectRepository.isProjectLinkedToTeam(projectId, teamId)) {
+        if (teamProjectRepository.isProjectLinkedToTeam(projectId, teamId)) {
             throw new ApplicationException("project.already.linked", null, HttpStatus.CONFLICT);
         }
 
@@ -75,7 +79,7 @@ public class LinkProjectToTeamUseCaseImpl implements LinkProjectToTeamUseCase {
         link.setCreatedBy(actorId);
         link.setUpdatedBy(actorId);
 
-        projectRepository.saveTeamLink(link);
+        teamProjectRepository.saveTeamLink(link);
 
         log.info("[Link Project to Team] Project {} linked to team {} by {}",
                 projectId, teamId, actorId);

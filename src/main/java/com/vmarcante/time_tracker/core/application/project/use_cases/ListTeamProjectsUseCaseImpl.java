@@ -15,7 +15,9 @@ import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSum
 import com.vmarcante.time_tracker.core.application.project.in.ListTeamProjectsUseCase;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -23,16 +25,22 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class ListTeamProjectsUseCaseImpl implements ListTeamProjectsUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final TeamRepository teamRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
 
     public ListTeamProjectsUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             TeamRepository teamRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.teamRepository = teamRepository;
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
@@ -62,8 +70,8 @@ public class ListTeamProjectsUseCaseImpl implements ListTeamProjectsUseCase {
 
         List<UUID> projectIds = projects.getContent().stream().map(p -> p.getId()).toList();
 
-        Map<UUID, Long> teamCounts = projectRepository.countActiveTeamsByProjectIds(projectIds);
-        Map<UUID, Long> memberCounts = projectRepository.countActiveAssignmentsByProjectIds(projectIds);
+        Map<UUID, Long> teamCounts = teamProjectRepository.countActiveTeamsByProjectIds(projectIds);
+        Map<UUID, Long> memberCounts = projectAssignmentRepository.countActiveAssignmentsByProjectIds(projectIds);
 
         return projects.map(project -> ProjectSummaryOutputDTO.from(
                 project,

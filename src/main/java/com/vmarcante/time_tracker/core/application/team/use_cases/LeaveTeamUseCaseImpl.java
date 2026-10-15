@@ -10,8 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.in.LeaveTeamUseCase;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
-import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -22,18 +23,21 @@ import lombok.extern.slf4j.Slf4j;
 public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
 
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
-    private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final SecurityContextPort securityContext;
 
     public LeaveTeamUseCaseImpl(
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
-            ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             SecurityContextPort securityContext) {
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
-        this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.securityContext = securityContext;
     }
 
@@ -55,14 +59,14 @@ public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        TeamMembership membership = teamRepository.findMembership(userId, teamId)
+        TeamMembership membership = teamMembershipRepository.findMembership(userId, teamId)
                 .orElseThrow(() -> new ApplicationException("team.membership.not.found", null));
 
         membership.setActive(false);
         membership.setUpdatedBy(userId);
-        teamRepository.saveMembership(membership);
+        teamMembershipRepository.saveMembership(membership);
 
-        projectRepository.deactivateAssignmentsByUserIdAndTeamId(userId, teamId, userId);
+        projectAssignmentRepository.deactivateAssignmentsByUserIdAndTeamId(userId, teamId, userId);
 
         log.info("[Leave Team] User {} left team {} (project assignments deactivated)",
                 userId, teamId);

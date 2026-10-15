@@ -12,11 +12,11 @@ import org.springframework.data.repository.query.Param;
 
 public interface TimeEntryJpaRepository extends JpaRepository<TimeEntryJpaEntity, UUID> {
 
-    String RANGE_FILTER = "((:from IS NULL AND :to IS NULL) OR EXISTS ("
+    String RANGE_FILTER = "((cast(:from as LocalDateTime) IS NULL AND cast(:to as LocalDateTime) IS NULL) OR EXISTS ("
             + "SELECT 1 FROM TimeEntrySessionJpaEntity s "
             + "WHERE s.entryId = e.id AND s.active = true "
-            + "AND (:to IS NULL OR s.startTime < :to) "
-            + "AND (:from IS NULL OR s.endTime IS NULL OR s.endTime > :from)))";
+            + "AND (cast(:to as LocalDateTime) IS NULL OR s.startTime < :to) "
+            + "AND (cast(:from as LocalDateTime) IS NULL OR s.endTime IS NULL OR s.endTime > :from)))";
 
     String LEAD_SCOPE = "EXISTS ("
             + "SELECT 1 FROM UserTeamJpaEntity lead, UserTeamJpaEntity member, ProjectTeamJpaEntity pt "

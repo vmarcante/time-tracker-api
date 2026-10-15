@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.project.orchestrator.ProjectTeamsSyncOrchestrator;
 import com.vmarcante.time_tracker.core.application.project.dto.input.CreateProjectInputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.CreateProjectOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.CreateProjectUseCase;
@@ -30,16 +31,19 @@ public class CreateProjectUseCaseImpl implements CreateProjectUseCase {
     private final CompanyMembershipRepository membershipRepository;
     private final ProjectValidationPolicy validationPolicy;
     private final SecurityContextPort securityContext;
+    private final ProjectTeamsSyncOrchestrator projectTeamsSyncOrchestrator;
 
     public CreateProjectUseCaseImpl(
             ProjectRepository projectRepository,
             CompanyMembershipRepository membershipRepository,
             ProjectValidationPolicy validationPolicy,
-            SecurityContextPort securityContext) {
+            SecurityContextPort securityContext,
+            ProjectTeamsSyncOrchestrator projectTeamsSyncOrchestrator) {
         this.projectRepository = projectRepository;
         this.membershipRepository = membershipRepository;
         this.validationPolicy = validationPolicy;
         this.securityContext = securityContext;
+        this.projectTeamsSyncOrchestrator = projectTeamsSyncOrchestrator;
     }
 
     @Override
@@ -81,6 +85,10 @@ public class CreateProjectUseCaseImpl implements CreateProjectUseCase {
         project.setUpdatedBy(actorId);
 
         Project saved = projectRepository.save(project);
+
+        if (input.teams() != null && !input.teams().isEmpty()) {
+            projectTeamsSyncOrchestrator.execute(companyId, saved.getId(), input.teams(), actorId);
+        }
 
         log.info("[Create Project] Project {} created in company {} by {}",
                 saved.getId(), companyId, actorId);

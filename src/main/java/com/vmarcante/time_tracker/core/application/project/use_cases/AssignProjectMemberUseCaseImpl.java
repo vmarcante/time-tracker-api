@@ -21,7 +21,10 @@ import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.project.event.ProjectAssignedEvent;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
+import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -32,7 +35,10 @@ import lombok.extern.slf4j.Slf4j;
 public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TeamProjectRepository teamProjectRepository;
     private final TeamRepository teamRepository;
+    private final TeamMembershipRepository teamMembershipRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
@@ -40,13 +46,19 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
 
     public AssignProjectMemberUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
+            TeamProjectRepository teamProjectRepository,
             TeamRepository teamRepository,
+            TeamMembershipRepository teamMembershipRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext,
             ApplicationEventPublisher eventPublisher) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
+        this.teamProjectRepository = teamProjectRepository;
         this.teamRepository = teamRepository;
+        this.teamMembershipRepository = teamMembershipRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -73,7 +85,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
         }
 
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
-                || teamRepository.isTeamLead(actorId, teamId);
+                || teamMembershipRepository.isTeamLead(actorId, teamId);
         if (!canManage) {
             throw new ApplicationException("project.permission.denied", null, HttpStatus.FORBIDDEN);
         }
@@ -87,7 +99,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
             throw new ApplicationException("project.not.active", null, HttpStatus.CONFLICT);
         }
 
-        if (!projectRepository.isProjectLinkedToTeam(projectId, teamId)) {
+        if (!teamProjectRepository.isProjectLinkedToTeam(projectId, teamId)) {
             throw new ApplicationException("project.not.linked", null, HttpStatus.CONFLICT);
         }
 
@@ -97,11 +109,11 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
         membershipRepository.findMembership(target.getId(), companyId)
                 .orElseThrow(() -> new ApplicationException("team.member.not.company.member", null));
 
-        if (!teamRepository.isTeamMember(target.getId(), teamId)) {
+        if (!teamMembershipRepository.isTeamMember(target.getId(), teamId)) {
             throw new ApplicationException("project.member.not.team.member", null);
         }
 
-        if (projectRepository.hasActiveAssignment(target.getId(), projectId, teamId)) {
+        if (projectAssignmentRepository.hasActiveAssignment(target.getId(), projectId, teamId)) {
             throw new ApplicationException("project.assignment.exists", null, HttpStatus.CONFLICT);
         }
 
@@ -113,7 +125,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
         assignment.setCreatedBy(actorId);
         assignment.setUpdatedBy(actorId);
 
-        ProjectAssignment saved = projectRepository.saveAssignment(assignment);
+        ProjectAssignment saved = projectAssignmentRepository.saveAssignment(assignment);
 
         eventPublisher.publishEvent(new ProjectAssignedEvent(
                 target.getId(), projectId, teamId, companyId));

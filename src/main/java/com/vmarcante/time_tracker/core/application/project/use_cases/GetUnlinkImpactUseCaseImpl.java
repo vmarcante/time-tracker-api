@@ -17,6 +17,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -25,6 +26,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort
 public class GetUnlinkImpactUseCaseImpl implements GetUnlinkImpactUseCase {
 
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final TeamRepository teamRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
@@ -32,11 +34,13 @@ public class GetUnlinkImpactUseCaseImpl implements GetUnlinkImpactUseCase {
 
     public GetUnlinkImpactUseCaseImpl(
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             TeamRepository teamRepository,
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext) {
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.teamRepository = teamRepository;
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
@@ -68,7 +72,7 @@ public class GetUnlinkImpactUseCaseImpl implements GetUnlinkImpactUseCase {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        List<ProjectAssignment> assignments = projectRepository
+        List<ProjectAssignment> assignments = projectAssignmentRepository
                 .findActiveAssignmentsByProjectIdAndTeamId(projectId, teamId);
 
         if (assignments.isEmpty()) {

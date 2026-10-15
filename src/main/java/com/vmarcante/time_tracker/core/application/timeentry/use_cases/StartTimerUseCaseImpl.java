@@ -15,6 +15,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntr
 import com.vmarcante.time_tracker.core.application.timeentry.in.StartTimerUseCase;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
@@ -33,6 +34,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
     private final TimeEntryRepository timeEntryRepository;
     private final TimeEntrySessionRepository sessionRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectAssignmentRepository projectAssignmentRepository;
     private final TimeEntryDetailAssembler assembler;
     private final SecurityContextPort securityContext;
 
@@ -40,11 +42,13 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
             TimeEntryRepository timeEntryRepository,
             TimeEntrySessionRepository sessionRepository,
             ProjectRepository projectRepository,
+            ProjectAssignmentRepository projectAssignmentRepository,
             TimeEntryDetailAssembler assembler,
             SecurityContextPort securityContext) {
         this.timeEntryRepository = timeEntryRepository;
         this.sessionRepository = sessionRepository;
         this.projectRepository = projectRepository;
+        this.projectAssignmentRepository = projectAssignmentRepository;
         this.assembler = assembler;
         this.securityContext = securityContext;
     }
@@ -100,7 +104,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
             if (!userId.equals(project.getUserId())) {
                 throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
             }
-        } else if (!projectRepository.hasAnyActiveAssignment(userId, project.getId())) {
+        } else if (!projectAssignmentRepository.hasAnyActiveAssignment(userId, project.getId())) {
             throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
