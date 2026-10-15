@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.domain.user.session.service;
+package com.vmarcante.time_tracker.core.application.user.session.orchestrator;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -10,13 +10,14 @@ import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
+import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
 import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class GenerateUserSessionService {
+public class CreateUserSessionOrchestrator {
 
     private final JwtPort jwtPort;
     private final UserSessionRepository userSessionRepository;
@@ -25,7 +26,7 @@ public class GenerateUserSessionService {
     @Value("${jwt.refresh-token.expiration:604800000}")
     private Long refreshTokenExpirationMs;
 
-    public GenerateUserSessionService(
+    public CreateUserSessionOrchestrator(
             JwtPort jwtPort,
             UserSessionRepository userSessionRepository,
             RefreshTokenCacheService refreshTokenCacheService) {
@@ -35,7 +36,7 @@ public class GenerateUserSessionService {
     }
 
     public UserSession createSession(UserAuth userAuth, String deviceInfo, String ipAddress, String userAgent) {
-        log.debug("[GenerateUserSession] Creating session for user: {}", userAuth.getUsername());
+        log.debug("[CreateUserSession] Creating session for user: {}", userAuth.getUsername());
 
         String refreshToken = jwtPort.generateRefreshToken(userAuth);
         String refreshTokenHash = TokenHashUtils.generateHash(refreshToken);

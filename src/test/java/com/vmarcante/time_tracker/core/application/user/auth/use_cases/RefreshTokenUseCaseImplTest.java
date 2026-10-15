@@ -71,6 +71,7 @@ class RefreshTokenUseCaseImplTest {
         when(jwtPort.generateRefreshToken(userAuth)).thenReturn(NEW_TOKEN);
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(null);
         when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(session));
+        when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(session));
         when(userAuthRepository.findById(USER_ID)).thenReturn(Optional.of(userAuth));
 
         // Act
@@ -107,6 +108,7 @@ class RefreshTokenUseCaseImplTest {
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(SESSION_ID);
         when(userSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(cachedSession));
         when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(dbSession));
+        when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(dbSession));
         when(userAuthRepository.findById(USER_ID)).thenReturn(Optional.of(userAuth));
 
         // Act
@@ -149,6 +151,27 @@ class RefreshTokenUseCaseImplTest {
     }
 
     @Test
+    void givenConcurrentRotation_whenExecuting_thenThrowsUnauthorized() {
+        // Arrange
+        UserSession session = activeSession(OLD_TOKEN);
+        UserSession rotatedSession = activeSession("already-rotated-token");
+
+        when(jwtPort.validateToken(OLD_TOKEN)).thenReturn(true);
+        when(jwtPort.extractTokenType(OLD_TOKEN)).thenReturn("refresh");
+        when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(null);
+        when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(session));
+        when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(rotatedSession));
+
+        // Act & Assert
+        assertThatThrownBy(() -> useCase.execute(new RefreshTokenInputDTO(OLD_TOKEN)))
+                .isInstanceOf(ApplicationException.class)
+                .hasMessageContaining("user.refresh.token.invalid");
+
+        verify(userSessionRepository, never()).save(any());
+        verify(refreshTokenCacheService, never()).cacheToken(any(), any(), any());
+    }
+
+    @Test
     void givenExpiredSession_whenExecuting_thenThrowsExpired() {
         // Arrange
         UserSession session = activeSession(OLD_TOKEN);
@@ -158,6 +181,7 @@ class RefreshTokenUseCaseImplTest {
         when(jwtPort.extractTokenType(OLD_TOKEN)).thenReturn("refresh");
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(null);
         when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(session));
+        when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(session));
 
         // Act & Assert
         assertThatThrownBy(() -> useCase.execute(new RefreshTokenInputDTO(OLD_TOKEN)))

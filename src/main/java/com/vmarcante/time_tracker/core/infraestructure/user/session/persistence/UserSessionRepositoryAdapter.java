@@ -43,6 +43,12 @@ public class UserSessionRepositoryAdapter implements UserSessionRepository {
     }
 
     @Override
+    public Optional<UserSession> findByIdForUpdate(UUID id) {
+        return jpaRepository.findByIdForUpdate(id)
+                .map(UserSessionPersistenceMapper::toDomain);
+    }
+
+    @Override
     public Optional<UserSession> findByRefreshToken(String refreshToken) {
         String tokenHash = TokenHashUtils.generateHash(refreshToken);
         return jpaRepository.findByRefreshTokenHashAndActiveTrue(tokenHash)

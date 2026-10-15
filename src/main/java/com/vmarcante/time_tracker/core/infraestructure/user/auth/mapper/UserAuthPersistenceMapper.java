@@ -23,6 +23,7 @@ public class UserAuthPersistenceMapper {
         entity.setActive(domain.getActive() != null ? domain.getActive() : false);
         entity.setUserConfirmed(domain.getUserConfirmed() != null ? domain.getUserConfirmed() : false);
         entity.setFailedAttempts(domain.getFailedAttempts());
+        entity.setLockedUntil(domain.getLockedUntil());
         entity.setLastPasswordChange(domain.getLastPasswordChange());
         entity.setPasswordResetRequested(domain.getPasswordResetRequested());
         entity.setLastPasswordResetRequest(domain.getLastPasswordResetRequest());
@@ -50,6 +51,7 @@ public class UserAuthPersistenceMapper {
         domain.setActive(entity.getActive() != null ? entity.getActive() : false);
         domain.setUserConfirmed(entity.getUserConfirmed() != null ? entity.getUserConfirmed() : false);
         domain.setFailedAttempts(entity.getFailedAttempts());
+        domain.setLockedUntil(entity.getLockedUntil());
         domain.setLastPasswordChange(entity.getLastPasswordChange());
         domain.setPasswordResetRequested(entity.getPasswordResetRequested());
         domain.setLastPasswordResetRequest(entity.getLastPasswordResetRequest());

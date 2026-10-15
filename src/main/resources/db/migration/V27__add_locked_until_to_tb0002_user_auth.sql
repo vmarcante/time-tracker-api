@@ -1,0 +1,4 @@
+ALTER TABLE TB0002_USER_AUTH
+    ADD COLUMN C0002_LOCKED_UNTIL TIMESTAMP WITH TIME ZONE;
+
+COMMENT ON COLUMN TB0002_USER_AUTH.C0002_LOCKED_UNTIL IS 'Data/hora até a qual a conta está bloqueada por tentativas de login falhadas';

@@ -12,6 +12,8 @@ public interface UserSessionRepository {
 
     Optional<UserSession> findById(UUID id);
 
+    Optional<UserSession> findByIdForUpdate(UUID id);
+
     Optional<UserSession> findByRefreshToken(String refreshToken);
 
     List<UserSession> findActiveByUserId(UUID userId);

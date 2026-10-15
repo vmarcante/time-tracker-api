@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.input.ResetPasswordInputDTO;
@@ -56,6 +57,7 @@ public class ResetPasswordUseCaseImpl implements ResetPasswordUseCase {
     }
 
     @Override
+    @Transactional
     public void execute(ResetPasswordInputDTO input) throws ApplicationException {
         log.debug("[Reset Password] Processing password reset request");
 
@@ -107,6 +109,7 @@ public class ResetPasswordUseCaseImpl implements ResetPasswordUseCase {
         userAuth.setPasswordSalt(newSalt);
         userAuth.setAccessToken(null);
         userAuth.setFailedAttempts(0);
+        userAuth.setLockedUntil(null);
         userAuth.setPasswordResetRequested(false);
         userAuth.setLastPasswordChange(LocalDateTime.now());
 

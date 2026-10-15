@@ -8,6 +8,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.input.RefreshTokenInputDTO;
@@ -51,6 +52,7 @@ public class RefreshTokenUseCaseImpl implements RefreshTokenUseCase {
     }
 
     @Override
+    @Transactional
     public AuthenticationOutputDTO execute(RefreshTokenInputDTO input) throws ApplicationException {
         if (!StringValidationUtils.containsContent(input.refreshToken())) {
             log.warn("[Refresh Token] Refresh token is required");
@@ -95,6 +97,14 @@ public class RefreshTokenUseCaseImpl implements RefreshTokenUseCase {
             }
             session = sessionOpt.get();
         }
+        
+        Optional<UserSession> lockedSessionOpt = userSessionRepository.findByIdForUpdate(session.getId());
+        if (lockedSessionOpt.isEmpty() || !token.equals(lockedSessionOpt.get().getRefreshToken())) {
+            log.warn("[Refresh Token] Session token changed during concurrent refresh | Session ID: {}",
+                    session.getId());
+            throw new ApplicationException("user.refresh.token.invalid", null, HttpStatus.UNAUTHORIZED);
+        }
+        session = lockedSessionOpt.get();
 
         if (!session.getActive()) {
             log.warn("[Refresh Token] Inactive session attempted refresh | Session ID: {}", session.getId());

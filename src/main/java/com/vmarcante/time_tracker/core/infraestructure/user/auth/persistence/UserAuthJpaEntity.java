@@ -80,6 +80,9 @@ public class UserAuthJpaEntity implements BaseActiveEntityInterface<UUID, Intege
     @Column(name = "C0002_FAILED_ATTEMPTS", nullable = false)
     private Integer failedAttempts;
 
+    @Column(name = "C0002_LOCKED_UNTIL")
+    private LocalDateTime lockedUntil;
+
     @Column(name = "C0002_LAST_PASSWORD_CHANGE")
     private LocalDateTime lastPasswordChange;
 

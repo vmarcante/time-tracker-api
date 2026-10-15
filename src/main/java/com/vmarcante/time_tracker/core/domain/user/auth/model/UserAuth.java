@@ -21,6 +21,7 @@ public class UserAuth extends BaseDomainModel<UUID, Integer> {
     private Boolean active;
     private Boolean userConfirmed;
     private Integer failedAttempts;
+    private LocalDateTime lockedUntil;
     private LocalDateTime lastPasswordChange;
     private Boolean passwordResetRequested;
     private LocalDateTime lastPasswordResetRequest;
