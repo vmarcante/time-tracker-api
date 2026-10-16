@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +12,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.application.timeentry.in.DeactivateTimeEntryUseCase;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -47,7 +49,8 @@ public class DeactivateTimeEntryUseCaseImpl implements DeactivateTimeEntryUseCas
                 .filter(e -> userId.equals(e.getUserId()))
                 .orElseThrow(() -> new ApplicationException("timeentry.not.found", null));
 
-        for (TimeEntrySession session : sessionRepository.findActiveByEntryId(entryId)) {
+        TimeEntrySessionFilter sessionFilter = TimeEntrySessionFilterMapper.activeByEntryId(entryId);
+        for (TimeEntrySession session : sessionRepository.search(sessionFilter)) {
             if (session.getEndTime() == null) {
                 throw new ApplicationException("timeentry.running.cannot.deactivate", null, HttpStatus.CONFLICT);
             }

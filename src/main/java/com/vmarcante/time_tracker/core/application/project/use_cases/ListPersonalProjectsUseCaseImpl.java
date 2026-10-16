@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectFilt
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.ListPersonalProjectsUseCase;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
@@ -39,7 +41,8 @@ public class ListPersonalProjectsUseCaseImpl implements ListPersonalProjectsUseC
         UUID userId = currentUserId.get();
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
 
-        return PageWrapperDTO.of(projectRepository.findActiveByUserId(userId, pageable)
+        ProjectFilter projectFilter = ProjectFilterMapper.activePersonalOf(userId);
+        return PageWrapperDTO.of(projectRepository.search(projectFilter, pageable)
                 .map(project -> ProjectSummaryOutputDTO.from(project, 0, 0)));
     }
 }

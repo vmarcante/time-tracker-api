@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,7 +72,8 @@ public class CreateOnboardingCompanyUseCaseImpl implements CreateOnboardingCompa
             throw new ApplicationException("onboarding.already.completed", null, HttpStatus.CONFLICT);
         }
 
-        if (companyRepository.existsByDocument(input.document().digits())) {
+        CompanyFilter companyFilter = CompanyFilterMapper.byDocument(input.document().digits());
+        if (companyRepository.exists(companyFilter)) {
             throw new ApplicationException("company.document.already.exists", null, HttpStatus.CONFLICT);
         }
 

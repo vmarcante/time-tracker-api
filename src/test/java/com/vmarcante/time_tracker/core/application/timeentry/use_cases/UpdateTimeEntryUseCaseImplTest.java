@@ -21,6 +21,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntr
 import com.vmarcante.time_tracker.core.application.timeentry.policy.TimeEntryValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
@@ -126,7 +127,7 @@ class UpdateTimeEntryUseCaseImplTest {
         project.setCompanyId(UUID.randomUUID());
         project.setStatus(ProjectStatus.ACTIVE);
         when(projectRepository.findById(PROJECT_ID)).thenReturn(Optional.of(project));
-        when(projectAssignmentRepository.hasAnyActiveAssignment(USER_ID, PROJECT_ID)).thenReturn(false);
+        when(projectAssignmentRepository.exists(any(ProjectAssignmentFilter.class))).thenReturn(false);
 
         UpdateTimeEntryInputDTO input = new UpdateTimeEntryInputDTO("Task", null, PROJECT_ID, null);
 

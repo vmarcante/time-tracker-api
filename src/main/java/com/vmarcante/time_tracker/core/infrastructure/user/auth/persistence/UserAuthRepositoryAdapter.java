@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.infrastructure.user.auth.persistence;
 
 import org.springframework.stereotype.Component;
+import com.vmarcante.time_tracker.core.domain.user.auth.model.filter.UserAuthFilterMapper;
 
 import com.vmarcante.time_tracker.base.infrastructure.persistence.converter.EncryptedFieldHashUtils;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
@@ -35,8 +36,7 @@ public class UserAuthRepositoryAdapter implements UserAuthRepository {
 
     @Override
     public Optional<UserAuth> findByUsername(String username) {
-        UserAuthFilter filter = new UserAuthFilter();
-        filter.setUsername(username);
+        UserAuthFilter filter = UserAuthFilterMapper.byUsername(username);
         return jpaRepository.findOne(UserAuthRepositorySpecification.withFilter(filter))
                 .map(UserAuthPersistenceMapper::toDomain);
     }
@@ -49,8 +49,7 @@ public class UserAuthRepositoryAdapter implements UserAuthRepository {
 
     @Override
     public boolean existsByUsername(String username) {
-        UserAuthFilter filter = new UserAuthFilter();
-        filter.setUsername(username);
+        UserAuthFilter filter = UserAuthFilterMapper.byUsername(username);
         return jpaRepository.exists(UserAuthRepositorySpecification.withFilter(filter));
     }
 

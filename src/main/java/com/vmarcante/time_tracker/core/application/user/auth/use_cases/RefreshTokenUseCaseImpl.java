@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilterMapper;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepos
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilter;
 import com.vmarcante.time_tracker.core.shared.utils.StringValidationUtils;
 import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
@@ -90,7 +92,8 @@ public class RefreshTokenUseCaseImpl implements RefreshTokenUseCase {
         // Fallback para DB (SEGURANÇA)
         if (session == null) {
             log.debug("[Refresh Token] Cache MISS - searching in DB");
-            Optional<UserSession> sessionOpt = userSessionRepository.findByRefreshToken(token);
+            UserSessionFilter sessionFilter = UserSessionFilterMapper.activeByRefreshToken(token);
+            Optional<UserSession> sessionOpt = userSessionRepository.findOne(sessionFilter);
             if (sessionOpt.isEmpty()) {
                 log.warn("[Refresh Token] Session not found for refresh token");
                 throw new ApplicationException("user.refresh.token.invalid", null, HttpStatus.UNAUTHORIZED);

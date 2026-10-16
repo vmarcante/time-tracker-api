@@ -4,43 +4,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+
 import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 
 public interface ProjectAssignmentJpaRepository extends BaseJpaRepository<ProjectAssignmentJpaEntity, UUID, Integer> {
-
-    boolean existsByUserIdAndProjectIdAndTeamIdAndActiveTrue(UUID userId, UUID projectId, UUID teamId);
-
-    boolean existsByUserIdAndProjectIdAndActiveTrue(UUID userId, UUID projectId);
-
-    List<ProjectAssignmentJpaEntity> findByProjectIdAndActiveTrue(UUID projectId);
-
-    Page<ProjectAssignmentJpaEntity> findByProjectIdAndActiveTrue(UUID projectId, Pageable pageable);
-
-    @Query("""
-            SELECT p FROM ProjectAssignmentJpaEntity up
-            JOIN ProjectJpaEntity p ON p.id = up.projectId
-            WHERE up.userId = :userId AND p.companyId = :companyId
-                AND up.active = true AND p.active = true
-            """)
-    Page<ProjectJpaEntity> findActiveProjectsByUserIdAndCompanyId(
-            @Param("userId") UUID userId, @Param("companyId") UUID companyId, Pageable pageable);
-
-    List<ProjectAssignmentJpaEntity> findByUserIdAndTeamIdAndActiveTrue(UUID userId, UUID teamId);
-
-    List<ProjectAssignmentJpaEntity> findByProjectIdAndTeamIdAndActiveTrue(UUID projectId, UUID teamId);
-
-    @Query("""
-            SELECT up FROM ProjectAssignmentJpaEntity up
-            JOIN ProjectJpaEntity p ON p.id = up.projectId
-            WHERE up.userId = :userId AND p.companyId = :companyId AND up.active = true
-            """)
-    List<ProjectAssignmentJpaEntity> findActiveByUserIdAndCompanyId(
-            @Param("userId") UUID userId, @Param("companyId") UUID companyId);
 
     @Query("""
             SELECT up.projectId, COUNT(up) FROM ProjectAssignmentJpaEntity up

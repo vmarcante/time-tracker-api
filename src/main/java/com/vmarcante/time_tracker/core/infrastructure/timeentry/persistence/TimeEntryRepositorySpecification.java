@@ -32,6 +32,7 @@ public final class TimeEntryRepositorySpecification {
         }
         return Specification.allOf(List.of(
                 active(),
+                hasId(filter.getId()),
                 hasUserId(filter.getUserId()),
                 hasCompanyId(filter.getCompanyId()),
                 visibleToLead(filter.getLeadScopeUserId()),
@@ -44,6 +45,12 @@ public final class TimeEntryRepositorySpecification {
 
     public static Specification<TimeEntryJpaEntity> active() {
         return (root, query, cb) -> cb.isTrue(root.get("active"));
+    }
+
+    public static Specification<TimeEntryJpaEntity> hasId(UUID id) {
+        return (root, query, cb) -> id == null
+                ? cb.conjunction()
+                : cb.equal(root.get("id"), id);
     }
 
     public static Specification<TimeEntryJpaEntity> hasUserId(UUID userId) {

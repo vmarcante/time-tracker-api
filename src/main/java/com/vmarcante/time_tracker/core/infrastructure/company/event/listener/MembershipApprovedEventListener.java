@@ -59,7 +59,7 @@ public class MembershipApprovedEventListener {
                         String companyName = companyRepository.findById(event.getCompanyId())
                                         .map(c -> c.getLegalName())
                                         .orElse("");
-                        String role = membershipRepository.findMembershipById(event.getMembershipId())
+                        String role = membershipRepository.findById(event.getMembershipId())
                                         .map(m -> m.getRole().name())
                                         .orElse("");
 

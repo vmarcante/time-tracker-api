@@ -5,6 +5,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +24,7 @@ import com.vmarcante.time_tracker.core.application.team.in.ListTeamMembersUseCas
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -53,17 +59,20 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(currentUserId.get(), companyId);
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
-        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+        TeamFilter teamFilter = TeamFilterMapper.activeByIdAndCompanyId(teamId, companyId);
+        if (!teamRepository.exists(teamFilter)) {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
+        TeamMembershipFilter teamMembershipFilter = TeamMembershipFilterMapper.approvedByTeam(teamId);
         Page<TeamMembership> members = teamMembershipRepository
-                .findApprovedMembershipsByTeamId(teamId, pageable);
+                .search(teamMembershipFilter, pageable);
 
         if (members.isEmpty()) {
             return PageWrapperDTO.of(members.map(m -> TeamMemberOutputDTO.from(m, null)));

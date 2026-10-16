@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
 
 import org.springframework.stereotype.Service;
 
@@ -9,6 +10,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.RunningTimerOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.in.GetRunningTimerUseCase;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -36,7 +38,8 @@ public class GetRunningTimerUseCaseImpl implements GetRunningTimerUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        Optional<TimeEntrySession> running = sessionRepository.findRunningByUserId(currentUserId.get());
+        TimeEntrySessionFilter runningFilter = TimeEntrySessionFilterMapper.runningByUser(currentUserId.get());
+        Optional<TimeEntrySession> running = sessionRepository.findOne(runningFilter);
         if (running.isEmpty()) {
             return null;
         }

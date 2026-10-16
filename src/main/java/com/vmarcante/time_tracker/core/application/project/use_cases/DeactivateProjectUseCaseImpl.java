@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +55,8 @@ public class DeactivateProjectUseCaseImpl implements DeactivateProjectUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {

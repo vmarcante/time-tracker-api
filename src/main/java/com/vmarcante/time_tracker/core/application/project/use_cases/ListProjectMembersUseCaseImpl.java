@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +25,7 @@ import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
@@ -54,7 +58,8 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(currentUserId.get(), companyId);
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
@@ -64,8 +69,8 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
                 .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
-        Page<ProjectAssignment> assignments = projectAssignmentRepository
-                .findActiveAssignmentsByProjectId(projectId, pageable);
+        ProjectAssignmentFilter assignmentFilter = ProjectAssignmentFilterMapper.activeByProjectId(projectId);
+        Page<ProjectAssignment> assignments = projectAssignmentRepository.search(assignmentFilter, pageable);
 
         if (assignments.isEmpty()) {
             return PageWrapperDTO.of(assignments.map(a -> ProjectAssignmentOutputDTO.from(a, null, project.getName())));

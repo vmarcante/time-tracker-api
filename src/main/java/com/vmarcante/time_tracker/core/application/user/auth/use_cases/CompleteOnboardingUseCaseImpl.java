@@ -3,6 +3,10 @@ package com.vmarcante.time_tracker.core.application.user.auth.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilter;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
@@ -81,7 +85,8 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
             return CompleteOnboardingOutputDTO.independent();
         }
 
-        Company company = companyRepository.findByDocument(input.document().digits())
+        CompanyFilter companyFilter = CompanyFilterMapper.byDocument(input.document().digits());
+        Company company = companyRepository.findOne(companyFilter)
                 .filter(c -> Boolean.TRUE.equals(c.getActive()))
                 .orElseThrow(() -> new ApplicationException("company.not.found", null));
 
@@ -89,7 +94,8 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
             throw new ApplicationException("membership.request.reason.too.long", null);
         }
 
-        if (!membershipRepository.hasAnyActiveMembership(userId, company.getId())) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.activeMembership(userId, company.getId());
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             CompanyMembership membership = new CompanyMembership();
             membership.setUserId(userId);
             membership.setCompanyId(company.getId());
@@ -105,7 +111,8 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
                     saved.getId(), userId, company.getId()));
         }
 
-        boolean membershipPending = !membershipRepository.isMember(userId, company.getId());
+        CompanyMembershipFilter membershipPendingFilter = CompanyMembershipFilterMapper.approvedMembership(userId, company.getId());
+        boolean membershipPending = !membershipRepository.exists(membershipPendingFilter);
 
         log.info("[Onboarding] User {} affiliated with company {} (pending: {})",
                 userId, company.getId(), membershipPending);

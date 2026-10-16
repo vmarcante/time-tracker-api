@@ -5,6 +5,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +25,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -63,7 +69,8 @@ public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
@@ -78,8 +85,9 @@ public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
         if (input.name() != null && !input.name().isBlank()) {
             validationPolicy.validateName(input.name());
             String newName = input.name().trim();
+            TeamFilter nameFilter = TeamFilterMapper.activeByNameAndCompanyId(newName, companyId);
             if (!newName.equalsIgnoreCase(team.getName())
-                    && teamRepository.existsActiveByCompanyIdAndName(companyId, newName)) {
+                    && teamRepository.exists(nameFilter)) {
                 throw new ApplicationException("team.name.already.exists", null, HttpStatus.CONFLICT);
             }
             team.setName(newName);
@@ -97,7 +105,9 @@ public class UpdateTeamUseCaseImpl implements UpdateTeamUseCase {
     }
 
     private TeamDetailOutputDTO buildDetail(Team team) {
-        Optional<TeamMembership> lead = teamMembershipRepository.findLeadMembership(team.getId());
+        TeamMembershipFilter teamMembershipFilter = TeamMembershipFilterMapper.leadByTeam(team.getId());
+        Optional<TeamMembership> lead = teamMembershipRepository
+                .findOne(teamMembershipFilter);
         UUID leadUserId = lead.isPresent() ? lead.get().getUserId() : null;
         String leadName = leadUserId != null
                 ? personRepository.findNameById(leadUserId).orElse(null)

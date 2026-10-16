@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +55,8 @@ public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
 
         UUID userId = currentUserId.get();
 
-        CompanyMembership membership = membershipRepository.findMembership(userId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(userId, companyId);
+        CompanyMembership membership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (membership.getRole() == CompanyRole.OWNER) {
@@ -67,7 +70,8 @@ public class LeaveCompanyUseCaseImpl implements LeaveCompanyUseCase {
         teamMembershipRepository.deactivateMembershipsByUserIdAndCompanyId(userId, companyId, userId);
         projectAssignmentRepository.deactivateAssignmentsByUserIdAndCompanyId(userId, companyId, userId);
 
-        if (!membershipRepository.hasAnyApprovedMembership(userId)) {
+        CompanyMembershipFilter currentMembershipFilter = CompanyMembershipFilterMapper.approvedByUser(userId);
+        if (!membershipRepository.exists(currentMembershipFilter)) {
             userAuthRepository.findById(userId).ifPresent(userAuth -> {
                 userAuth.setAffiliation(AffiliationStatus.INDEPENDENT);
                 userAuthRepository.save(userAuth);

@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +52,8 @@ public class AcceptCompanyInvitationUseCaseImpl implements AcceptCompanyInvitati
 
         UUID userId = currentUserId.get();
 
-        CompanyMembership membership = membershipRepository.findPendingMembership(userId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.pendingMembership(userId, companyId);
+        CompanyMembership membership = membershipRepository.findOne(companyMembershipFilter)
                 .filter(m -> m.getOrigin() == MembershipOrigin.INVITE)
                 .orElseThrow(() -> new ApplicationException("company.invitation.not.found", null));
 

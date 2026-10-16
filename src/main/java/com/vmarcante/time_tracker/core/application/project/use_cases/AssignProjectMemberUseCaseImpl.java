@@ -3,6 +3,13 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
@@ -21,9 +28,13 @@ import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.project.event.ProjectAssignedEvent;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
+import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -77,15 +88,18 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
-        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+        TeamFilter teamFilter = TeamFilterMapper.activeByIdAndCompanyId(teamId, companyId);
+        if (!teamRepository.exists(teamFilter)) {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
+        TeamMembershipFilter teamMembershipFilter = TeamMembershipFilterMapper.approvedMembershipWithRole(actorId, teamId, TeamRole.LEAD);
         boolean canManage = actorMembership.getRole().canManage(CompanyRole.MANAGER)
-                || teamMembershipRepository.isTeamLead(actorId, teamId);
+                || teamMembershipRepository.exists(teamMembershipFilter);
         if (!canManage) {
             throw new ApplicationException("project.permission.denied", null, HttpStatus.FORBIDDEN);
         }
@@ -99,21 +113,26 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
             throw new ApplicationException("project.not.active", null, HttpStatus.CONFLICT);
         }
 
-        if (!teamProjectRepository.isProjectLinkedToTeam(projectId, teamId)) {
+        TeamProjectFilter linkFilter = TeamProjectFilterMapper.activeLink(projectId, teamId);
+        if (!teamProjectRepository.exists(linkFilter)) {
             throw new ApplicationException("project.not.linked", null, HttpStatus.CONFLICT);
         }
 
         Person target = personRepository.findByEmail(input.email().address())
                 .orElseThrow(() -> new ApplicationException("user.not.found", null, HttpStatus.NOT_FOUND));
 
-        membershipRepository.findMembership(target.getId(), companyId)
+        CompanyMembershipFilter targetMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(target.getId(), companyId);
+        membershipRepository.findOne(targetMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("team.member.not.company.member", null));
 
-        if (!teamMembershipRepository.isTeamMember(target.getId(), teamId)) {
+        TeamMembershipFilter targetTeamMembershipFilter = TeamMembershipFilterMapper.approvedMembership(target.getId(), teamId);
+        if (!teamMembershipRepository
+                .exists(targetTeamMembershipFilter)) {
             throw new ApplicationException("project.member.not.team.member", null);
         }
 
-        if (projectAssignmentRepository.hasActiveAssignment(target.getId(), projectId, teamId)) {
+        ProjectAssignmentFilter assignmentFilter = ProjectAssignmentFilterMapper.activeAssignment(target.getId(), projectId, teamId);
+        if (projectAssignmentRepository.exists(assignmentFilter)) {
             throw new ApplicationException("project.assignment.exists", null, HttpStatus.CONFLICT);
         }
 

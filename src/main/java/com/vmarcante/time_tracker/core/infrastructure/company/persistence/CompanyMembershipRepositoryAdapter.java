@@ -1,5 +1,6 @@
 package com.vmarcante.time_tracker.core.infrastructure.company.persistence;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -7,8 +8,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
-import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.infrastructure.company.mapper.CompanyMembershipPersistenceMapper;
 
@@ -28,94 +29,48 @@ public class CompanyMembershipRepositoryAdapter implements CompanyMembershipRepo
     }
 
     @Override
-    public boolean isMember(UUID userId, UUID companyId) {
-        return companyMembershipJpaRepository
-                .existsByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(userId, companyId);
-    }
-
-    @Override
-    public boolean hasAnyActiveMembership(UUID userId, UUID companyId) {
-        return companyMembershipJpaRepository
-                .existsByUserIdAndCompanyIdAndActiveTrue(userId, companyId);
-    }
-
-    @Override
-    public boolean hasAnyApprovedMembership(UUID userId) {
-        return companyMembershipJpaRepository
-                .existsByUserIdAndActiveTrueAndApprovedTrue(userId);
-    }
-
-    @Override
-    public Optional<CompanyMembership> findMembership(UUID userId, UUID companyId) {
-        return companyMembershipJpaRepository
-                .findByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(userId, companyId)
+    public Optional<CompanyMembership> findById(UUID id) {
+        return companyMembershipJpaRepository.findById(id)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
-    public Optional<CompanyMembership> findPendingMembership(UUID userId, UUID companyId) {
+    public Optional<CompanyMembership> findOne(CompanyMembershipFilter filter) {
         return companyMembershipJpaRepository
-                .findByUserIdAndCompanyIdAndActiveTrueAndApprovedFalse(userId, companyId)
+                .findOne(CompanyMembershipRepositorySpecification.withFilter(filter))
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
-    public Optional<CompanyMembership> findMembershipById(UUID membershipId) {
-        return companyMembershipJpaRepository.findById(membershipId)
+    public List<CompanyMembership> search(CompanyMembershipFilter filter) {
+        return companyMembershipJpaRepository
+                .findAll(CompanyMembershipRepositorySpecification.withFilter(filter))
+                .stream()
+                .map(CompanyMembershipPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<CompanyMembership> search(CompanyMembershipFilter filter, Pageable pageable) {
+        return companyMembershipJpaRepository
+                .findAll(CompanyMembershipRepositorySpecification.withFilter(filter), pageable)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
-    public Page<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId, Pageable pageable) {
+    public boolean exists(CompanyMembershipFilter filter) {
         return companyMembershipJpaRepository
-                .findByCompanyIdAndActiveTrueAndApprovedTrue(companyId, pageable)
-                .map(CompanyMembershipPersistenceMapper::toDomain);
+                .exists(CompanyMembershipRepositorySpecification.withFilter(filter));
     }
 
     @Override
-    public Page<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId, Pageable pageable) {
+    public long count(CompanyMembershipFilter filter) {
         return companyMembershipJpaRepository
-                .findByCompanyIdAndActiveTrueAndApprovedFalse(companyId, pageable)
-                .map(CompanyMembershipPersistenceMapper::toDomain);
+                .count(CompanyMembershipRepositorySpecification.withFilter(filter));
     }
 
     @Override
-    public Page<CompanyMembership> findResolvedMembershipsByCompanyId(UUID companyId, Pageable pageable) {
-        return companyMembershipJpaRepository
-                .findResolvedByCompanyId(companyId, pageable)
-                .map(CompanyMembershipPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable) {
-        return companyMembershipJpaRepository
-                .findByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.INVITE, pageable)
-                .map(CompanyMembershipPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public Optional<CompanyMembership> findApprovedMembershipByUserId(UUID userId) {
-        return companyMembershipJpaRepository
-                .findFirstByUserIdAndActiveTrueAndApprovedTrue(userId)
-                .map(CompanyMembershipPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public long countPendingInvitationsByUserId(UUID userId) {
-        return companyMembershipJpaRepository
-                .countByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.INVITE);
-    }
-
-    @Override
-    public long countPendingMembershipsByCompanyId(UUID companyId) {
-        return companyMembershipJpaRepository
-                .countByCompanyIdAndActiveTrueAndApprovedFalse(companyId);
-    }
-
-    @Override
-    public Optional<CompanyMembership> findPendingRequestMembershipByUserId(UUID userId) {
-        return companyMembershipJpaRepository
-                .findFirstByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.REQUEST)
-                .map(CompanyMembershipPersistenceMapper::toDomain);
+    public List<UUID> findApprovedCompanyIdsByUserId(UUID userId) {
+        return companyMembershipJpaRepository.findApprovedCompanyIdsByUserId(userId);
     }
 }

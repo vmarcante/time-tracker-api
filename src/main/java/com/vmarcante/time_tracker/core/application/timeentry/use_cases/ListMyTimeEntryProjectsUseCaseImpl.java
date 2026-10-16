@@ -4,6 +4,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
 
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTimeEntryP
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 
 @Service
 public class ListMyTimeEntryProjectsUseCaseImpl implements ListMyTimeEntryProjectsUseCase {
@@ -42,7 +44,8 @@ public class ListMyTimeEntryProjectsUseCaseImpl implements ListMyTimeEntryProjec
             return List.of();
         }
 
-        return projectRepository.findAllByIds(projectIds).stream()
+        ProjectFilter projectFilter = ProjectFilterMapper.byIds(projectIds);
+        return projectRepository.search(projectFilter).stream()
                 .sorted(Comparator.comparing(p -> p.getName(), String.CASE_INSENSITIVE_ORDER))
                 .map(TimeEntryProjectOutputDTO::from)
                 .toList();

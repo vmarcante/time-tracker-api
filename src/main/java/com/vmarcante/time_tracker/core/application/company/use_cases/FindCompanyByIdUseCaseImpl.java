@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -41,7 +43,8 @@ public class FindCompanyByIdUseCaseImpl implements FindCompanyByIdUseCase {
 
         UUID userId = currentUserId.get();
 
-        if (!membershipRepository.isMember(userId, companyId)) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(userId, companyId);
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 

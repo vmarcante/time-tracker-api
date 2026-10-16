@@ -3,6 +3,11 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +22,9 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignme
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilter;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,22 +65,26 @@ public class UnlinkProjectFromTeamUseCaseImpl implements UnlinkProjectFromTeamUs
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
             throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
-        if (!projectRepository.existsActiveByIdAndCompanyId(projectId, companyId)) {
+        ProjectFilter projectFilter = ProjectFilterMapper.activeByIdAndCompanyId(projectId, companyId);
+        if (!projectRepository.exists(projectFilter)) {
             throw new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+        TeamFilter teamFilter = TeamFilterMapper.activeByIdAndCompanyId(teamId, companyId);
+        if (!teamRepository.exists(teamFilter)) {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        TeamProject link = teamProjectRepository.findActiveTeamLink(projectId, teamId)
+        TeamProjectFilter linkFilter = TeamProjectFilterMapper.activeLink(projectId, teamId);
+        TeamProject link = teamProjectRepository.findOne(linkFilter)
                 .orElseThrow(() -> new ApplicationException("project.not.linked", null, HttpStatus.CONFLICT));
 
         projectAssignmentRepository.deactivateAssignmentsByProjectIdAndTeamId(projectId, teamId, actorId);

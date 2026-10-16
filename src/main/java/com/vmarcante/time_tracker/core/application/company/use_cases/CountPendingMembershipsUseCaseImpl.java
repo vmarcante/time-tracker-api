@@ -1,6 +1,8 @@
 package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -28,6 +30,7 @@ public class CountPendingMembershipsUseCaseImpl implements CountPendingMembershi
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        return membershipRepository.countPendingMembershipsByCompanyId(companyId);
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.pendingByCompany(companyId);
+        return membershipRepository.count(companyMembershipFilter);
     }
 }

@@ -5,6 +5,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilterMapper;
 
 import org.springframework.stereotype.Service;
 
@@ -20,6 +24,8 @@ import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
@@ -55,8 +61,9 @@ public class GetUnlinkImpactUseCaseImpl implements GetUnlinkImpactUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(currentUserId.get(), companyId);
         CompanyMembership actorMembership = membershipRepository
-                .findMembership(currentUserId.get(), companyId)
+                .findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
@@ -68,12 +75,13 @@ public class GetUnlinkImpactUseCaseImpl implements GetUnlinkImpactUseCase {
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
-        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+        TeamFilter teamFilter = TeamFilterMapper.activeByIdAndCompanyId(teamId, companyId);
+        if (!teamRepository.exists(teamFilter)) {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        List<ProjectAssignment> assignments = projectAssignmentRepository
-                .findActiveAssignmentsByProjectIdAndTeamId(projectId, teamId);
+        ProjectAssignmentFilter assignmentFilter = ProjectAssignmentFilterMapper.activeByProjectIdAndTeamId(projectId, teamId);
+        List<ProjectAssignment> assignments = projectAssignmentRepository.search(assignmentFilter);
 
         if (assignments.isEmpty()) {
             return List.of();

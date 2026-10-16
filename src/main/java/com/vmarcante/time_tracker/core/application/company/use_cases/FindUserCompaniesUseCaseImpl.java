@@ -2,6 +2,8 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilter;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,7 +40,9 @@ public class FindUserCompaniesUseCaseImpl implements FindUserCompaniesUseCase {
 
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
 
-        return PageWrapperDTO.of(companyRepository.findActiveCompaniesByUserId(currentUserId.get(), pageable)
+        CompanyFilter companyFilter = CompanyFilterMapper.activeMemberOf(currentUserId.get());
+        return PageWrapperDTO.of(companyRepository
+                .search(companyFilter, pageable)
                 .map(CompanySummaryOutputDTO::from));
     }
 }

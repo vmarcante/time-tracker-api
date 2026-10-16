@@ -6,21 +6,22 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Sort;
+
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 
 public interface TimeEntrySessionRepository {
 
     TimeEntrySession save(TimeEntrySession session);
 
-    Optional<TimeEntrySession> findById(UUID sessionId);
+    Optional<TimeEntrySession> findOne(TimeEntrySessionFilter filter);
 
-    List<TimeEntrySession> findActiveByEntryId(UUID entryId);
+    List<TimeEntrySession> search(TimeEntrySessionFilter filter);
+
+    List<TimeEntrySession> search(TimeEntrySessionFilter filter, Sort sort);
 
     Map<UUID, List<TimeEntrySession>> findActiveByEntryIds(Collection<UUID> entryIds);
 
-    Optional<TimeEntrySession> findRunningByUserId(UUID userId);
-
-    boolean existsRunningByUserId(UUID userId);
-
-    boolean existsActiveByIdAndEntryId(UUID sessionId, UUID entryId);
+    boolean exists(TimeEntrySessionFilter filter);
 }

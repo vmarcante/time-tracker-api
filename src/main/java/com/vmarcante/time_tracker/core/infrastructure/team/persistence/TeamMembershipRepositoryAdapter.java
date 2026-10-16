@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.infrastructure.team.mapper.TeamPersistenceMapper;
 
@@ -32,64 +33,38 @@ public class TeamMembershipRepositoryAdapter implements TeamMembershipRepository
     }
 
     @Override
-    public boolean isTeamMember(UUID userId, UUID teamId) {
-        return teamMembershipJpaRepository
-                .existsByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(userId, teamId);
-    }
-
-    @Override
-    public boolean isTeamLead(UUID userId, UUID teamId) {
-        return teamMembershipJpaRepository
-                .existsByUserIdAndTeamIdAndRoleAndActiveTrueAndApprovedTrue(
-                        userId, teamId, TeamRole.LEAD);
-    }
-
-    @Override
-    public boolean hasAnyActiveMembership(UUID userId, UUID teamId) {
-        return teamMembershipJpaRepository.existsByUserIdAndTeamIdAndActiveTrue(userId, teamId);
-    }
-
-    @Override
-    public Optional<TeamMembership> findMembership(UUID userId, UUID teamId) {
-        return teamMembershipJpaRepository
-                .findByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(userId, teamId)
-                .map(TeamPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public Optional<TeamMembership> findMembershipById(UUID membershipId) {
+    public Optional<TeamMembership> findById(UUID membershipId) {
         return teamMembershipJpaRepository.findById(membershipId)
                 .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
-    public Optional<TeamMembership> findLeadMembership(UUID teamId) {
+    public Optional<TeamMembership> findOne(TeamMembershipFilter filter) {
         return teamMembershipJpaRepository
-                .findByTeamIdAndRoleAndActiveTrueAndApprovedTrue(teamId, TeamRole.LEAD)
+                .findOne(TeamMembershipRepositorySpecification.withFilter(filter))
                 .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
-    public Page<TeamMembership> findApprovedMembershipsByTeamId(UUID teamId, Pageable pageable) {
-        return teamMembershipJpaRepository.findByTeamIdAndActiveTrueAndApprovedTrue(teamId, pageable)
-                .map(TeamPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public List<TeamMembership> findApprovedMembershipsByTeamIds(Collection<UUID> teamIds) {
-        if (teamIds == null || teamIds.isEmpty()) {
-            return List.of();
-        }
-        return teamMembershipJpaRepository.findByTeamIdInAndActiveTrueAndApprovedTrue(teamIds).stream()
+    public List<TeamMembership> search(TeamMembershipFilter filter) {
+        return teamMembershipJpaRepository
+                .findAll(TeamMembershipRepositorySpecification.withFilter(filter))
+                .stream()
                 .map(TeamPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<TeamMembership> findActiveMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId) {
-        return teamMembershipJpaRepository.findActiveByUserIdAndCompanyId(userId, companyId).stream()
-                .map(TeamPersistenceMapper::toDomain)
-                .toList();
+    public Page<TeamMembership> search(TeamMembershipFilter filter, Pageable pageable) {
+        return teamMembershipJpaRepository
+                .findAll(TeamMembershipRepositorySpecification.withFilter(filter), pageable)
+                .map(TeamPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public boolean exists(TeamMembershipFilter filter) {
+        return teamMembershipJpaRepository
+                .exists(TeamMembershipRepositorySpecification.withFilter(filter));
     }
 
     @Override
@@ -106,6 +81,11 @@ public class TeamMembershipRepositoryAdapter implements TeamMembershipRepository
                 .collect(Collectors.toMap(
                         row -> (UUID) row[0],
                         row -> (UUID) row[1]));
+    }
+
+    @Override
+    public List<UUID> findApprovedTeamIdsByUserIdAndCompanyId(UUID userId, UUID companyId) {
+        return teamMembershipJpaRepository.findApprovedTeamIdsByUserIdAndCompanyId(userId, companyId);
     }
 
     @Override

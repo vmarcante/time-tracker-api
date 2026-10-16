@@ -21,10 +21,14 @@ import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectTeam
 import com.vmarcante.time_tracker.core.domain.project.event.ProjectAssignedEvent;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 
@@ -93,11 +97,11 @@ class ProjectTeamsSyncOrchestratorTest {
     @Test
     void givenNewTeamWithMembers_whenExecuting_thenShouldLinkTeamAndAssignMembers() {
         // Arrange
-        when(teamRepository.findAllByIds(any())).thenReturn(List.of(activeTeam()));
-        when(teamMembershipRepository.findApprovedMembershipsByTeamIds(any()))
+        when(teamRepository.search(any(TeamFilter.class))).thenReturn(List.of(activeTeam()));
+        when(teamMembershipRepository.search(any(TeamMembershipFilter.class)))
                 .thenReturn(List.of(approvedMembership(TEAM_ID, MEMBER_ID)));
-        when(teamProjectRepository.findActiveTeamLinksByProjectId(PROJECT_ID)).thenReturn(List.of());
-        when(projectAssignmentRepository.findAllActiveAssignmentsByProjectId(PROJECT_ID))
+        when(teamProjectRepository.search(any(TeamProjectFilter.class))).thenReturn(List.of());
+        when(projectAssignmentRepository.search(any(ProjectAssignmentFilter.class)))
                 .thenReturn(List.of());
 
         List<ProjectTeamMembersInputDTO> input = List.of(
@@ -115,9 +119,9 @@ class ProjectTeamsSyncOrchestratorTest {
     @Test
     void givenRemovedTeam_whenExecuting_thenShouldDeactivateLinkAndAssignments() {
         // Arrange
-        when(teamProjectRepository.findActiveTeamLinksByProjectId(PROJECT_ID))
+        when(teamProjectRepository.search(any(TeamProjectFilter.class)))
                 .thenReturn(List.of(activeLink(TEAM_ID)));
-        when(projectAssignmentRepository.findAllActiveAssignmentsByProjectId(PROJECT_ID))
+        when(projectAssignmentRepository.search(any(ProjectAssignmentFilter.class)))
                 .thenReturn(List.of(activeAssignment(TEAM_ID, MEMBER_ID)));
 
         List<ProjectTeamMembersInputDTO> input = List.of();
@@ -134,10 +138,10 @@ class ProjectTeamsSyncOrchestratorTest {
     @Test
     void givenMemberRemovedFromKeptTeam_whenExecuting_thenShouldDeactivateAssignment() {
         // Arrange
-        when(teamRepository.findAllByIds(any())).thenReturn(List.of(activeTeam()));
-        when(teamProjectRepository.findActiveTeamLinksByProjectId(PROJECT_ID))
+        when(teamRepository.search(any(TeamFilter.class))).thenReturn(List.of(activeTeam()));
+        when(teamProjectRepository.search(any(TeamProjectFilter.class)))
                 .thenReturn(List.of(activeLink(TEAM_ID)));
-        when(projectAssignmentRepository.findAllActiveAssignmentsByProjectId(PROJECT_ID))
+        when(projectAssignmentRepository.search(any(ProjectAssignmentFilter.class)))
                 .thenReturn(List.of(activeAssignment(TEAM_ID, MEMBER_ID)));
 
         List<ProjectTeamMembersInputDTO> input = List.of(
@@ -155,12 +159,12 @@ class ProjectTeamsSyncOrchestratorTest {
     @Test
     void givenMemberAlreadyAssigned_whenExecuting_thenShouldNotDuplicateAssignment() {
         // Arrange
-        when(teamRepository.findAllByIds(any())).thenReturn(List.of(activeTeam()));
-        when(teamMembershipRepository.findApprovedMembershipsByTeamIds(any()))
+        when(teamRepository.search(any(TeamFilter.class))).thenReturn(List.of(activeTeam()));
+        when(teamMembershipRepository.search(any(TeamMembershipFilter.class)))
                 .thenReturn(List.of(approvedMembership(TEAM_ID, MEMBER_ID)));
-        when(teamProjectRepository.findActiveTeamLinksByProjectId(PROJECT_ID))
+        when(teamProjectRepository.search(any(TeamProjectFilter.class)))
                 .thenReturn(List.of(activeLink(TEAM_ID)));
-        when(projectAssignmentRepository.findAllActiveAssignmentsByProjectId(PROJECT_ID))
+        when(projectAssignmentRepository.search(any(ProjectAssignmentFilter.class)))
                 .thenReturn(List.of(activeAssignment(TEAM_ID, MEMBER_ID)));
 
         List<ProjectTeamMembersInputDTO> input = List.of(
@@ -178,8 +182,8 @@ class ProjectTeamsSyncOrchestratorTest {
     @Test
     void givenMemberNotInTeam_whenExecuting_thenShouldThrow() {
         // Arrange
-        when(teamRepository.findAllByIds(any())).thenReturn(List.of(activeTeam()));
-        when(teamMembershipRepository.findApprovedMembershipsByTeamIds(any()))
+        when(teamRepository.search(any(TeamFilter.class))).thenReturn(List.of(activeTeam()));
+        when(teamMembershipRepository.search(any(TeamMembershipFilter.class)))
                 .thenReturn(List.of());
 
         List<ProjectTeamMembersInputDTO> input = List.of(
@@ -200,7 +204,7 @@ class ProjectTeamsSyncOrchestratorTest {
         // Arrange
         Team foreignTeam = activeTeam();
         foreignTeam.setCompanyId(UUID.randomUUID());
-        when(teamRepository.findAllByIds(any())).thenReturn(List.of(foreignTeam));
+        when(teamRepository.search(any(TeamFilter.class))).thenReturn(List.of(foreignTeam));
 
         List<ProjectTeamMembersInputDTO> input = List.of(
                 new ProjectTeamMembersInputDTO(TEAM_ID, List.of()));
@@ -218,12 +222,12 @@ class ProjectTeamsSyncOrchestratorTest {
     @Test
     void givenDuplicateTeamEntries_whenExecuting_thenShouldMergeMemberLists() {
         // Arrange
-        when(teamRepository.findAllByIds(any())).thenReturn(List.of(activeTeam()));
-        when(teamMembershipRepository.findApprovedMembershipsByTeamIds(any()))
+        when(teamRepository.search(any(TeamFilter.class))).thenReturn(List.of(activeTeam()));
+        when(teamMembershipRepository.search(any(TeamMembershipFilter.class)))
                 .thenReturn(List.of(approvedMembership(TEAM_ID, MEMBER_ID)));
-        when(teamProjectRepository.findActiveTeamLinksByProjectId(PROJECT_ID))
+        when(teamProjectRepository.search(any(TeamProjectFilter.class)))
                 .thenReturn(List.of(activeLink(TEAM_ID)));
-        when(projectAssignmentRepository.findAllActiveAssignmentsByProjectId(PROJECT_ID))
+        when(projectAssignmentRepository.search(any(ProjectAssignmentFilter.class)))
                 .thenReturn(List.of());
 
         List<ProjectTeamMembersInputDTO> input = List.of(

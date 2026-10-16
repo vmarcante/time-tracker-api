@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilter;
 
 public interface UserSessionRepository {
 
@@ -14,9 +15,9 @@ public interface UserSessionRepository {
 
     Optional<UserSession> findByIdForUpdate(UUID id);
 
-    Optional<UserSession> findByRefreshToken(String refreshToken);
+    Optional<UserSession> findOne(UserSessionFilter filter);
 
-    List<UserSession> findActiveByUserId(UUID userId);
+    List<UserSession> search(UserSessionFilter filter);
 
     void invalidateAllByUserId(UUID userId);
 

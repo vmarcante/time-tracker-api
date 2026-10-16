@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -24,13 +25,16 @@ import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyOve
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -79,7 +83,7 @@ class CompanyOverviewOrchestratorTest {
 
     private void actorWithRole(CompanyRole role) {
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(ACTOR_ID));
-        when(membershipRepository.findMembership(ACTOR_ID, COMPANY_ID))
+        when(membershipRepository.findOne(any(CompanyMembershipFilter.class)))
                 .thenReturn(Optional.of(membership(ACTOR_ID, role, true)));
     }
 
@@ -88,13 +92,11 @@ class CompanyOverviewOrchestratorTest {
         Page<Team> emptyTeams = Page.empty();
         Page<Project> emptyProjects = Page.empty();
 
-        when(membershipRepository.findApprovedMembershipsByCompanyId(any(UUID.class), any(Pageable.class)))
+        when(membershipRepository.search(any(CompanyMembershipFilter.class), any(Pageable.class)))
                 .thenReturn(emptyMemberships);
-        when(membershipRepository.findPendingMembershipsByCompanyId(any(UUID.class), any(Pageable.class)))
-                .thenReturn(emptyMemberships);
-        when(teamRepository.findActiveByCompanyId(any(UUID.class), any(Pageable.class)))
+        when(teamRepository.search(any(TeamFilter.class), any(Pageable.class)))
                 .thenReturn(emptyTeams);
-        when(projectRepository.findActiveByCompanyId(any(UUID.class), any(Pageable.class)))
+        when(projectRepository.search(any(ProjectFilter.class), any(Pageable.class)))
                 .thenReturn(emptyProjects);
     }
 
@@ -109,13 +111,15 @@ class CompanyOverviewOrchestratorTest {
         project.setCompanyId(COMPANY_ID);
         project.setActive(true);
 
-        when(membershipRepository.findApprovedMembershipsByCompanyId(any(UUID.class), any(Pageable.class)))
+        when(membershipRepository.search(
+                argThat(f -> f != null && Boolean.TRUE.equals(f.getApproved())), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(member), Pageable.unpaged(), 12));
-        when(membershipRepository.findPendingMembershipsByCompanyId(any(UUID.class), any(Pageable.class)))
+        when(membershipRepository.search(
+                argThat(f -> f != null && Boolean.FALSE.equals(f.getApproved())), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(pending), Pageable.unpaged(), 3));
-        when(teamRepository.findActiveByCompanyId(any(UUID.class), any(Pageable.class)))
+        when(teamRepository.search(any(TeamFilter.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), Pageable.unpaged(), 4));
-        when(projectRepository.findActiveByCompanyId(any(UUID.class), any(Pageable.class)))
+        when(projectRepository.search(any(ProjectFilter.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(project), Pageable.unpaged(), 7));
         when(personRepository.findNamesByIds(anyList()))
                 .thenReturn(Map.of(MEMBER_ID, "Alice", PENDING_ID, "Bob"));

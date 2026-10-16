@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.project.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import com.vmarcante.time_tracker.core.application.project.in.UpdatePersonalProj
 import com.vmarcante.time_tracker.core.application.project.policy.ProjectValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +53,9 @@ public class UpdatePersonalProjectUseCaseImpl implements UpdatePersonalProjectUs
         if (input.name() != null) {
             validationPolicy.validateName(input.name());
             String newName = input.name().trim();
+            ProjectFilter nameFilter = ProjectFilterMapper.activeByNameAndUserId(newName, userId);
             if (!newName.equalsIgnoreCase(project.getName())
-                    && projectRepository.existsActiveByUserIdAndName(userId, newName)) {
+                    && projectRepository.exists(nameFilter)) {
                 throw new ApplicationException("project.name.already.exists", null, HttpStatus.CONFLICT);
             }
             project.setName(newName);

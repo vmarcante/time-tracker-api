@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilterMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TagOutpu
 import com.vmarcante.time_tracker.core.application.timeentry.in.UpdateTagUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.policy.TimeEntryValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -46,12 +48,14 @@ public class UpdateTagUseCaseImpl implements UpdateTagUseCase {
 
         validationPolicy.validateTag(input.name(), input.color());
 
-        Tag tag = tagRepository.findById(tagId)
+        TagFilter tagFilter = TagFilterMapper.activeById(tagId);
+        Tag tag = tagRepository.findOne(tagFilter)
                 .filter(t -> userId.equals(t.getUserId()))
                 .orElseThrow(() -> new ApplicationException("tag.not.found", null));
 
+        TagFilter duplicateFilter = TagFilterMapper.activeByNameAndUserId(input.name().trim(), userId);
         if (!tag.getName().equalsIgnoreCase(input.name().trim())
-                && tagRepository.existsActiveByUserIdAndNameIgnoreCase(userId, input.name().trim())) {
+                && tagRepository.exists(duplicateFilter)) {
             throw new ApplicationException("tag.name.already.exists", null, HttpStatus.CONFLICT);
         }
 

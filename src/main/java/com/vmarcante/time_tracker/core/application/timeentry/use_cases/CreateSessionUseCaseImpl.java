@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.in.CreateSessionUse
 import com.vmarcante.time_tracker.core.application.timeentry.policy.TimeEntryValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -58,7 +60,8 @@ public class CreateSessionUseCaseImpl implements CreateSessionUseCase {
                 .orElseThrow(() -> new ApplicationException("timeentry.not.found", null));
 
         validationPolicy.validateSessionTimes(input.startTime(), input.endTime());
-        if (input.endTime() == null && sessionRepository.existsRunningByUserId(userId)) {
+        TimeEntrySessionFilter runningFilter = TimeEntrySessionFilterMapper.runningByUser(userId);
+        if (input.endTime() == null && sessionRepository.exists(runningFilter)) {
             throw new ApplicationException("timeentry.timer.already.running", null, HttpStatus.CONFLICT);
         }
 

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.infrastructure.project.mapper.ProjectPersistenceMapper;
 
@@ -42,21 +43,24 @@ public class TeamProjectRepositoryAdapter implements TeamProjectRepository {
     }
 
     @Override
-    public Optional<TeamProject> findActiveTeamLink(UUID projectId, UUID teamId) {
-        return projectTeamJpaRepository.findByProjectIdAndTeamIdAndActiveTrue(projectId, teamId)
+    public Optional<TeamProject> findOne(TeamProjectFilter filter) {
+        return projectTeamJpaRepository
+                .findOne(ProjectTeamRepositorySpecification.withFilter(filter))
                 .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<TeamProject> findActiveTeamLinksByProjectId(UUID projectId) {
-        return projectTeamJpaRepository.findByProjectIdAndActiveTrue(projectId).stream()
+    public List<TeamProject> search(TeamProjectFilter filter) {
+        return projectTeamJpaRepository
+                .findAll(ProjectTeamRepositorySpecification.withFilter(filter))
+                .stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public boolean isProjectLinkedToTeam(UUID projectId, UUID teamId) {
-        return projectTeamJpaRepository.existsByProjectIdAndTeamIdAndActiveTrue(projectId, teamId);
+    public boolean exists(TeamProjectFilter filter) {
+        return projectTeamJpaRepository.exists(ProjectTeamRepositorySpecification.withFilter(filter));
     }
 
     @Override

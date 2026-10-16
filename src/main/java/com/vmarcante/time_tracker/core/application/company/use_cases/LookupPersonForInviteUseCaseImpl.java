@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -41,7 +43,8 @@ public class LookupPersonForInviteUseCaseImpl implements LookupPersonForInviteUs
         UUID actorId = securityContext.getCurrentUserId()
                 .orElseThrow(() -> new ApplicationException("user.authenticated.not", null));
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         // Only roles that can manage at least MEMBER (MANAGER, ADMIN, OWNER) may lookup invitees
@@ -57,13 +60,15 @@ public class LookupPersonForInviteUseCaseImpl implements LookupPersonForInviteUs
         Person person = found.get();
         UUID personId = person.getId();
 
-        if (membershipRepository.hasAnyActiveMembership(personId, companyId)) {
+        CompanyMembershipFilter existingMembershipFilter = CompanyMembershipFilterMapper.activeMembership(personId, companyId);
+        if (membershipRepository.exists(existingMembershipFilter)) {
             return PersonInviteLookupOutputDTO.of(
                     PersonInviteLookupStatus.IN_THIS_COMPANY,
                     personId, person.getName(), person.getEmail().address());
         }
 
-        if (membershipRepository.hasAnyApprovedMembership(personId)) {
+        CompanyMembershipFilter approvedMembershipFilter = CompanyMembershipFilterMapper.approvedByUser(personId);
+        if (membershipRepository.exists(approvedMembershipFilter)) {
             return PersonInviteLookupOutputDTO.of(
                     PersonInviteLookupStatus.IN_ANOTHER_COMPANY,
                     personId, person.getName(), person.getEmail().address());

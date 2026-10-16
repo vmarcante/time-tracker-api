@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.person.model.filter.PersonFilterMapper;
 
 import org.springframework.stereotype.Component;
 
@@ -42,15 +43,13 @@ public class PersonRepositoryAdapter implements PersonRepository {
 
     @Override
     public boolean existsByEmail(String email) {
-        PersonFilter filter = new PersonFilter();
-        filter.setEmail(email);
+        PersonFilter filter = PersonFilterMapper.byEmail(email);
         return jpaRepository.exists(PersonRepositorySpecification.withFilter(filter));
     }
 
     @Override
     public Optional<Person> findByEmail(String email) {
-        PersonFilter filter = new PersonFilter();
-        filter.setEmail(email);
+        PersonFilter filter = PersonFilterMapper.byEmail(email);
         return jpaRepository.findOne(PersonRepositorySpecification.withFilter(filter))
                 .map(PersonPersistenceMapper::toDomain);
     }

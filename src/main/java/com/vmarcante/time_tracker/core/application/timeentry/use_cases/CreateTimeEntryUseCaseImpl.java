@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilterMapper;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilterMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,9 +22,11 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignme
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -70,7 +74,8 @@ public class CreateTimeEntryUseCaseImpl implements CreateTimeEntryUseCase {
                 : null;
 
         List<UUID> tagIds = input.tagIds() == null ? List.of() : input.tagIds();
-        List<Tag> tags = tagRepository.findActiveByIdsAndUserId(tagIds, userId);
+        TagFilter tagFilter = TagFilterMapper.activeByIdsAndUserId(tagIds, userId);
+        List<Tag> tags = tagIds.isEmpty() ? List.of() : tagRepository.search(tagFilter);
         if (tags.size() != tagIds.size()) {
             throw new ApplicationException("timeentry.tag.not.found", null, HttpStatus.NOT_FOUND);
         }
@@ -104,9 +109,14 @@ public class CreateTimeEntryUseCaseImpl implements CreateTimeEntryUseCase {
             if (!userId.equals(project.getUserId())) {
                 throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
             }
-        } else if (!projectAssignmentRepository.hasAnyActiveAssignment(userId, projectId)) {
+        } else if (!hasActiveAssignment(userId, projectId)) {
             throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
         }
         return project;
+    }
+
+    private boolean hasActiveAssignment(UUID userId, UUID projectId) {
+        ProjectAssignmentFilter filter = ProjectAssignmentFilterMapper.activeAssignment(userId, projectId);
+        return projectAssignmentRepository.exists(filter);
     }
 }

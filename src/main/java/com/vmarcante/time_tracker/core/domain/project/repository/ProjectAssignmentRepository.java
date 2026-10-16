@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
 
 public interface ProjectAssignmentRepository {
 
@@ -17,21 +18,15 @@ public interface ProjectAssignmentRepository {
 
     List<ProjectAssignment> saveAllAssignments(List<ProjectAssignment> assignments);
 
-    Optional<ProjectAssignment> findAssignmentById(UUID assignmentId);
+    Optional<ProjectAssignment> findById(UUID assignmentId);
 
-    boolean hasActiveAssignment(UUID userId, UUID projectId, UUID teamId);
+    Optional<ProjectAssignment> findOne(ProjectAssignmentFilter filter);
 
-    boolean hasAnyActiveAssignment(UUID userId, UUID projectId);
+    List<ProjectAssignment> search(ProjectAssignmentFilter filter);
 
-    Page<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId, Pageable pageable);
+    Page<ProjectAssignment> search(ProjectAssignmentFilter filter, Pageable pageable);
 
-    List<ProjectAssignment> findAllActiveAssignmentsByProjectId(UUID projectId);
-
-    List<ProjectAssignment> findActiveAssignmentsByUserIdAndTeamId(UUID userId, UUID teamId);
-
-    List<ProjectAssignment> findActiveAssignmentsByProjectIdAndTeamId(UUID projectId, UUID teamId);
-
-    List<ProjectAssignment> findActiveAssignmentsByUserIdAndCompanyId(UUID userId, UUID companyId);
+    boolean exists(ProjectAssignmentFilter filter);
 
     Map<UUID, Long> countActiveAssignmentsByProjectIds(Collection<UUID> projectIds);
 

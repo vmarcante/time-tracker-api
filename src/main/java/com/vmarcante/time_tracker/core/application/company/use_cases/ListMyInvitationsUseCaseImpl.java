@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +21,7 @@ import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 
 @Service
 public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
@@ -45,7 +48,8 @@ public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
         }
 
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
-        Page<CompanyMembership> invitations = membershipRepository.findPendingInvitationsByUserId(currentUserId.get(), pageable);
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.pendingByUser(currentUserId.get(), MembershipOrigin.INVITE);
+        Page<CompanyMembership> invitations = membershipRepository.search(companyMembershipFilter, pageable);
 
         if (invitations.isEmpty()) {
             return PageWrapperDTO.of(invitations.map(m -> CompanyInvitationOutputDTO.from(m, null)));

@@ -8,6 +8,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,7 +52,8 @@ public class ListResolvedMembershipsUseCaseImpl implements ListResolvedMembershi
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(currentUserId.get(), companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(currentUserId.get(), companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MEMBER)) {
@@ -58,8 +61,9 @@ public class ListResolvedMembershipsUseCaseImpl implements ListResolvedMembershi
         }
 
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
+        CompanyMembershipFilter resolvedMembershipsFilter = CompanyMembershipFilterMapper.resolvedByCompany(companyId);
         Page<CompanyMembership> resolved = membershipRepository
-                .findResolvedMembershipsByCompanyId(companyId, pageable);
+                .search(resolvedMembershipsFilter, pageable);
 
         if (resolved.isEmpty()) {
             return PageWrapperDTO.of(resolved.map(m -> CompanyMemberOutputDTO.from(m, null, null)));

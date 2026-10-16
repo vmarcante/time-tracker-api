@@ -8,6 +8,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
@@ -66,8 +68,9 @@ public class MembershipRequestCreatedEventListener {
                 return;
             }
 
+            CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedByCompany(event.getCompanyId());
             List<CompanyMembership> approvers = approverPolicy.selectApprovers(
-                    membershipRepository.findApprovedMembershipsByCompanyId(event.getCompanyId(), Pageable.unpaged())
+                    membershipRepository.search(companyMembershipFilter, Pageable.unpaged())
                             .getContent());
 
             if (approvers.isEmpty()) {
@@ -86,7 +89,7 @@ public class MembershipRequestCreatedEventListener {
                     .map(c -> c.getLegalName())
                     .orElse("");
             
-            String requestReason = membershipRepository.findMembershipById(event.getMembershipId())
+            String requestReason = membershipRepository.findById(event.getMembershipId())
                     .map(m -> m.getRequestReason())
                     .orElse(null);
                     

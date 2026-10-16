@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,10 +61,11 @@ public class ChangeMemberRoleUseCaseImpl implements ChangeMemberRoleUseCase {
             throw new ApplicationException("company.member.role.owner.not.assignable", null);
         }
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
-        CompanyMembership target = membershipRepository.findMembershipById(membershipId)
+        CompanyMembership target = membershipRepository.findById(membershipId)
                 .filter(m -> m.getCompanyId().equals(companyId))
                 .filter(m -> Boolean.TRUE.equals(m.getActive()))
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))

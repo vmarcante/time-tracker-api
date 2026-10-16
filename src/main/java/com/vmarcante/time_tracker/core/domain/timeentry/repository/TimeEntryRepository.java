@@ -19,7 +19,7 @@ public interface TimeEntryRepository {
 
     Optional<TimeEntry> findById(UUID entryId);
 
-    boolean existsActiveByIdAndUserId(UUID entryId, UUID userId);
+    Optional<TimeEntry> findOne(TimeEntryFilter filter);
 
     Page<TimeEntry> search(TimeEntryFilter filter, Pageable pageable);
 

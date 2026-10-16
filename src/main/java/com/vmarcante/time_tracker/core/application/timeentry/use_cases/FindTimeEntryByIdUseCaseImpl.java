@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -58,7 +60,8 @@ public class FindTimeEntryByIdUseCaseImpl implements FindTimeEntryByIdUseCase {
         if (entry.getCompanyId() == null) {
             return false;
         }
-        Optional<CompanyMembership> membership = membershipRepository.findMembership(userId, entry.getCompanyId());
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(userId, entry.getCompanyId());
+        Optional<CompanyMembership> membership = membershipRepository.findOne(companyMembershipFilter);
         boolean isManager = membership
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
                 .map(m -> m.getRole().canManage(CompanyRole.MEMBER))

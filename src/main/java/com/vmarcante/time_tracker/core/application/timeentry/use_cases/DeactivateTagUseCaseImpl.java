@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.in.DeactivateTagUseCase;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilterMapper;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -41,7 +43,8 @@ public class DeactivateTagUseCaseImpl implements DeactivateTagUseCase {
         }
         UUID userId = currentUserId.get();
 
-        Tag tag = tagRepository.findById(tagId)
+        TagFilter tagFilter = TagFilterMapper.activeById(tagId);
+        Tag tag = tagRepository.findOne(tagFilter)
                 .filter(t -> userId.equals(t.getUserId()))
                 .orElseThrow(() -> new ApplicationException("tag.not.found", null));
 

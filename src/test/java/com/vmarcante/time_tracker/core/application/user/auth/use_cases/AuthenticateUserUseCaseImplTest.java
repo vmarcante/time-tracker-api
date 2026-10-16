@@ -27,6 +27,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.services.ValidateUserAuthCredentialsService;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilter;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 
@@ -74,7 +75,7 @@ class AuthenticateUserUseCaseImplTest {
 
         when(userAuthRepository.findByUsernameWithPerson(USERNAME)).thenReturn(Optional.of(userAuth));
         when(validateCredentialsService.execute(userAuth, "secret")).thenReturn(true);
-        when(userSessionRepository.findActiveByUserId(USER_ID)).thenReturn(List.of());
+        when(userSessionRepository.search(any(UserSessionFilter.class))).thenReturn(List.of());
         when(jwtPort.generateAccessToken(userAuth)).thenReturn("access-token");
         when(createUserSessionOrchestrator.createSession(eq(userAuth), any(), any(), any()))
                 .thenReturn(session);
@@ -166,7 +167,7 @@ class AuthenticateUserUseCaseImplTest {
 
         when(userAuthRepository.findByUsernameWithPerson(USERNAME)).thenReturn(Optional.of(userAuth));
         when(validateCredentialsService.execute(userAuth, "secret")).thenReturn(true);
-        when(userSessionRepository.findActiveByUserId(USER_ID)).thenReturn(List.of());
+        when(userSessionRepository.search(any(UserSessionFilter.class))).thenReturn(List.of());
         when(jwtPort.generateAccessToken(userAuth)).thenReturn("access-token");
         when(createUserSessionOrchestrator.createSession(eq(userAuth), any(), any(), any()))
                 .thenReturn(session);

@@ -7,10 +7,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.infrastructure.timeentry.mapper.TimeEntryPersistenceMapper;
 
@@ -30,14 +33,25 @@ public class TimeEntrySessionRepositoryAdapter implements TimeEntrySessionReposi
     }
 
     @Override
-    public Optional<TimeEntrySession> findById(UUID sessionId) {
-        return sessionJpaRepository.findByIdAndActiveTrue(sessionId)
+    public Optional<TimeEntrySession> findOne(TimeEntrySessionFilter filter) {
+        return sessionJpaRepository
+                .findOne(TimeEntrySessionRepositorySpecification.withFilter(filter))
                 .map(TimeEntryPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<TimeEntrySession> findActiveByEntryId(UUID entryId) {
-        return sessionJpaRepository.findByEntryIdAndActiveTrueOrderByStartTimeAsc(entryId)
+    public List<TimeEntrySession> search(TimeEntrySessionFilter filter) {
+        return sessionJpaRepository
+                .findAll(TimeEntrySessionRepositorySpecification.withFilter(filter))
+                .stream()
+                .map(TimeEntryPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<TimeEntrySession> search(TimeEntrySessionFilter filter, Sort sort) {
+        return sessionJpaRepository
+                .findAll(TimeEntrySessionRepositorySpecification.withFilter(filter), sort)
                 .stream()
                 .map(TimeEntryPersistenceMapper::toDomain)
                 .toList();
@@ -48,26 +62,14 @@ public class TimeEntrySessionRepositoryAdapter implements TimeEntrySessionReposi
         if (entryIds == null || entryIds.isEmpty()) {
             return Map.of();
         }
-        return sessionJpaRepository.findByEntryIdInAndActiveTrueOrderByStartTimeAsc(entryIds)
-                .stream()
-                .map(TimeEntryPersistenceMapper::toDomain)
+        TimeEntrySessionFilter filter = TimeEntrySessionFilterMapper.activeByEntryIds(entryIds);
+        return search(filter, Sort.by("startTime").ascending()).stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(s -> s.getEntryId()));
+                .collect(Collectors.groupingBy(s -> Objects.requireNonNull(s.getEntryId())));
     }
 
     @Override
-    public Optional<TimeEntrySession> findRunningByUserId(UUID userId) {
-        return sessionJpaRepository.findByUserIdAndEndTimeIsNullAndActiveTrue(userId)
-                .map(TimeEntryPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public boolean existsRunningByUserId(UUID userId) {
-        return sessionJpaRepository.existsByUserIdAndEndTimeIsNullAndActiveTrue(userId);
-    }
-
-    @Override
-    public boolean existsActiveByIdAndEntryId(UUID sessionId, UUID entryId) {
-        return sessionJpaRepository.existsByIdAndEntryIdAndActiveTrue(sessionId, entryId);
+    public boolean exists(TimeEntrySessionFilter filter) {
+        return sessionJpaRepository.exists(TimeEntrySessionRepositorySpecification.withFilter(filter));
     }
 }

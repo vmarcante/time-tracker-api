@@ -5,6 +5,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +26,8 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectReposito
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
@@ -57,16 +63,19 @@ public class ListProjectTeamsUseCaseImpl implements ListProjectTeamsUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(currentUserId.get(), companyId);
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
-        if (!projectRepository.existsActiveByIdAndCompanyId(projectId, companyId)) {
+        ProjectFilter projectFilter = ProjectFilterMapper.activeByIdAndCompanyId(projectId, companyId);
+        if (!projectRepository.exists(projectFilter)) {
             throw new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND);
         }
 
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
-        Page<Team> teams = teamRepository.findActiveByProjectId(projectId, pageable);
+        TeamFilter teamFilter = TeamFilterMapper.activeLinkedToProject(projectId);
+        Page<Team> teams = teamRepository.search(teamFilter, pageable);
 
         if (teams.isEmpty()) {
             return PageWrapperDTO.of(teams.map(t -> TeamSummaryOutputDTO.from(t, null, 0)));

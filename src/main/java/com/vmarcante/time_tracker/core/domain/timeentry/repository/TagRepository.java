@@ -1,21 +1,22 @@
 package com.vmarcante.time_tracker.core.domain.timeentry.repository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
+
+import org.springframework.data.domain.Sort;
 
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
 
 public interface TagRepository {
 
     Tag save(Tag tag);
 
-    Optional<Tag> findById(UUID tagId);
+    Optional<Tag> findOne(TagFilter filter);
 
-    List<Tag> findActiveByUserId(UUID userId);
+    List<Tag> search(TagFilter filter);
 
-    List<Tag> findActiveByIdsAndUserId(Collection<UUID> tagIds, UUID userId);
+    List<Tag> search(TagFilter filter, Sort sort);
 
-    boolean existsActiveByUserIdAndNameIgnoreCase(UUID userId, String name);
+    boolean exists(TagFilter filter);
 }

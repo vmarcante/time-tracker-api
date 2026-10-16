@@ -50,7 +50,7 @@ public class CompanyInvitationPreRegisteredEventListener {
                     .map(c -> c.getLegalName())
                     .orElse("");
             String inviterName = personRepository.findNameById(event.getInviterUserId()).orElse("");
-            String role = membershipRepository.findMembershipById(event.getMembershipId())
+            String role = membershipRepository.findById(event.getMembershipId())
                     .map(m -> m.getRole().name())
                     .orElse("");
 

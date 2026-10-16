@@ -2,11 +2,8 @@ package com.vmarcante.time_tracker.core.infrastructure.team.persistence;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,34 +12,6 @@ import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaReposit
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 
 public interface TeamMembershipJpaRepository extends BaseJpaRepository<TeamMembershipJpaEntity, UUID, Integer> {
-
-    Optional<TeamMembershipJpaEntity> findByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(
-            UUID userId, UUID teamId);
-
-    Optional<TeamMembershipJpaEntity> findByTeamIdAndRoleAndActiveTrueAndApprovedTrue(
-            UUID teamId, TeamRole role);
-
-    boolean existsByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(UUID userId, UUID teamId);
-
-    boolean existsByUserIdAndTeamIdAndRoleAndActiveTrueAndApprovedTrue(
-            UUID userId, UUID teamId, TeamRole role);
-
-    boolean existsByUserIdAndTeamIdAndActiveTrue(UUID userId, UUID teamId);
-
-    List<TeamMembershipJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId);
-
-    List<TeamMembershipJpaEntity> findByTeamIdInAndActiveTrueAndApprovedTrue(Collection<UUID> teamIds);
-
-    Page<TeamMembershipJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId, Pageable pageable);
-
-    @Query("""
-            SELECT t FROM TeamMembershipJpaEntity ut
-            JOIN TeamJpaEntity t ON t.id = ut.teamId
-            WHERE ut.userId = :userId AND t.companyId = :companyId
-                AND ut.active = true AND ut.approved = true AND t.active = true
-            """)
-    Page<TeamJpaEntity> findActiveTeamsByUserIdAndCompanyId(
-            @Param("userId") UUID userId, @Param("companyId") UUID companyId, Pageable pageable);
 
     @Query("""
             SELECT ut.teamId FROM TeamMembershipJpaEntity ut
@@ -74,14 +43,6 @@ public interface TeamMembershipJpaRepository extends BaseJpaRepository<TeamMembe
             WHERE ut.teamId = :teamId AND ut.active = true
             """)
     void deactivateByTeamId(@Param("teamId") UUID teamId, @Param("updatedBy") UUID updatedBy);
-
-    @Query("""
-            SELECT ut FROM TeamMembershipJpaEntity ut
-            JOIN TeamJpaEntity t ON t.id = ut.teamId
-            WHERE ut.userId = :userId AND t.companyId = :companyId AND ut.active = true
-            """)
-    List<TeamMembershipJpaEntity> findActiveByUserIdAndCompanyId(
-            @Param("userId") UUID userId, @Param("companyId") UUID companyId);
 
     @Modifying
     @Query("""

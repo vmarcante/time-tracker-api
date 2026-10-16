@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.infrastructure.project.mapper.ProjectPersistenceMapper;
 
@@ -19,16 +20,9 @@ import com.vmarcante.time_tracker.core.infrastructure.project.mapper.ProjectPers
 public class ProjectRepositoryAdapter implements ProjectRepository {
 
     private final ProjectJpaRepository projectJpaRepository;
-    private final ProjectTeamJpaRepository projectTeamJpaRepository;
-    private final ProjectAssignmentJpaRepository projectAssignmentJpaRepository;
 
-    public ProjectRepositoryAdapter(
-            ProjectJpaRepository projectJpaRepository,
-            ProjectTeamJpaRepository projectTeamJpaRepository,
-            ProjectAssignmentJpaRepository projectAssignmentJpaRepository) {
+    public ProjectRepositoryAdapter(ProjectJpaRepository projectJpaRepository) {
         this.projectJpaRepository = projectJpaRepository;
-        this.projectTeamJpaRepository = projectTeamJpaRepository;
-        this.projectAssignmentJpaRepository = projectAssignmentJpaRepository;
     }
 
     @Override
@@ -44,54 +38,31 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
     }
 
     @Override
-    public Page<Project> findActiveByCompanyId(UUID companyId, Pageable pageable) {
-        return projectJpaRepository.findByCompanyIdAndActiveTrue(companyId, pageable)
+    public Optional<Project> findOne(ProjectFilter filter) {
+        return projectJpaRepository
+                .findOne(ProjectRepositorySpecification.withFilter(filter))
                 .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public Page<Project> findActiveByUserId(UUID userId, Pageable pageable) {
-        return projectJpaRepository.findByUserIdAndActiveTrue(userId, pageable)
-                .map(ProjectPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public Page<Project> findActiveProjectsByUserId(UUID userId, UUID companyId, Pageable pageable) {
-        return projectAssignmentJpaRepository
-                .findActiveProjectsByUserIdAndCompanyId(userId, companyId, pageable)
-                .map(ProjectPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public Page<Project> findActiveByTeamId(UUID teamId, Pageable pageable) {
-        return projectTeamJpaRepository.findActiveProjectsByTeamId(teamId, pageable)
-                .map(ProjectPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public List<Project> findAllByIds(Collection<UUID> projectIds) {
-        if (projectIds == null || projectIds.isEmpty()) {
-            return List.of();
-        }
-        return projectJpaRepository.findAllById(projectIds)
+    public List<Project> search(ProjectFilter filter) {
+        return projectJpaRepository
+                .findAll(ProjectRepositorySpecification.withFilter(filter))
                 .stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public boolean existsActiveByIdAndCompanyId(UUID projectId, UUID companyId) {
-        return projectJpaRepository.existsByIdAndCompanyIdAndActiveTrue(projectId, companyId);
+    public Page<Project> search(ProjectFilter filter, Pageable pageable) {
+        return projectJpaRepository
+                .findAll(ProjectRepositorySpecification.withFilter(filter), pageable)
+                .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public boolean existsActiveByUserIdAndName(UUID userId, String name) {
-        return projectJpaRepository.existsByUserIdAndNameIgnoreCaseAndActiveTrue(userId, name);
-    }
-
-    @Override
-    public boolean existsActiveByCompanyIdAndName(UUID companyId, String name) {
-        return projectJpaRepository.existsByCompanyIdAndNameIgnoreCaseAndActiveTrue(companyId, name);
+    public boolean exists(ProjectFilter filter) {
+        return projectJpaRepository.exists(ProjectRepositorySpecification.withFilter(filter));
     }
 
     @Override

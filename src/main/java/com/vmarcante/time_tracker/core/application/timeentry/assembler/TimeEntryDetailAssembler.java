@@ -7,9 +7,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntryDetailOutputDTO;
@@ -20,8 +23,10 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectReposito
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 
 @Component
 public class TimeEntryDetailAssembler {
@@ -43,11 +48,13 @@ public class TimeEntryDetailAssembler {
     }
 
     public TimeEntryDetailOutputDTO toDetail(TimeEntry entry) {
-        List<TimeEntrySession> sessions = sessionRepository.findActiveByEntryId(entry.getId());
+        TimeEntrySessionFilter sessionFilter = TimeEntrySessionFilterMapper.activeByEntryId(entry.getId());
+        List<TimeEntrySession> sessions = sessionRepository
+                .search(sessionFilter, Sort.by("startTime").ascending());
         List<Tag> tags = timeEntryRepository.findActiveTagsByEntryId(entry.getId());
+        ProjectFilter projectFilter = ProjectFilterMapper.byIds(List.of(entry.getProjectId()));
         Project project = entry.getProjectId() != null
-                ? projectRepository.findAllByIds(List.of(entry.getProjectId()))
-                        .stream().findFirst().orElse(null)
+                ? projectRepository.search(projectFilter).stream().findFirst().orElse(null)
                 : null;
         String userName = personRepository.findNameById(entry.getUserId()).orElse(null);
         return TimeEntryDetailOutputDTO.from(entry, sessions, tags, project, userName);
@@ -77,7 +84,8 @@ public class TimeEntryDetailAssembler {
 
         Map<UUID, List<TimeEntrySession>> sessionsByEntry = sessionRepository.findActiveByEntryIds(entryIds);
         Map<UUID, List<Tag>> tagsByEntry = timeEntryRepository.findTagsGroupedByEntryIds(entryIds);
-        Map<UUID, Project> projectsById = projectRepository.findAllByIds(projectIds)
+        ProjectFilter projectsFilter = ProjectFilterMapper.byIds(projectIds);
+        Map<UUID, Project> projectsById = projectRepository.search(projectsFilter)
                 .stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(p -> p.getId(), Function.identity()));

@@ -2,6 +2,8 @@ package com.vmarcante.time_tracker.core.application.company.orchestrator;
 
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -43,7 +45,8 @@ public class CompanyMenuOverviewOrchestrator implements GetCompanyMenuOverviewUs
         UUID userId = securityContext.getCurrentUserId()
                 .orElseThrow(() -> new ApplicationException("user.authenticated.not", null));
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(userId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(userId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MEMBER)) {

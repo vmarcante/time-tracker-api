@@ -1,13 +1,13 @@
 package com.vmarcante.time_tracker.core.infrastructure.timeentry.persistence;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
 import com.vmarcante.time_tracker.core.infrastructure.timeentry.mapper.TimeEntryPersistenceMapper;
 
@@ -27,32 +27,29 @@ public class TagRepositoryAdapter implements TagRepository {
     }
 
     @Override
-    public Optional<Tag> findById(UUID tagId) {
-        return tagJpaRepository.findByIdAndActiveTrue(tagId)
+    public Optional<Tag> findOne(TagFilter filter) {
+        return tagJpaRepository.findOne(TagRepositorySpecification.withFilter(filter))
                 .map(TimeEntryPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<Tag> findActiveByUserId(UUID userId) {
-        return tagJpaRepository.findByUserIdAndActiveTrueOrderByNameAsc(userId)
+    public List<Tag> search(TagFilter filter) {
+        return tagJpaRepository.findAll(TagRepositorySpecification.withFilter(filter))
                 .stream()
                 .map(TimeEntryPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<Tag> findActiveByIdsAndUserId(Collection<UUID> tagIds, UUID userId) {
-        if (tagIds == null || tagIds.isEmpty()) {
-            return List.of();
-        }
-        return tagJpaRepository.findByIdInAndUserIdAndActiveTrue(tagIds, userId)
+    public List<Tag> search(TagFilter filter, Sort sort) {
+        return tagJpaRepository.findAll(TagRepositorySpecification.withFilter(filter), sort)
                 .stream()
                 .map(TimeEntryPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public boolean existsActiveByUserIdAndNameIgnoreCase(UUID userId, String name) {
-        return tagJpaRepository.existsByUserIdAndNameIgnoreCaseAndActiveTrue(userId, name);
+    public boolean exists(TagFilter filter) {
+        return tagJpaRepository.exists(TagRepositorySpecification.withFilter(filter));
     }
 }

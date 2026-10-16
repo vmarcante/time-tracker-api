@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +25,7 @@ import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +70,8 @@ public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
@@ -81,8 +86,9 @@ public class UpdateProjectUseCaseImpl implements UpdateProjectUseCase {
         if (input.name() != null) {
             validationPolicy.validateName(input.name());
             String newName = input.name().trim();
+            ProjectFilter nameFilter = ProjectFilterMapper.activeByNameAndCompanyId(newName, companyId);
             if (!newName.equalsIgnoreCase(project.getName())
-                    && projectRepository.existsActiveByCompanyIdAndName(companyId, newName)) {
+                    && projectRepository.exists(nameFilter)) {
                 throw new ApplicationException("project.name.already.exists", null, HttpStatus.CONFLICT);
             }
             project.setName(newName);

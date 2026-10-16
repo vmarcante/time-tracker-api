@@ -26,6 +26,8 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignme
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
@@ -59,7 +61,7 @@ class StartTimerUseCaseImplTest {
                 projectAssignmentRepository, tagRepository, assembler, securityContext);
 
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(USER_ID));
-        when(sessionRepository.existsRunningByUserId(USER_ID)).thenReturn(false);
+        when(sessionRepository.exists(any(TimeEntrySessionFilter.class))).thenReturn(false);
         when(timeEntryRepository.save(any(TimeEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(assembler.toDetail(any(TimeEntry.class))).thenReturn(mock(TimeEntryDetailOutputDTO.class));
     }
@@ -113,7 +115,7 @@ class StartTimerUseCaseImplTest {
         Tag tag = new Tag();
         tag.setId(TAG_ID);
         tag.setUserId(USER_ID);
-        when(tagRepository.findActiveByIdsAndUserId(List.of(TAG_ID), USER_ID))
+        when(tagRepository.search(any(TagFilter.class)))
                 .thenReturn(List.of(tag));
 
         StartTimerInputDTO input = new StartTimerInputDTO(null, null, "My task", null, List.of(TAG_ID));
@@ -130,7 +132,7 @@ class StartTimerUseCaseImplTest {
     @Test
     void givenUnknownTagId_whenStartingTimer_thenThrowsNotFound() {
         // Arrange
-        when(tagRepository.findActiveByIdsAndUserId(List.of(TAG_ID), USER_ID))
+        when(tagRepository.search(any(TagFilter.class)))
                 .thenReturn(List.of());
 
         StartTimerInputDTO input = new StartTimerInputDTO(null, null, "My task", null, List.of(TAG_ID));

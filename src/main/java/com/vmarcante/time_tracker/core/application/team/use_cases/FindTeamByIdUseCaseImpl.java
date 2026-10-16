@@ -5,6 +5,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -48,7 +52,8 @@ public class FindTeamByIdUseCaseImpl implements FindTeamByIdUseCase {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(currentUserId.get(), companyId);
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
@@ -57,7 +62,9 @@ public class FindTeamByIdUseCaseImpl implements FindTeamByIdUseCase {
                 .filter(t -> Boolean.TRUE.equals(t.getActive()))
                 .orElseThrow(() -> new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND));
 
-        Optional<TeamMembership> lead = teamMembershipRepository.findLeadMembership(teamId);
+        TeamMembershipFilter teamMembershipFilter = TeamMembershipFilterMapper.leadByTeam(teamId);
+        Optional<TeamMembership> lead = teamMembershipRepository
+                .findOne(teamMembershipFilter);
         UUID leadUserId = lead.isPresent() ? lead.get().getUserId() : null;
         String leadName = leadUserId != null
                 ? personRepository.findNameById(leadUserId).orElse(null)

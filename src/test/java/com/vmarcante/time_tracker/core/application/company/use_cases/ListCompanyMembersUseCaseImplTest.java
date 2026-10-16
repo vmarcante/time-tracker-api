@@ -3,7 +3,6 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -24,6 +23,7 @@ import com.vmarcante.time_tracker.core.application.exception.ApplicationExceptio
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
@@ -79,8 +79,8 @@ class ListCompanyMembersUseCaseImplTest {
         Person approver = personWithEmail(APPROVER_ID, "Admin", "admin@example.com");
 
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(ACTOR_ID));
-        when(membershipRepository.isMember(ACTOR_ID, COMPANY_ID)).thenReturn(true);
-        when(membershipRepository.findApprovedMembershipsByCompanyId(eq(COMPANY_ID), any(Pageable.class)))
+        when(membershipRepository.exists(any(CompanyMembershipFilter.class))).thenReturn(true);
+        when(membershipRepository.search(any(CompanyMembershipFilter.class), any(Pageable.class)))
                 .thenReturn(page);
         when(personRepository.findAllByIds(any())).thenReturn(List.of(member, approver));
 
@@ -102,8 +102,8 @@ class ListCompanyMembersUseCaseImplTest {
     void givenNoMembers_whenExecuting_thenReturnsEmptyPage() {
         // Arrange
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(ACTOR_ID));
-        when(membershipRepository.isMember(ACTOR_ID, COMPANY_ID)).thenReturn(true);
-        when(membershipRepository.findApprovedMembershipsByCompanyId(eq(COMPANY_ID), any(Pageable.class)))
+        when(membershipRepository.exists(any(CompanyMembershipFilter.class))).thenReturn(true);
+        when(membershipRepository.search(any(CompanyMembershipFilter.class), any(Pageable.class)))
                 .thenReturn(Page.empty());
 
         // Act
@@ -118,7 +118,7 @@ class ListCompanyMembersUseCaseImplTest {
     void givenNonMemberActor_whenExecuting_thenDeniesAccess() {
         // Arrange
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(ACTOR_ID));
-        when(membershipRepository.isMember(ACTOR_ID, COMPANY_ID)).thenReturn(false);
+        when(membershipRepository.exists(any(CompanyMembershipFilter.class))).thenReturn(false);
 
         // Act + Assert
         assertThatThrownBy(() -> useCase.execute(COMPANY_ID, new MembershipFilterInputDTO()))

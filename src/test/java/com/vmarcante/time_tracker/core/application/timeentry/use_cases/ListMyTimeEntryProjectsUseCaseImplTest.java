@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntryProjectOutputDTO;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -53,7 +55,7 @@ class ListMyTimeEntryProjectsUseCaseImplTest {
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(USER_ID));
         when(timeEntryRepository.findDistinctProjectIdsByUserId(USER_ID))
                 .thenReturn(List.of(PROJECT_A_ID, PROJECT_B_ID));
-        when(projectRepository.findAllByIds(List.of(PROJECT_A_ID, PROJECT_B_ID)))
+        when(projectRepository.search(any(ProjectFilter.class)))
                 .thenReturn(List.of(
                         project(PROJECT_B_ID, "Zeta", "Cliente Z"),
                         project(PROJECT_A_ID, "alpha", "Cliente A")));

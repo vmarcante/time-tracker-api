@@ -15,6 +15,8 @@ import com.vmarcante.time_tracker.core.application.timeentry.in.UpdateSessionUse
 import com.vmarcante.time_tracker.core.application.timeentry.policy.TimeEntryValidationPolicy;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -58,13 +60,15 @@ public class UpdateSessionUseCaseImpl implements UpdateSessionUseCase {
                 .filter(e -> userId.equals(e.getUserId()))
                 .orElseThrow(() -> new ApplicationException("timeentry.not.found", null));
 
-        TimeEntrySession session = sessionRepository.findById(sessionId)
+        TimeEntrySessionFilter sessionFilter = TimeEntrySessionFilterMapper.activeById(sessionId);
+        TimeEntrySession session = sessionRepository.findOne(sessionFilter)
                 .filter(s -> entryId.equals(s.getEntryId()))
                 .orElseThrow(() -> new ApplicationException("timeentry.session.not.found", null));
 
         validationPolicy.validateSessionTimes(input.startTime(), input.endTime());
+        TimeEntrySessionFilter runningFilter = TimeEntrySessionFilterMapper.runningByUser(userId);
         if (input.endTime() == null && session.getEndTime() != null
-                && sessionRepository.existsRunningByUserId(userId)) {
+                && sessionRepository.exists(runningFilter)) {
             throw new ApplicationException("timeentry.timer.already.running", null, HttpStatus.CONFLICT);
         }
 

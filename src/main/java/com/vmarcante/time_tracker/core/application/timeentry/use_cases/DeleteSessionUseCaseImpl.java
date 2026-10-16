@@ -12,6 +12,8 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntr
 import com.vmarcante.time_tracker.core.application.timeentry.in.DeleteSessionUseCase;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -51,7 +53,8 @@ public class DeleteSessionUseCaseImpl implements DeleteSessionUseCase {
                 .filter(e -> userId.equals(e.getUserId()))
                 .orElseThrow(() -> new ApplicationException("timeentry.not.found", null));
 
-        TimeEntrySession session = sessionRepository.findById(sessionId)
+        TimeEntrySessionFilter sessionFilter = TimeEntrySessionFilterMapper.activeById(sessionId);
+        TimeEntrySession session = sessionRepository.findOne(sessionFilter)
                 .filter(s -> entryId.equals(s.getEntryId()))
                 .orElseThrow(() -> new ApplicationException("timeentry.session.not.found", null));
 

@@ -1,5 +1,6 @@
 package com.vmarcante.time_tracker.core.domain.company.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -7,36 +8,23 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 public interface CompanyMembershipRepository {
 
     CompanyMembership saveMembership(CompanyMembership membership);
 
-    boolean isMember(UUID userId, UUID companyId);
+    Optional<CompanyMembership> findById(UUID id);
 
-    boolean hasAnyActiveMembership(UUID userId, UUID companyId);
+    Optional<CompanyMembership> findOne(CompanyMembershipFilter filter);
 
-    boolean hasAnyApprovedMembership(UUID userId);
+    List<CompanyMembership> search(CompanyMembershipFilter filter);
 
-    Optional<CompanyMembership> findMembership(UUID userId, UUID companyId);
+    Page<CompanyMembership> search(CompanyMembershipFilter filter, Pageable pageable);
 
-    Optional<CompanyMembership> findPendingMembership(UUID userId, UUID companyId);
+    boolean exists(CompanyMembershipFilter filter);
 
-    Optional<CompanyMembership> findMembershipById(UUID membershipId);
+    long count(CompanyMembershipFilter filter);
 
-    Page<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId, Pageable pageable);
-
-    Page<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId, Pageable pageable);
-
-    Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable);
-
-    Page<CompanyMembership> findResolvedMembershipsByCompanyId(UUID companyId, Pageable pageable);
-
-    Optional<CompanyMembership> findApprovedMembershipByUserId(UUID userId);
-
-    long countPendingInvitationsByUserId(UUID userId);
-
-    long countPendingMembershipsByCompanyId(UUID companyId);
-
-    Optional<CompanyMembership> findPendingRequestMembershipByUserId(UUID userId);
+    List<UUID> findApprovedCompanyIdsByUserId(UUID userId);
 }

@@ -8,6 +8,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,13 +51,15 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        if (!membershipRepository.isMember(currentUserId.get(), companyId)) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(currentUserId.get(), companyId);
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
         Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
+        CompanyMembershipFilter approvedMembersFilter = CompanyMembershipFilterMapper.approvedByCompany(companyId);
         Page<CompanyMembership> members = membershipRepository
-                .findApprovedMembershipsByCompanyId(companyId, pageable);
+                .search(approvedMembersFilter, pageable);
 
         if (members.isEmpty()) {
             return PageWrapperDTO.of(members.map(m -> CompanyMemberOutputDTO.from(m, null, null)));

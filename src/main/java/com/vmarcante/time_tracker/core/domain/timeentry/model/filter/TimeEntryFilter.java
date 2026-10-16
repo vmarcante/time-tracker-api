@@ -8,6 +8,7 @@ import lombok.Data;
 
 @Data
 public class TimeEntryFilter {
+    private UUID id;
     private UUID userId;
     private UUID companyId;
     private UUID leadScopeUserId;

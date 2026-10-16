@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilter;
 
 public interface TeamProjectRepository {
 
@@ -14,11 +15,11 @@ public interface TeamProjectRepository {
 
     List<TeamProject> saveAllTeamLinks(List<TeamProject> links);
 
-    Optional<TeamProject> findActiveTeamLink(UUID projectId, UUID teamId);
+    Optional<TeamProject> findOne(TeamProjectFilter filter);
 
-    List<TeamProject> findActiveTeamLinksByProjectId(UUID projectId);
+    List<TeamProject> search(TeamProjectFilter filter);
 
-    boolean isProjectLinkedToTeam(UUID projectId, UUID teamId);
+    boolean exists(TeamProjectFilter filter);
 
     Map<UUID, Long> countActiveTeamsByProjectIds(Collection<UUID> projectIds);
 

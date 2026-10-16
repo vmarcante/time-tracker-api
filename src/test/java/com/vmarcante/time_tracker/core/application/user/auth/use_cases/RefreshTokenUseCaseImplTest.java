@@ -26,6 +26,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilter;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
@@ -70,7 +71,7 @@ class RefreshTokenUseCaseImplTest {
         when(jwtPort.generateAccessToken(userAuth)).thenReturn(NEW_ACCESS_TOKEN);
         when(jwtPort.generateRefreshToken(userAuth)).thenReturn(NEW_TOKEN);
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(null);
-        when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(session));
+        when(userSessionRepository.findOne(any(UserSessionFilter.class))).thenReturn(Optional.of(session));
         when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(session));
         when(userAuthRepository.findById(USER_ID)).thenReturn(Optional.of(userAuth));
 
@@ -107,7 +108,7 @@ class RefreshTokenUseCaseImplTest {
         when(jwtPort.generateRefreshToken(userAuth)).thenReturn(NEW_TOKEN);
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(SESSION_ID);
         when(userSessionRepository.findById(SESSION_ID)).thenReturn(Optional.of(cachedSession));
-        when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(dbSession));
+        when(userSessionRepository.findOne(any(UserSessionFilter.class))).thenReturn(Optional.of(dbSession));
         when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(dbSession));
         when(userAuthRepository.findById(USER_ID)).thenReturn(Optional.of(userAuth));
 
@@ -116,7 +117,7 @@ class RefreshTokenUseCaseImplTest {
 
         // Assert
         assertThat(output.refreshToken()).isEqualTo(NEW_TOKEN);
-        verify(userSessionRepository).findByRefreshToken(OLD_TOKEN);
+        verify(userSessionRepository).findOne(any(UserSessionFilter.class));
     }
 
     @Test
@@ -125,7 +126,7 @@ class RefreshTokenUseCaseImplTest {
         when(jwtPort.validateToken(OLD_TOKEN)).thenReturn(true);
         when(jwtPort.extractTokenType(OLD_TOKEN)).thenReturn("refresh");
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(null);
-        when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.empty());
+        when(userSessionRepository.findOne(any(UserSessionFilter.class))).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThatThrownBy(() -> useCase.execute(new RefreshTokenInputDTO(OLD_TOKEN)))
@@ -146,7 +147,7 @@ class RefreshTokenUseCaseImplTest {
                 .isInstanceOf(ApplicationException.class)
                 .hasMessageContaining("user.refresh.token.invalid");
 
-        verify(userSessionRepository, never()).findByRefreshToken(any());
+        verify(userSessionRepository, never()).findOne(any(UserSessionFilter.class));
         verify(userSessionRepository, never()).save(any());
     }
 
@@ -159,7 +160,7 @@ class RefreshTokenUseCaseImplTest {
         when(jwtPort.validateToken(OLD_TOKEN)).thenReturn(true);
         when(jwtPort.extractTokenType(OLD_TOKEN)).thenReturn("refresh");
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(null);
-        when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(session));
+        when(userSessionRepository.findOne(any(UserSessionFilter.class))).thenReturn(Optional.of(session));
         when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(rotatedSession));
 
         // Act & Assert
@@ -180,7 +181,7 @@ class RefreshTokenUseCaseImplTest {
         when(jwtPort.validateToken(OLD_TOKEN)).thenReturn(true);
         when(jwtPort.extractTokenType(OLD_TOKEN)).thenReturn("refresh");
         when(refreshTokenCacheService.getSessionId(OLD_TOKEN)).thenReturn(null);
-        when(userSessionRepository.findByRefreshToken(OLD_TOKEN)).thenReturn(Optional.of(session));
+        when(userSessionRepository.findOne(any(UserSessionFilter.class))).thenReturn(Optional.of(session));
         when(userSessionRepository.findByIdForUpdate(SESSION_ID)).thenReturn(Optional.of(session));
 
         // Act & Assert

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.email.model.filter.FailedEmailFilterMapper;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -42,8 +43,7 @@ public class FailedEmailRepositoryAdapter implements FailedEmailRepository {
 
     @Override
     public List<FailedEmail> findAllRetryable(int maxRetryAttempts) {
-        FailedEmailFilter filter = new FailedEmailFilter();
-        filter.setMaxRetryCount(maxRetryAttempts);
+        FailedEmailFilter filter = FailedEmailFilterMapper.retryableUpTo(maxRetryAttempts);
         return repository.findAll(
                         FailedEmailRepositorySpecification.withFilter(filter),
                         Sort.by(Sort.Direction.ASC, "createdAt"))

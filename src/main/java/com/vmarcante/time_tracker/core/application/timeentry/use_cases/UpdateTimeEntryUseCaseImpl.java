@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilterMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectReposito
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -101,9 +103,14 @@ public class UpdateTimeEntryUseCaseImpl implements UpdateTimeEntryUseCase {
             if (!userId.equals(project.getUserId())) {
                 throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
             }
-        } else if (!projectAssignmentRepository.hasAnyActiveAssignment(userId, projectId)) {
+        } else if (!hasActiveAssignment(userId, projectId)) {
             throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
         }
         return project;
+    }
+
+    private boolean hasActiveAssignment(UUID userId, UUID projectId) {
+        ProjectAssignmentFilter filter = ProjectAssignmentFilterMapper.activeAssignment(userId, projectId);
+        return projectAssignmentRepository.exists(filter);
     }
 }

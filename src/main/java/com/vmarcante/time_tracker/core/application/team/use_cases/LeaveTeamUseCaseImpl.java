@@ -3,6 +3,11 @@ package com.vmarcante.time_tracker.core.application.team.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +20,8 @@ import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,15 +58,18 @@ public class LeaveTeamUseCaseImpl implements LeaveTeamUseCase {
 
         UUID userId = currentUserId.get();
 
-        if (!membershipRepository.isMember(userId, companyId)) {
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(userId, companyId);
+        if (!membershipRepository.exists(companyMembershipFilter)) {
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
-        if (!teamRepository.existsActiveByIdAndCompanyId(teamId, companyId)) {
+        TeamFilter teamFilter = TeamFilterMapper.activeByIdAndCompanyId(teamId, companyId);
+        if (!teamRepository.exists(teamFilter)) {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
-        TeamMembership membership = teamMembershipRepository.findMembership(userId, teamId)
+        TeamMembershipFilter teamMembershipFilter = TeamMembershipFilterMapper.approvedMembership(userId, teamId);
+        TeamMembership membership = teamMembershipRepository.findOne(teamMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("team.membership.not.found", null));
 
         membership.setActive(false);

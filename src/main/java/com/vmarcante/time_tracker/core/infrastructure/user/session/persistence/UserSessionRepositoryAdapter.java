@@ -6,14 +6,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilterMapper;
 
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilter;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 import com.vmarcante.time_tracker.core.infrastructure.user.session.mapper.UserSessionPersistenceMapper;
-import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
 @Component
 public class UserSessionRepositoryAdapter implements UserSessionRepository {
@@ -48,29 +49,30 @@ public class UserSessionRepositoryAdapter implements UserSessionRepository {
     }
 
     @Override
-    public Optional<UserSession> findByRefreshToken(String refreshToken) {
-        String tokenHash = TokenHashUtils.generateHash(refreshToken);
-        return jpaRepository.findByRefreshTokenHashAndActiveTrue(tokenHash)
+    public Optional<UserSession> findOne(UserSessionFilter filter) {
+        return jpaRepository.findOne(UserSessionRepositorySpecification.withFilter(filter))
                 .map(UserSessionPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<UserSession> findActiveByUserId(UUID userId) {
-        return jpaRepository.findByUserIdAndActiveTrue(userId).stream()
+    public List<UserSession> search(UserSessionFilter filter) {
+        return jpaRepository.findAll(UserSessionRepositorySpecification.withFilter(filter)).stream()
                 .map(UserSessionPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public void invalidateAllByUserId(UUID userId) {
-        List<UserSessionJpaEntity> activeSessions = jpaRepository.findByUserIdAndActiveTrue(userId);
-        
+        UserSessionFilter filter = UserSessionFilterMapper.activeByUserId(userId);
+        List<UserSessionJpaEntity> activeSessions = jpaRepository
+                .findAll(UserSessionRepositorySpecification.withFilter(filter));
+
         Set<String> refreshTokens = activeSessions.stream()
                 .map(UserSessionJpaEntity::getRefreshToken)
                 .collect(Collectors.toSet());
-        
+
         jpaRepository.invalidateAllByUserId(userId);
-        
+
         refreshTokenCacheService.invalidateAllByUserId(userId, refreshTokens);
     }
 

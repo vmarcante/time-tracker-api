@@ -3,6 +3,9 @@ package com.vmarcante.time_tracker.core.application.team.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,7 @@ import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -51,7 +55,8 @@ public class CreateTeamUseCaseImpl implements CreateTeamUseCase {
 
         UUID actorId = currentUserId.get();
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(companyMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MANAGER)) {
@@ -60,7 +65,8 @@ public class CreateTeamUseCaseImpl implements CreateTeamUseCase {
 
         validationPolicy.validateName(input.name());
 
-        if (teamRepository.existsActiveByCompanyIdAndName(companyId, input.name().trim())) {
+        TeamFilter nameFilter = TeamFilterMapper.activeByNameAndCompanyId(input.name().trim(), companyId);
+        if (teamRepository.exists(nameFilter)) {
             throw new ApplicationException("team.name.already.exists", null, HttpStatus.CONFLICT);
         }
 

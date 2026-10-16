@@ -2,6 +2,8 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,7 +53,8 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
         }
         UUID actorId = currentUserId.get();
 
-        CompanyMembership membership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership membership = membershipRepository.findOne(companyMembershipFilter)
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 

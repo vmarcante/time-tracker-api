@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilterMapper;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilterMapper;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,10 +26,13 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectReposito
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,7 +79,8 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
         }
         UUID userId = currentUserId.get();
 
-        if (sessionRepository.existsRunningByUserId(userId)) {
+        TimeEntrySessionFilter runningFilter = TimeEntrySessionFilterMapper.runningByUser(userId);
+        if (sessionRepository.exists(runningFilter)) {
             throw new ApplicationException("timeentry.timer.already.running", null, HttpStatus.CONFLICT);
         }
 
@@ -117,7 +124,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
                     throw new ApplicationException("timeentry.project.access.denied", null,
                             HttpStatus.FORBIDDEN);
                 }
-            } else if (!projectAssignmentRepository.hasAnyActiveAssignment(userId, project.getId())) {
+            } else if (!hasActiveAssignment(userId, project.getId())) {
                 throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
             }
             projectId = project.getId();
@@ -129,7 +136,8 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
                 : input.name().trim();
 
         List<UUID> tagIds = input.tagIds() == null ? List.of() : input.tagIds();
-        List<Tag> tags = tagRepository.findActiveByIdsAndUserId(tagIds, userId);
+        TagFilter tagFilter = TagFilterMapper.activeByIdsAndUserId(tagIds, userId);
+        List<Tag> tags = tagIds.isEmpty() ? List.of() : tagRepository.search(tagFilter);
         if (tags.size() != tagIds.size()) {
             throw new ApplicationException("timeentry.tag.not.found", null, HttpStatus.NOT_FOUND);
         }
@@ -147,6 +155,11 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
         TimeEntry saved = timeEntryRepository.save(entry);
         timeEntryRepository.replaceTags(saved.getId(), tagIds, userId);
         return saved;
+    }
+
+    private boolean hasActiveAssignment(UUID userId, UUID projectId) {
+        ProjectAssignmentFilter filter = ProjectAssignmentFilterMapper.activeAssignment(userId, projectId);
+        return projectAssignmentRepository.exists(filter);
     }
 
     private String resolveDefaultEntryName() {

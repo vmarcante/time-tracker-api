@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryTagFilterMapper;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryTagFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.infrastructure.timeentry.mapper.TimeEntryPersistenceMapper;
 
@@ -42,13 +44,14 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
 
     @Override
     public Optional<TimeEntry> findById(UUID entryId) {
-        return timeEntryJpaRepository.findByIdAndActiveTrue(entryId)
+        return timeEntryJpaRepository.findById(entryId)
                 .map(TimeEntryPersistenceMapper::toDomain);
     }
 
     @Override
-    public boolean existsActiveByIdAndUserId(UUID entryId, UUID userId) {
-        return timeEntryJpaRepository.existsByIdAndUserIdAndActiveTrue(entryId, userId);
+    public Optional<TimeEntry> findOne(TimeEntryFilter filter) {
+        return timeEntryJpaRepository.findOne(TimeEntryRepositorySpecification.withFilter(filter))
+                .map(TimeEntryPersistenceMapper::toDomain);
     }
 
     @Override
@@ -110,7 +113,9 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
 
     @Override
     public void replaceTags(UUID entryId, Collection<UUID> tagIds, UUID actorId) {
-        List<TimeEntryTagJpaEntity> currentLinks = timeEntryTagJpaRepository.findByEntryIdAndActiveTrue(entryId);
+        TimeEntryTagFilter linkFilter = TimeEntryTagFilterMapper.activeByEntryId(entryId);
+        List<TimeEntryTagJpaEntity> currentLinks = timeEntryTagJpaRepository
+                .findAll(TimeEntryTagRepositorySpecification.withFilter(linkFilter));
         Set<UUID> desired = tagIds == null ? Set.of() : new HashSet<>(tagIds);
         Set<UUID> current = currentLinks.stream()
                 .filter(Objects::nonNull)
@@ -133,7 +138,8 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
 
     @Override
     public void deactivateTagLinks(UUID tagId, UUID actorId) {
-        timeEntryTagJpaRepository.findByTagIdAndActiveTrue(tagId)
+        TimeEntryTagFilter linkFilter = TimeEntryTagFilterMapper.activeByTagId(tagId);
+        timeEntryTagJpaRepository.findAll(TimeEntryTagRepositorySpecification.withFilter(linkFilter))
                 .forEach(link -> {
                     link.setActive(false);
                     link.setUpdatedBy(actorId);

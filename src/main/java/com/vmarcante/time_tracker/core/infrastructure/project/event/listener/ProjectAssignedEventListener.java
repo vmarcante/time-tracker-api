@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -19,6 +20,7 @@ import com.vmarcante.time_tracker.core.domain.project.event.ProjectAssignedEvent
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.shared.utils.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +60,8 @@ public class ProjectAssignedEventListener {
                 return;
             }
 
-            Project project = projectRepository.findAllByIds(List.of(event.getProjectId()))
+            ProjectFilter projectFilter = ProjectFilterMapper.byIds(List.of(event.getProjectId()));
+            Project project = projectRepository.search(projectFilter)
                     .stream().findFirst().orElse(null);
             String teamName = teamRepository.findById(event.getTeamId())
                     .map(t -> t.getName())

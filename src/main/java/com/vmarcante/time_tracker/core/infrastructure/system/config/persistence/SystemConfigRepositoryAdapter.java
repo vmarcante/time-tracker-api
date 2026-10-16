@@ -4,11 +4,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.system.config.model.filter.SystemConfigFilterMapper;
 
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.system.config.enums.SystemConfigKey;
 import com.vmarcante.time_tracker.core.domain.system.config.model.SystemConfig;
+import com.vmarcante.time_tracker.core.domain.system.config.model.filter.SystemConfigFilter;
 import com.vmarcante.time_tracker.core.domain.system.config.repository.SystemConfigRepository;
 import com.vmarcante.time_tracker.core.infrastructure.system.config.mapper.SystemConfigPersistenceMapper;
 
@@ -22,24 +24,34 @@ public class SystemConfigRepositoryAdapter implements SystemConfigRepository {
     }
 
     @Override
-    public Optional<SystemConfig> findByKey(SystemConfigKey key) {
+    public Optional<SystemConfig> findOne(SystemConfigFilter filter) {
         return systemConfigJpaRepository
-                .findByConfigKey(key.getKey())
+                .findOne(SystemConfigRepositorySpecification.withFilter(filter))
                 .map(SystemConfigPersistenceMapper::toDomain);
     }
 
     @Override
-    public Map<SystemConfigKey, SystemConfig> findByKeys(List<SystemConfigKey> keys) {
-        List<String> keyStrings = keys.stream()
-                .map(key -> key.getKey())
-                .toList();
-
+    public List<SystemConfig> search(SystemConfigFilter filter) {
         return systemConfigJpaRepository
-                .findByConfigKeyIn(keyStrings)
+                .findAll(SystemConfigRepositorySpecification.withFilter(filter))
                 .stream()
-                .map(entity -> SystemConfigPersistenceMapper.toDomain(entity))
+                .map(SystemConfigPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Optional<SystemConfig> findByKey(SystemConfigKey key) {
+        SystemConfigFilter filter = SystemConfigFilterMapper.byKey(key.getKey());
+        return findOne(filter);
+    }
+
+    @Override
+    public Map<SystemConfigKey, SystemConfig> findByKeys(List<SystemConfigKey> keys) {
+        SystemConfigFilter filter = SystemConfigFilterMapper.byKeys(keys.stream().map(SystemConfigKey::getKey).toList());
+
+        return search(filter).stream()
                 .collect(Collectors.toMap(
-                        config -> config.getKey(),
+                        SystemConfig::getKey,
                         config -> config));
     }
 

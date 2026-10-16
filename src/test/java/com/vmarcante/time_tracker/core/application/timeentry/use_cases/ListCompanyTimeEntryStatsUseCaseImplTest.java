@@ -24,9 +24,11 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.input.CompanyTi
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.CompanyTimeEntryStatsOutputDTO;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
@@ -102,7 +104,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
     @Test
     void givenAdminMembership_whenExecuting_thenShouldAggregateStatsPerMemberProjectAndDay() {
         // Arrange
-        when(membershipRepository.findMembership(ACTOR_ID, COMPANY_ID))
+        when(membershipRepository.findOne(any(CompanyMembershipFilter.class)))
                 .thenReturn(Optional.of(membership(CompanyRole.OWNER)));
 
         TimeEntry entry = entry(MEMBER_ID, PROJECT_ID);
@@ -119,7 +121,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
         project.setId(PROJECT_ID);
         project.setName("Website");
         project.setClientName("Acme");
-        when(projectRepository.findAllByIds(any())).thenReturn(List.of(project));
+        when(projectRepository.search(any(ProjectFilter.class))).thenReturn(List.of(project));
 
         // Act
         CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, filter());
@@ -150,7 +152,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
     @Test
     void givenRunningSession_whenExecuting_thenShouldCountRunningAndClampToRangeEnd() {
         // Arrange
-        when(membershipRepository.findMembership(ACTOR_ID, COMPANY_ID))
+        when(membershipRepository.findOne(any(CompanyMembershipFilter.class)))
                 .thenReturn(Optional.of(membership(CompanyRole.OWNER)));
 
         TimeEntry entry = entry(MEMBER_ID, PROJECT_ID);
@@ -162,7 +164,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
                 .thenReturn(Map.of(ENTRY_ID, List.of(session(ENTRY_ID, start, null))));
 
         when(personRepository.findNamesByIds(any())).thenReturn(Map.of());
-        when(projectRepository.findAllByIds(any())).thenReturn(List.of());
+        when(projectRepository.search(any(ProjectFilter.class))).thenReturn(List.of());
 
         // Act
         CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, filter());
@@ -179,7 +181,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
     @Test
     void givenMemberMembership_whenExecuting_thenShouldUseLeadScope() {
         // Arrange
-        when(membershipRepository.findMembership(ACTOR_ID, COMPANY_ID))
+        when(membershipRepository.findOne(any(CompanyMembershipFilter.class)))
                 .thenReturn(Optional.of(membership(CompanyRole.MEMBER)));
 
         when(timeEntryRepository.search(any(TimeEntryFilter.class)))
@@ -201,7 +203,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
     @Test
     void givenEntryWithoutProject_whenExecuting_thenShouldExcludeFromProjectStats() {
         // Arrange
-        when(membershipRepository.findMembership(ACTOR_ID, COMPANY_ID))
+        when(membershipRepository.findOne(any(CompanyMembershipFilter.class)))
                 .thenReturn(Optional.of(membership(CompanyRole.OWNER)));
 
         TimeEntry entry = entry(MEMBER_ID, null);
@@ -228,7 +230,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
         // Arrange
         CompanyMembership membership = membership(CompanyRole.OWNER);
         membership.setApproved(false);
-        when(membershipRepository.findMembership(ACTOR_ID, COMPANY_ID))
+        when(membershipRepository.findOne(any(CompanyMembershipFilter.class)))
                 .thenReturn(Optional.of(membership));
 
         // Act & Assert

@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.user.orchestrator;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 
 import lombok.extern.slf4j.Slf4j;
+import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 
 @Service
 @Slf4j
@@ -75,18 +78,21 @@ public class CurrentUserDataOrchestrator implements GetCurrentUserDataUseCase {
         String pendingCompanyName = null;
 
         if (userAuth.getAffiliation() == AffiliationStatus.PENDING) {
-            pendingInvitations = membershipRepository.countPendingInvitationsByUserId(userId);
-            pendingCompanyName = membershipRepository.findPendingRequestMembershipByUserId(userId)
-                    .flatMap(m -> companyRepository.findById(m.getCompanyId()))
-                    .filter(c -> Boolean.TRUE.equals(c.getActive()))
-                    .map(Company::getLegalName)
+            CompanyMembershipFilter pendingInvitationsFilter = CompanyMembershipFilterMapper.pendingByUser(userId, MembershipOrigin.INVITE);
+            pendingInvitations = membershipRepository.count(pendingInvitationsFilter);
+            CompanyMembershipFilter pendingRequestFilter = CompanyMembershipFilterMapper.pendingByUser(userId, MembershipOrigin.REQUEST);
+            pendingCompanyName = membershipRepository.findOne(pendingRequestFilter)
+                    .flatMap(m -> companyRepository.findById(m.getCompanyId())
+                            .filter(c -> Boolean.TRUE.equals(c.getActive()))
+                            .map(Company::getLegalName))
                     .orElse(null);
         }
 
         CurrentUserOutputDTO dto = new CurrentUserOutputDTO(userAuth, person, pendingInvitations, pendingCompanyName);
 
         if (userAuth.getAffiliation() == AffiliationStatus.COMPANY) {
-            Optional<CompanyMembership> membership = membershipRepository.findApprovedMembershipByUserId(userId);
+            CompanyMembershipFilter membershipFilter = CompanyMembershipFilterMapper.approvedByUser(userId);
+            Optional<CompanyMembership> membership = membershipRepository.findOne(membershipFilter);
             if (membership.isPresent()) {
                 dto = dto.withCompanyMembership(membership.get().getCompanyId(), membership.get().getRole());
             }

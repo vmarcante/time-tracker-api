@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.infrastructure.company.persistence;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,9 +9,11 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilter;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.infrastructure.company.mapper.CompanyPersistenceMapper;
 
@@ -18,13 +21,9 @@ import com.vmarcante.time_tracker.core.infrastructure.company.mapper.CompanyPers
 public class CompanyRepositoryAdapter implements CompanyRepository {
 
     private final CompanyJpaRepository companyJpaRepository;
-    private final CompanyMembershipJpaRepository companyMembershipJpaRepository;
 
-    public CompanyRepositoryAdapter(
-            CompanyJpaRepository companyJpaRepository,
-            CompanyMembershipJpaRepository companyMembershipJpaRepository) {
+    public CompanyRepositoryAdapter(CompanyJpaRepository companyJpaRepository) {
         this.companyJpaRepository = companyJpaRepository;
-        this.companyMembershipJpaRepository = companyMembershipJpaRepository;
     }
 
     @Override
@@ -40,9 +39,27 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
     }
 
     @Override
-    public Optional<Company> findByDocument(String document) {
-        return companyJpaRepository.findByDocument(document)
+    public Optional<Company> findOne(CompanyFilter filter) {
+        return companyJpaRepository.findOne(spec(filter))
                 .map(CompanyPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<Company> search(CompanyFilter filter) {
+        return companyJpaRepository.findAll(spec(filter)).stream()
+                .map(CompanyPersistenceMapper::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Page<Company> search(CompanyFilter filter, Pageable pageable) {
+        return companyJpaRepository.findAll(spec(filter), pageable)
+                .map(CompanyPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public boolean exists(CompanyFilter filter) {
+        return companyJpaRepository.exists(spec(filter));
     }
 
     @Override
@@ -53,14 +70,7 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
                         row -> (String) row[1]));
     }
 
-    @Override
-    public Page<Company> findActiveCompaniesByUserId(UUID userId, Pageable pageable) {
-        return companyMembershipJpaRepository.findActiveCompaniesByUserId(userId, pageable)
-                .map(CompanyPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public boolean existsByDocument(String document) {
-        return companyJpaRepository.existsByDocument(document);
+    private Specification<CompanyJpaEntity> spec(CompanyFilter filter) {
+        return CompanyRepositorySpecification.withFilter(filter);
     }
 }

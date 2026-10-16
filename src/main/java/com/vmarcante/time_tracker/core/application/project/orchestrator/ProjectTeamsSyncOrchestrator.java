@@ -8,6 +8,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamMembershipFilter;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilterMapper;
 
 import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.http.HttpStatus;
@@ -18,8 +23,11 @@ import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectTeam
 import com.vmarcante.time_tracker.core.domain.project.event.ProjectAssignedEvent;
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.TeamProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 
@@ -65,9 +73,10 @@ public class ProjectTeamsSyncOrchestrator {
 
         validateTeamsAndMembers(companyId, inputByTeam);
 
-        List<TeamProject> currentLinks = teamProjectRepository.findActiveTeamLinksByProjectId(projectId);
-        List<ProjectAssignment> currentAssignments =
-                projectAssignmentRepository.findAllActiveAssignmentsByProjectId(projectId);
+        TeamProjectFilter linkFilter = TeamProjectFilterMapper.activeByProjectId(projectId);
+        List<TeamProject> currentLinks = teamProjectRepository.search(linkFilter);
+        ProjectAssignmentFilter assignmentFilter = ProjectAssignmentFilterMapper.activeByProjectId(projectId);
+        List<ProjectAssignment> currentAssignments = projectAssignmentRepository.search(assignmentFilter);
 
         Set<UUID> linkedTeamIds = currentLinks.stream()
                 .map(link -> link.getTeamId())
@@ -149,8 +158,8 @@ public class ProjectTeamsSyncOrchestrator {
 
         Set<UUID> teamIds = inputByTeam.keySet();
 
-        Map<UUID, UUID> teamCompanyById = teamRepository.findAllByIds(teamIds).stream()
-                .filter(t -> Boolean.TRUE.equals(t.getActive()))
+        TeamFilter teamFilter = TeamFilterMapper.activeByIds(teamIds);
+        Map<UUID, UUID> teamCompanyById = teamRepository.search(teamFilter).stream()
                 .collect(Collectors.toMap(t -> t.getId(), t -> t.getCompanyId()));
 
         for (UUID teamId : teamIds) {
@@ -159,7 +168,9 @@ public class ProjectTeamsSyncOrchestrator {
             }
         }
 
-        Set<String> memberKeys = teamMembershipRepository.findApprovedMembershipsByTeamIds(teamIds).stream()
+        TeamMembershipFilter teamMembershipFilter = TeamMembershipFilterMapper.approvedByTeamIds(teamIds);
+        Set<String> memberKeys = teamMembershipRepository
+                .search(teamMembershipFilter).stream()
                 .map(m -> assignmentKey(m.getTeamId(), m.getUserId()))
                 .collect(Collectors.toSet());
 

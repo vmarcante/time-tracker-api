@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectAssignmentFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.infrastructure.project.mapper.ProjectPersistenceMapper;
 
@@ -44,54 +45,38 @@ public class ProjectAssignmentRepositoryAdapter implements ProjectAssignmentRepo
     }
 
     @Override
-    public Optional<ProjectAssignment> findAssignmentById(UUID assignmentId) {
+    public Optional<ProjectAssignment> findById(UUID assignmentId) {
         return projectAssignmentJpaRepository.findById(assignmentId)
                 .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public boolean hasActiveAssignment(UUID userId, UUID projectId, UUID teamId) {
+    public Optional<ProjectAssignment> findOne(ProjectAssignmentFilter filter) {
         return projectAssignmentJpaRepository
-                .existsByUserIdAndProjectIdAndTeamIdAndActiveTrue(userId, projectId, teamId);
-    }
-
-    @Override
-    public boolean hasAnyActiveAssignment(UUID userId, UUID projectId) {
-        return projectAssignmentJpaRepository.existsByUserIdAndProjectIdAndActiveTrue(userId, projectId);
-    }
-
-    @Override
-    public Page<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId, Pageable pageable) {
-        return projectAssignmentJpaRepository.findByProjectIdAndActiveTrue(projectId, pageable)
+                .findOne(ProjectAssignmentRepositorySpecification.withFilter(filter))
                 .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<ProjectAssignment> findAllActiveAssignmentsByProjectId(UUID projectId) {
-        return projectAssignmentJpaRepository.findByProjectIdAndActiveTrue(projectId).stream()
+    public List<ProjectAssignment> search(ProjectAssignmentFilter filter) {
+        return projectAssignmentJpaRepository
+                .findAll(ProjectAssignmentRepositorySpecification.withFilter(filter))
+                .stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
-    public List<ProjectAssignment> findActiveAssignmentsByUserIdAndTeamId(UUID userId, UUID teamId) {
-        return projectAssignmentJpaRepository.findByUserIdAndTeamIdAndActiveTrue(userId, teamId).stream()
-                .map(ProjectPersistenceMapper::toDomain)
-                .toList();
+    public Page<ProjectAssignment> search(ProjectAssignmentFilter filter, Pageable pageable) {
+        return projectAssignmentJpaRepository
+                .findAll(ProjectAssignmentRepositorySpecification.withFilter(filter), pageable)
+                .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
-    public List<ProjectAssignment> findActiveAssignmentsByProjectIdAndTeamId(UUID projectId, UUID teamId) {
-        return projectAssignmentJpaRepository.findByProjectIdAndTeamIdAndActiveTrue(projectId, teamId).stream()
-                .map(ProjectPersistenceMapper::toDomain)
-                .toList();
-    }
-
-    @Override
-    public List<ProjectAssignment> findActiveAssignmentsByUserIdAndCompanyId(UUID userId, UUID companyId) {
-        return projectAssignmentJpaRepository.findActiveByUserIdAndCompanyId(userId, companyId).stream()
-                .map(ProjectPersistenceMapper::toDomain)
-                .toList();
+    public boolean exists(ProjectAssignmentFilter filter) {
+        return projectAssignmentJpaRepository
+                .exists(ProjectAssignmentRepositorySpecification.withFilter(filter));
     }
 
     @Override

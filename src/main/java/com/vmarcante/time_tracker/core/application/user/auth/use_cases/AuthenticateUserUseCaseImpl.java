@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilterMapper;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.services.ValidateUserAut
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
+import com.vmarcante.time_tracker.core.domain.user.session.model.filter.UserSessionFilter;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -132,7 +134,8 @@ public class AuthenticateUserUseCaseImpl implements AuthenticateUserUseCase {
         userAuth.setLastLogin(now);
         userAuthRepository.save(userAuth);
 
-        List<UserSession> activeSessions = userSessionRepository.findActiveByUserId(userAuth.getId());
+        UserSessionFilter sessionFilter = UserSessionFilterMapper.activeByUserId(userAuth.getId());
+        List<UserSession> activeSessions = userSessionRepository.search(sessionFilter);
         if (activeSessions.size() >= MAX_ACTIVE_SESSIONS) {
 
             UserSession oldestSession = activeSessions.stream()

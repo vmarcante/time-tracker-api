@@ -5,6 +5,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,9 +27,11 @@ import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
+import com.vmarcante.time_tracker.core.domain.team.model.filter.TeamFilter;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
@@ -65,15 +71,19 @@ public class CompanyOverviewOrchestrator implements GetCompanyOverviewUseCase {
 
         Pageable recentPageable = PageRequest.of(0, RECENT_LIMIT, Sort.by("createdAt").descending());
 
+        CompanyMembershipFilter approvedMembersFilter = CompanyMembershipFilterMapper.approvedByCompany(companyId);
         Page<CompanyMembership> membersPage =
-                membershipRepository.findApprovedMembershipsByCompanyId(companyId, recentPageable);
+                membershipRepository.search(approvedMembersFilter, recentPageable);
+        CompanyMembershipFilter pendingMembersFilter = CompanyMembershipFilterMapper.pendingByCompany(companyId);
         Page<CompanyMembership> pendingPage =
-                membershipRepository.findPendingMembershipsByCompanyId(companyId, recentPageable);
+                membershipRepository.search(pendingMembersFilter, recentPageable);
+        TeamFilter teamFilter = TeamFilterMapper.activeByCompanyId(companyId);
         long teamsCount = teamRepository
-                .findActiveByCompanyId(companyId, PageRequest.of(0, 1))
+                .search(teamFilter, PageRequest.of(0, 1))
                 .getTotalElements();
+        ProjectFilter projectFilter = ProjectFilterMapper.activeByCompanyId(companyId);
         Page<Project> projectsPage =
-                projectRepository.findActiveByCompanyId(companyId, recentPageable);
+                projectRepository.search(projectFilter, recentPageable);
 
         Map<UUID, String> personNames = resolveNames(membersPage.getContent(), pendingPage.getContent());
 
@@ -134,7 +144,8 @@ public class CompanyOverviewOrchestrator implements GetCompanyOverviewUseCase {
         UUID userId = securityContext.getCurrentUserId()
                 .orElseThrow(() -> new ApplicationException("user.authenticated.not", null));
 
-        CompanyMembership actorMembership = membershipRepository.findMembership(userId, companyId)
+        CompanyMembershipFilter actorMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(userId, companyId);
+        CompanyMembership actorMembership = membershipRepository.findOne(actorMembershipFilter)
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
         if (!actorMembership.getRole().canManage(CompanyRole.MEMBER)) {

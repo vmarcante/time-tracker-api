@@ -3,6 +3,8 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyFilter;
 
 import org.springframework.stereotype.Service;
 
@@ -47,7 +49,8 @@ public class FindCompanyByDocumentUseCaseImpl implements FindCompanyByDocumentUs
 
         String digits = document == null ? "" : document.replaceAll("\\D", "");
 
-        return companyRepository.findByDocument(digits)
+        CompanyFilter companyFilter = CompanyFilterMapper.byDocument(digits);
+        return companyRepository.findOne(companyFilter)
                 .filter(company -> Boolean.TRUE.equals(company.getActive()))
                 .map(CompanyPreviewOutputDTO::from)
                 .orElseThrow(() -> new ApplicationException("company.not.found", null));

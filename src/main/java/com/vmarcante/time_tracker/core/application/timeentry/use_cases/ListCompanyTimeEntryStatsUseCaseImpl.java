@@ -14,6 +14,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,7 @@ import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFi
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 
 @Service
 public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntryStatsUseCase {
@@ -76,7 +80,8 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
         }
         UUID actorId = currentUserId.get();
 
-        CompanyMembership membership = membershipRepository.findMembership(actorId, companyId)
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.approvedMembership(actorId, companyId);
+        CompanyMembership membership = membershipRepository.findOne(companyMembershipFilter)
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
@@ -155,7 +160,7 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
         Map<UUID, String> userNames = personRepository.findNamesByIds(secondsByUser.keySet());
         Map<UUID, Project> projectsById = secondsByProject.isEmpty()
                 ? Map.of()
-                : projectRepository.findAllByIds(secondsByProject.keySet()).stream()
+                : searchProjectsByIds(secondsByProject.keySet()).stream()
                         .collect(Collectors.toMap(Project::getId, p -> p, (a, b) -> a));
 
         Map<UUID, Integer> entryCountByUser = new HashMap<>();
@@ -251,6 +256,11 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
             }
         }
         return total;
+    }
+
+    private List<Project> searchProjectsByIds(java.util.Collection<UUID> projectIds) {
+        ProjectFilter filter = ProjectFilterMapper.byIds(projectIds);
+        return projectRepository.search(filter);
     }
 
     private Map<LocalDate, Long> zeroFillDays(LocalDate from, LocalDate to) {
