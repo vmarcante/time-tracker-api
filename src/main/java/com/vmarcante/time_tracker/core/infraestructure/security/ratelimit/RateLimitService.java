@@ -9,6 +9,8 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.interfaces.annotation.ProgressiveLevel;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Service

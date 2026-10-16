@@ -1,8 +1,10 @@
 package com.vmarcante.time_tracker.core.application.email.use_cases;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.email.in.RetryFailedEmailUseCase;
@@ -20,16 +22,44 @@ public class RetryFailedEmailUseCaseImpl implements RetryFailedEmailUseCase {
 
     private final FailedEmailRepository failedEmailRepository;
     private final EmailService emailService;
+    private final int maxRetryAttempts;
 
     public RetryFailedEmailUseCaseImpl(
             FailedEmailRepository failedEmailRepository,
-            EmailService emailService) {
+            EmailService emailService,
+            @Value("${email.retry.max.attempts:5}") int maxRetryAttempts) {
         this.failedEmailRepository = failedEmailRepository;
         this.emailService = emailService;
+        this.maxRetryAttempts = maxRetryAttempts;
     }
 
     @Override
-    public boolean execute(FailedEmail failedEmail) {
+    public void execute() {
+        List<FailedEmail> failedEmails = failedEmailRepository.findAllRetryable(maxRetryAttempts);
+
+        if (failedEmails.isEmpty()) {
+            log.debug("[Failed Email Retry] No failed emails to retry");
+            return;
+        }
+
+        log.info("[Failed Email Retry] Found {} failed emails to retry", failedEmails.size());
+
+        int successCount = 0;
+        int failedCount = 0;
+
+        for (FailedEmail failedEmail : failedEmails) {
+            if (retry(failedEmail)) {
+                successCount++;
+            } else {
+                failedCount++;
+            }
+        }
+
+        log.info("[Failed Email Retry] Retry job completed | Success: {} | Failed: {} | Total: {}",
+                successCount, failedCount, failedEmails.size());
+    }
+
+    private boolean retry(FailedEmail failedEmail) {
         log.debug("[Retry Failed Email] Attempting to retry email | ID: {} | Recipient: {} | Retry count: {}",
                 failedEmail.getId(), failedEmail.getRecipient(), failedEmail.getRetryCount());
 

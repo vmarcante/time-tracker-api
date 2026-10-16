@@ -6,35 +6,35 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.exception.InfraestructureException;
 import com.vmarcante.time_tracker.core.domain.email.model.EmailData;
 import com.vmarcante.time_tracker.core.domain.email.model.EmailFile;
+import com.vmarcante.time_tracker.core.domain.email.repository.FailedEmailRepository;
 import com.vmarcante.time_tracker.core.domain.email.service.EmailService;
-import com.vmarcante.time_tracker.core.infraestructure.email.persistence.FailedEmailPersistenceAdapter;
-import com.vmarcante.time_tracker.core.infraestructure.exception.InfraestructureException;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class EmailSenderService implements EmailService {
+public class EmailSenderAdapter implements EmailService {
 
     private final JavaMailSender mailSender;
     private final EmailTemplateService templateService;
-    private final FailedEmailPersistenceAdapter failedEmailAdapter;
+    private final FailedEmailRepository failedEmailRepository;
     private final EmailRecipientResolver recipientResolver;
     private final String fromEmail;
 
-    public EmailSenderService(
+    public EmailSenderAdapter(
             JavaMailSender mailSender,
             EmailTemplateService templateService,
-            FailedEmailPersistenceAdapter failedEmailAdapter,
+            FailedEmailRepository failedEmailRepository,
             EmailRecipientResolver recipientResolver,
             @Value("${email.from.address:noreply@timetracker.com}") String fromEmail,
             @Value("${email.from.name:Time Tracker}") String fromName) {
         this.mailSender = mailSender;
         this.templateService = templateService;
-        this.failedEmailAdapter = failedEmailAdapter;
+        this.failedEmailRepository = failedEmailRepository;
         this.recipientResolver = recipientResolver;
         this.fromEmail = fromName + " <" + fromEmail + ">";
     }
@@ -44,6 +44,7 @@ public class EmailSenderService implements EmailService {
         sendEmail(emailData, true);
     }
 
+    @Override
     public void sendEmail(EmailData emailData, boolean trackFailure) throws Exception {
         log.debug(
                 "[ Email Sender ] - Starting email dispatch | Recipient: {} | Subject: {} | Template: {} | Locale: {} | Attachments: {}",
@@ -69,7 +70,7 @@ public class EmailSenderService implements EmailService {
             if (trackFailure) {
                 log.error("[ Email Sender ] - Failed to send email, saving to database for retry | Recipient: {}",
                         emailData.to(), e);
-                failedEmailAdapter.save(emailData, e);
+                failedEmailRepository.save(emailData, e);
             } else {
                 log.error("[ Email Sender ] - Failed to send email | Recipient: {}", emailData.to(), e);
             }

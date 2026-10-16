@@ -16,13 +16,13 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.vmarcante.time_tracker.base.domain.exception.ApiErrorResponse;
 import com.vmarcante.time_tracker.base.domain.exception.BaseException;
+import com.vmarcante.time_tracker.base.domain.exception.InfraestructureException;
+import com.vmarcante.time_tracker.base.domain.exception.RateLimitExceededException;
+import com.vmarcante.time_tracker.base.domain.exception.SecurityException;
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.exception.DomainException;
 import com.vmarcante.time_tracker.core.domain.translation.service.TranslationService;
-import com.vmarcante.time_tracker.core.infraestructure.exception.InfraestructureException;
-import com.vmarcante.time_tracker.core.infraestructure.security.exception.SecurityException;
-import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.exception.RateLimitExceededException;
 import com.vmarcante.time_tracker.core.shared.vo.exception.VoException;
 
 import jakarta.servlet.http.HttpServletRequest;

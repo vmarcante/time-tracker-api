@@ -113,8 +113,9 @@ public class CompanyMembershipRepositoryAdapter implements CompanyMembershipRepo
     }
 
     @Override
-    public Optional<String> findPendingRequestCompanyNameByUserId(UUID userId) {
+    public Optional<CompanyMembership> findPendingRequestMembershipByUserId(UUID userId) {
         return userCompanyJpaRepository
-                .findPendingCompanyNameByUserIdAndOrigin(userId, MembershipOrigin.REQUEST);
+                .findFirstByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.REQUEST)
+                .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 }

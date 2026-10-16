@@ -20,7 +20,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
-import com.vmarcante.time_tracker.core.infraestructure.security.exception.SecurityException;
+import com.vmarcante.time_tracker.base.domain.exception.SecurityException;
 import com.vmarcante.time_tracker.core.shared.utils.HttpRequestUtils;
 
 import jakarta.servlet.http.HttpServletRequest;

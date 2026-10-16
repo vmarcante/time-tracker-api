@@ -4,8 +4,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.annotation.RateLimit;
-import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.exception.RateLimitExceededException;
+import com.vmarcante.time_tracker.base.interfaces.annotation.ProgressiveLevel;
+import com.vmarcante.time_tracker.base.interfaces.annotation.RateLimit;
+import com.vmarcante.time_tracker.base.domain.exception.RateLimitExceededException;
 import com.vmarcante.time_tracker.core.shared.utils.HttpRequestUtils;
 
 import jakarta.servlet.http.HttpServletRequest;

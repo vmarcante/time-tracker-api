@@ -20,8 +20,8 @@ import com.vmarcante.time_tracker.core.application.user.auth.in.CheckUsernameAva
 import com.vmarcante.time_tracker.core.application.user.auth.in.ConfirmUserRegistrationUseCase;
 import com.vmarcante.time_tracker.core.application.person.in.CheckEmailAvailabilityUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.in.RegisterUserUseCase;
-import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.ProgressiveLevel;
-import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.annotation.RateLimit;
+import com.vmarcante.time_tracker.base.interfaces.annotation.ProgressiveLevel;
+import com.vmarcante.time_tracker.base.interfaces.annotation.RateLimit;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

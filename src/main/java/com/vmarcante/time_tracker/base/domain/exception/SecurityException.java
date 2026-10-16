@@ -1,8 +1,6 @@
-package com.vmarcante.time_tracker.core.infraestructure.security.exception;
+package com.vmarcante.time_tracker.base.domain.exception;
 
 import org.springframework.http.HttpStatus;
-
-import com.vmarcante.time_tracker.base.domain.exception.BaseException;
 
 public class SecurityException extends BaseException {
 

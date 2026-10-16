@@ -1,6 +1,4 @@
-package com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.exception;
-
-import com.vmarcante.time_tracker.base.domain.exception.BaseException;
+package com.vmarcante.time_tracker.base.domain.exception;
 
 public class RateLimitExceededException extends BaseException {
 

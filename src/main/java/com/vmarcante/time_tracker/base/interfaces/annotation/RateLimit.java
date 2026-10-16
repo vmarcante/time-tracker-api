@@ -1,11 +1,9 @@
-package com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.annotation;
+package com.vmarcante.time_tracker.base.interfaces.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.ProgressiveLevel;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

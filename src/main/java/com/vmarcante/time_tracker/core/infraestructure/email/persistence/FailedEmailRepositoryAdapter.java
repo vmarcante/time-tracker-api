@@ -2,6 +2,7 @@ package com.vmarcante.time_tracker.core.infraestructure.email.persistence;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Sort;
@@ -19,16 +20,16 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class FailedEmailPersistenceAdapter implements FailedEmailRepository {
+public class FailedEmailRepositoryAdapter implements FailedEmailRepository {
 
     private final FailedEmailJpaRepository repository;
 
-    public FailedEmailPersistenceAdapter(FailedEmailJpaRepository repository) {
+    public FailedEmailRepositoryAdapter(FailedEmailJpaRepository repository) {
         this.repository = repository;
     }
 
     @Override
-    public void deleteById(java.util.UUID id) {
+    public void deleteById(UUID id) {
         repository.deleteById(id);
     }
 

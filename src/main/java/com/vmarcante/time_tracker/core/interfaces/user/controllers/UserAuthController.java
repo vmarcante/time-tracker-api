@@ -25,7 +25,7 @@ import com.vmarcante.time_tracker.core.application.user.auth.in.LogoutUserUseCas
 import com.vmarcante.time_tracker.core.application.user.auth.in.RefreshTokenUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.in.RequestPasswordResetUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.in.ResetPasswordUseCase;
-import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.annotation.RateLimit;
+import com.vmarcante.time_tracker.base.interfaces.annotation.RateLimit;
 import com.vmarcante.time_tracker.core.shared.utils.HttpRequestUtils;
 import com.vmarcante.time_tracker.core.shared.utils.UserAgentUtils;
 

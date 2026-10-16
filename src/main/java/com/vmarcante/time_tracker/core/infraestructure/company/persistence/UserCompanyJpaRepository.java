@@ -45,14 +45,8 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
 
     long countByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId);
 
-    @Query("""
-            SELECT c.legalName FROM UserCompanyJpaEntity uc
-            JOIN CompanyJpaEntity c ON c.id = uc.companyId
-            WHERE uc.userId = :userId AND uc.active = true AND uc.approved = false
-            AND uc.origin = :origin AND c.active = true
-            """)
-    Optional<String> findPendingCompanyNameByUserIdAndOrigin(
-            @Param("userId") UUID userId, @Param("origin") MembershipOrigin origin);
+    Optional<UserCompanyJpaEntity> findFirstByUserIdAndActiveTrueAndApprovedFalseAndOrigin(
+            UUID userId, MembershipOrigin origin);
 
     @Query("""
             SELECT c FROM UserCompanyJpaEntity uc

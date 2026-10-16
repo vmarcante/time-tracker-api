@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.infraestructure.security.ratelimit;
+package com.vmarcante.time_tracker.base.interfaces.annotation;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

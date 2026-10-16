@@ -38,5 +38,5 @@ public interface CompanyMembershipRepository {
 
     long countPendingMembershipsByCompanyId(UUID companyId);
 
-    Optional<String> findPendingRequestCompanyNameByUserId(UUID userId);
+    Optional<CompanyMembership> findPendingRequestMembershipByUserId(UUID userId);
 }

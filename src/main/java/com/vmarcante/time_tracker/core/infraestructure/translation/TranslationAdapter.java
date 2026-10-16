@@ -14,11 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class TranslationServiceImpl implements TranslationService {
+public class TranslationAdapter implements TranslationService {
 
     private final MessageSource messageSource;
 
-    public TranslationServiceImpl(MessageSource messageSource) {
+    public TranslationAdapter(MessageSource messageSource) {
         this.messageSource = messageSource;
     }
 
