@@ -2,7 +2,7 @@ package com.vmarcante.time_tracker.core.application.project.enums;
 
 import org.springframework.data.domain.Sort;
 
-import com.vmarcante.time_tracker.core.shared.interfaces.SortType;
+import com.vmarcante.time_tracker.base.application.pagination.SortType;
 
 public enum ProjectSortType implements SortType {
     NAME_ASC(Sort.by(Sort.Direction.ASC, "name")),

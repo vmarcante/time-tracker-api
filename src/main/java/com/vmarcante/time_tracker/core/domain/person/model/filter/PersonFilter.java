@@ -11,6 +11,4 @@ public class PersonFilter {
     private String email;
     private String phone;
     private Boolean active;
-    private String nameContains;
-    private String emailContains;
 }

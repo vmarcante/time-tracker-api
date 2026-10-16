@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.shared.interfaces;
+package com.vmarcante.time_tracker.base.application.pagination;
 
 import org.springframework.data.domain.Sort;
 

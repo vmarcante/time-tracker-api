@@ -34,14 +34,14 @@ public record TimeEntrySummaryOutputDTO(
 
         LocalDateTime start = sessions.stream()
                 .filter(Objects::nonNull)
-                .map(TimeEntrySession::getStartTime)
+                .map(s -> s.getStartTime())
                 .filter(Objects::nonNull)
                 .min(Comparator.naturalOrder())
                 .orElse(null);
 
         LocalDateTime end = sessions.stream()
                 .filter(Objects::nonNull)
-                .map(TimeEntrySession::getEndTime)
+                .map(s -> s.getEndTime())
                 .filter(Objects::nonNull)
                 .max(Comparator.naturalOrder())
                 .orElse(null);

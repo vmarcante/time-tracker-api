@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.shared.utils;
+package com.vmarcante.time_tracker.base.application.pagination;
 
 import java.util.List;
 import java.util.Objects;
@@ -6,8 +6,6 @@ import java.util.Objects;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
-import com.vmarcante.time_tracker.core.shared.interfaces.SortType;
 
 public class PageableUtils {
 
@@ -35,9 +33,9 @@ public class PageableUtils {
 
         if (sorts != null && !sorts.isEmpty()) {
             combinedSort = sorts.stream()
-                    .map(SortType::generateSort)
+                    .map(s -> s.generateSort())
                     .filter(Objects::nonNull)
-                    .reduce(Sort::and)
+                    .reduce((a, b) -> a.and(b))
                     .orElse(null);
         }
 
@@ -68,9 +66,9 @@ public class PageableUtils {
 
         if (sorts != null && !sorts.isEmpty()) {
             combinedSort = sorts.stream()
-                    .map(SortType::generateSort)
+                    .map(s -> s.generateSort())
                     .filter(Objects::nonNull)
-                    .reduce(Sort::and)
+                    .reduce((a, b) -> a.and(b))
                     .orElse(null);
         }
 

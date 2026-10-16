@@ -13,6 +13,7 @@ import com.vmarcante.time_tracker.core.application.user.auth.dto.input.CreateUse
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CreateUserOutputDTO;
 import com.vmarcante.time_tracker.core.application.user.auth.in.CheckUsernameAvailabilityUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.in.CreateUserUseCase;
+import com.vmarcante.time_tracker.core.application.user.auth.in.RegisterUserUseCase;
 import com.vmarcante.time_tracker.core.application.person.dto.CreatePersonDTO;
 import com.vmarcante.time_tracker.core.application.person.in.CheckEmailAvailabilityUseCase;
 import com.vmarcante.time_tracker.core.application.person.in.CreatePersonUseCase;
@@ -26,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class UserRegistrationOrchestrator {
+public class UserRegistrationOrchestrator implements RegisterUserUseCase {
 
     private final CreateUserUseCase createUserUseCase;
     private final CreatePersonUseCase createPersonUseCase;
@@ -53,6 +54,7 @@ public class UserRegistrationOrchestrator {
         this.eventPublisher = eventPublisher;
     }
 
+    @Override
     @Transactional
     public CreateUserOutputDTO execute(CreateUserInputDTO input) throws ApplicationException {
 

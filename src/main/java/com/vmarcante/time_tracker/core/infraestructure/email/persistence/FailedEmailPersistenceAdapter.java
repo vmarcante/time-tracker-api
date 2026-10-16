@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.email.model.EmailData;
 import com.vmarcante.time_tracker.core.domain.email.model.FailedEmail;
+import com.vmarcante.time_tracker.core.domain.email.model.filter.FailedEmailFilter;
 import com.vmarcante.time_tracker.core.domain.email.repository.FailedEmailRepository;
 import com.vmarcante.time_tracker.core.infraestructure.email.mapper.FailedEmailPersistenceMapper;
 import com.vmarcante.time_tracker.core.shared.utils.ExceptionUtils;
@@ -39,7 +41,12 @@ public class FailedEmailPersistenceAdapter implements FailedEmailRepository {
 
     @Override
     public List<FailedEmail> findAllRetryable(int maxRetryAttempts) {
-        return repository.findAllRetryable(maxRetryAttempts).stream()
+        FailedEmailFilter filter = new FailedEmailFilter();
+        filter.setMaxRetryCount(maxRetryAttempts);
+        return repository.findAll(
+                        FailedEmailRepositorySpecification.withFilter(filter),
+                        Sort.by(Sort.Direction.ASC, "createdAt"))
+                .stream()
                 .map(FailedEmailPersistenceMapper::toDomain)
                 .collect(Collectors.toList());
     }

@@ -75,7 +75,7 @@ public class MembershipRequestCreatedEventListener {
 
             Set<UUID> approverIds = approvers.stream()
                     .filter(Objects::nonNull)
-                    .map(CompanyMembership::getUserId)
+                    .map(m -> m.getUserId())
                     .collect(Collectors.toSet());
 
             List<Person> approverPersons = personRepository.findAllByIds(approverIds);
@@ -85,7 +85,7 @@ public class MembershipRequestCreatedEventListener {
                     .orElse("");
             
             String requestReason = membershipRepository.findMembershipById(event.getMembershipId())
-                    .map(CompanyMembership::getRequestReason)
+                    .map(m -> m.getRequestReason())
                     .orElse(null);
                     
             String pendingLink = frontendUrl + "/companies/" + event.getCompanyId() + "/members/pending";

@@ -10,13 +10,7 @@ import lombok.Data;
 public class UserAuthFilter {
 
     private String username;
-    private String email;
-    
     private Boolean active;
-    
-    private String usernameContains;
-    private String emailContains;
-
     private UserRoleType role;
     private Set<UserRoleType> roles;
 }

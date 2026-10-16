@@ -1,6 +1,6 @@
 package com.vmarcante.time_tracker.base.application.dto.input;
 
-import com.vmarcante.time_tracker.core.shared.interfaces.SortType;
+import com.vmarcante.time_tracker.base.application.pagination.SortType;
 
 import lombok.Data;
 

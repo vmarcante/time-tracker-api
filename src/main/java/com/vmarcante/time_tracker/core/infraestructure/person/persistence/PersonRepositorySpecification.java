@@ -1,10 +1,12 @@
 package com.vmarcante.time_tracker.core.infraestructure.person.persistence;
 
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.data.jpa.domain.Specification;
 
+import com.vmarcante.time_tracker.base.infraestructure.persistence.converter.EncryptedFieldHashUtils;
 import com.vmarcante.time_tracker.core.domain.person.model.filter.PersonFilter;
-
-import jakarta.persistence.criteria.Predicate;
 
 public final class PersonRepositorySpecification {
 
@@ -12,55 +14,44 @@ public final class PersonRepositorySpecification {
     }
 
     public static Specification<PersonJpaEntity> withFilter(PersonFilter filter) {
-        return (root, query, criteriaBuilder) -> {
-            if (filter == null) {
-                return criteriaBuilder.conjunction();
-            }
+        if (filter == null) {
+            return Specification.unrestricted();
+        }
+        return Specification.allOf(List.of(
+                hasId(filter.getId()),
+                hasName(filter.getName()),
+                hasEmail(filter.getEmail()),
+                hasPhone(filter.getPhone()),
+                isActive(filter.getActive())));
+    }
 
-            Predicate predicate = criteriaBuilder.conjunction();
+    public static Specification<PersonJpaEntity> hasId(UUID id) {
+        return (root, query, cb) -> id == null
+                ? cb.conjunction()
+                : cb.equal(root.get("id"), id);
+    }
 
-            if (filter.getId() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(root.get("id"), filter.getId()));
-            }
+    public static Specification<PersonJpaEntity> hasName(String name) {
+        return (root, query, cb) -> name == null || name.isBlank()
+                ? cb.conjunction()
+                : cb.equal(root.get("nameHash"), EncryptedFieldHashUtils.generateSearchHash(name));
+    }
 
-            if (filter.getName() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(root.get("name"), filter.getName()));
-            }
+    public static Specification<PersonJpaEntity> hasEmail(String email) {
+        return (root, query, cb) -> email == null || email.isBlank()
+                ? cb.conjunction()
+                : cb.equal(root.get("emailHash"), EncryptedFieldHashUtils.generateSearchHash(email));
+    }
 
-            if (filter.getEmail() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(
-                                criteriaBuilder.lower(root.get("email")),
-                                filter.getEmail().toLowerCase()));
-            }
+    public static Specification<PersonJpaEntity> hasPhone(String phone) {
+        return (root, query, cb) -> phone == null || phone.isBlank()
+                ? cb.conjunction()
+                : cb.equal(root.get("phoneHash"), EncryptedFieldHashUtils.generateSearchHash(phone));
+    }
 
-            if (filter.getPhone() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(root.get("phone"), filter.getPhone()));
-            }
-
-            if (filter.getActive() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(root.get("active"), filter.getActive()));
-            }
-
-            if (filter.getNameContains() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("name")),
-                                "%" + filter.getNameContains().toLowerCase() + "%"));
-            }
-
-            if (filter.getEmailContains() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("email")),
-                                "%" + filter.getEmailContains().toLowerCase() + "%"));
-            }
-
-            return predicate;
-        };
+    public static Specification<PersonJpaEntity> isActive(Boolean active) {
+        return (root, query, cb) -> active == null
+                ? cb.conjunction()
+                : cb.equal(root.get("active"), active);
     }
 }

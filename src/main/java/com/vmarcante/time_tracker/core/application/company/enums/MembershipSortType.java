@@ -2,7 +2,7 @@ package com.vmarcante.time_tracker.core.application.company.enums;
 
 import org.springframework.data.domain.Sort;
 
-import com.vmarcante.time_tracker.core.shared.interfaces.SortType;
+import com.vmarcante.time_tracker.base.application.pagination.SortType;
 
 public enum MembershipSortType implements SortType {
     CREATED_AT_ASC(Sort.by(Sort.Direction.ASC, "createdAt")),

@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntryProjectOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTimeEntryProjectsUseCase;
-import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -44,7 +43,7 @@ public class ListMyTimeEntryProjectsUseCaseImpl implements ListMyTimeEntryProjec
         }
 
         return projectRepository.findAllByIds(projectIds).stream()
-                .sorted(Comparator.comparing(Project::getName, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(p -> p.getName(), String.CASE_INSENSITIVE_ORDER))
                 .map(TimeEntryProjectOutputDTO::from)
                 .toList();
     }

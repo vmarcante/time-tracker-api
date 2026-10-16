@@ -136,7 +136,7 @@ public class AuthenticateUserUseCaseImpl implements AuthenticateUserUseCase {
         if (activeSessions.size() >= MAX_ACTIVE_SESSIONS) {
 
             UserSession oldestSession = activeSessions.stream()
-                    .min(Comparator.comparing(UserSession::getCreatedAt))
+                    .min(Comparator.comparing(s -> s.getCreatedAt()))
                     .orElseThrow();
 
             userSessionRepository.invalidateById(oldestSession.getId());

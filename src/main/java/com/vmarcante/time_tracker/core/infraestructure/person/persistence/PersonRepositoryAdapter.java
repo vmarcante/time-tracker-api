@@ -9,8 +9,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.vmarcante.time_tracker.base.infraestructure.persistence.converter.EncryptedFieldHashUtils;
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
+import com.vmarcante.time_tracker.core.domain.person.model.filter.PersonFilter;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.infraestructure.person.mapper.PersonPersistenceMapper;
 
@@ -42,14 +42,16 @@ public class PersonRepositoryAdapter implements PersonRepository {
 
     @Override
     public boolean existsByEmail(String email) {
-        String emailHash = EncryptedFieldHashUtils.generateSearchHash(email);
-        return jpaRepository.existsByEmailHash(emailHash);
+        PersonFilter filter = new PersonFilter();
+        filter.setEmail(email);
+        return jpaRepository.exists(PersonRepositorySpecification.withFilter(filter));
     }
 
     @Override
     public Optional<Person> findByEmail(String email) {
-        String emailHash = EncryptedFieldHashUtils.generateSearchHash(email);
-        return jpaRepository.findByEmailHash(emailHash)
+        PersonFilter filter = new PersonFilter();
+        filter.setEmail(email);
+        return jpaRepository.findOne(PersonRepositorySpecification.withFilter(filter))
                 .map(PersonPersistenceMapper::toDomain);
     }
 

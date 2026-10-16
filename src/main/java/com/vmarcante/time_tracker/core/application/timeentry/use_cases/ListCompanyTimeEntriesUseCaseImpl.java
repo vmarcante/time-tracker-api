@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.application.pagination.PageableUtils;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.assembler.TimeEntryDetailAssembler;
@@ -21,7 +22,6 @@ import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
-import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntriesUseCase {
@@ -60,7 +60,9 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
         if (!membership.getRole().canManage(CompanyRole.MEMBER)) {
             filter.setLeadScopeUserId(actorId);
         }
-        Pageable pageable = PageableUtils.unsortedPageable(input.getPageNumber(), input.getPageSize());
+        Pageable pageable = input.getSort() != null
+                ? PageableUtils.pageable(input.getPageNumber(), input.getPageSize(), input.getSort())
+                : PageableUtils.unsortedPageable(input.getPageNumber(), input.getPageSize());
 
         Page<TimeEntry> entries = timeEntryRepository.search(filter, pageable);
 

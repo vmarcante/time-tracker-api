@@ -25,12 +25,12 @@ public class SecurityContextAdapter implements SecurityContextPort {
 
     @Override
     public Optional<UUID> getCurrentUserId() {
-        return getCurrentUser().map(UserContextData::userId);
+        return getCurrentUser().map(u -> u.userId());
     }
 
     @Override
     public Optional<String> getCurrentUsername() {
-        return getCurrentUser().map(UserContextData::username);
+        return getCurrentUser().map(u -> u.username());
     }
 
     @Override

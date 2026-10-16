@@ -61,18 +61,18 @@ public class TimeEntryDetailAssembler {
 
         Set<UUID> entryIds = content.stream()
                 .filter(Objects::nonNull)
-                .map(TimeEntry::getId)
+                .map(e -> e.getId())
                 .collect(Collectors.toSet());
                 
         Set<UUID> projectIds = content.stream()
                 .filter(Objects::nonNull)
-                .map(TimeEntry::getProjectId)
+                .map(e -> e.getProjectId())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
                 
         Set<UUID> userIds = content.stream()
                 .filter(Objects::nonNull)
-                .map(TimeEntry::getUserId)
+                .map(e -> e.getUserId())
                 .collect(Collectors.toSet());
 
         Map<UUID, List<TimeEntrySession>> sessionsByEntry = sessionRepository.findActiveByEntryIds(entryIds);
@@ -80,7 +80,7 @@ public class TimeEntryDetailAssembler {
         Map<UUID, Project> projectsById = projectRepository.findAllByIds(projectIds)
                 .stream()
                 .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Project::getId, Function.identity()));
+                .collect(Collectors.toMap(p -> p.getId(), Function.identity()));
         Map<UUID, String> namesByUserId = personRepository.findNamesByIds(userIds);
 
         return page.map(entry -> TimeEntrySummaryOutputDTO.from(

@@ -16,10 +16,6 @@ import com.vmarcante.time_tracker.base.infraestructure.persistence.BaseJpaReposi
 public interface PersonJpaRepository
         extends BaseJpaRepository<PersonJpaEntity, UUID, Integer> {
 
-    boolean existsByEmailHash(String emailHash);
-
-    Optional<PersonJpaEntity> findByEmailHash(String emailHash);
-
     @Query("SELECT p.name FROM PersonJpaEntity p WHERE p.id = :id")
     Optional<String> findNameById(@Param("id") UUID id);
 

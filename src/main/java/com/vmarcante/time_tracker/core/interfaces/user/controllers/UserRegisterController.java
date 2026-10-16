@@ -19,7 +19,7 @@ import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CreateUs
 import com.vmarcante.time_tracker.core.application.user.auth.in.CheckUsernameAvailabilityUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.in.ConfirmUserRegistrationUseCase;
 import com.vmarcante.time_tracker.core.application.person.in.CheckEmailAvailabilityUseCase;
-import com.vmarcante.time_tracker.core.application.user.orchestrator.UserRegistrationOrchestrator;
+import com.vmarcante.time_tracker.core.application.user.auth.in.RegisterUserUseCase;
 import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.ProgressiveLevel;
 import com.vmarcante.time_tracker.core.infraestructure.security.ratelimit.annotation.RateLimit;
 
@@ -33,17 +33,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "User Registration", description = "User registration endpoints")
 public class UserRegisterController extends BaseResponseController {
 
-    private final UserRegistrationOrchestrator userRegistrationOrchestrator;
+    private final RegisterUserUseCase registerUserUseCase;
     private final CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase;
     private final CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase;
     private final ConfirmUserRegistrationUseCase confirmUserRegistrationUseCase;
 
     public UserRegisterController(
-            UserRegistrationOrchestrator userRegistrationOrchestrator,
+            RegisterUserUseCase registerUserUseCase,
             CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase,
             CheckEmailAvailabilityUseCase checkEmailAvailabilityUseCase,
             ConfirmUserRegistrationUseCase confirmUserRegistrationUseCase) {
-        this.userRegistrationOrchestrator = userRegistrationOrchestrator;
+        this.registerUserUseCase = registerUserUseCase;
         this.checkUsernameAvailabilityUseCase = checkUsernameAvailabilityUseCase;
         this.checkEmailAvailabilityUseCase = checkEmailAvailabilityUseCase;
         this.confirmUserRegistrationUseCase = confirmUserRegistrationUseCase;
@@ -83,7 +83,7 @@ public class UserRegisterController extends BaseResponseController {
                 input.password(),
                 locale);
 
-        CreateUserOutputDTO output = userRegistrationOrchestrator.execute(inputWithLocale);
+        CreateUserOutputDTO output = registerUserUseCase.execute(inputWithLocale);
         return created(output);
     }
 

@@ -13,11 +13,7 @@ import java.util.UUID;
 public interface UserAuthJpaRepository
         extends BaseJpaRepository<UserAuthJpaEntity, UUID, Integer> {
 
-    Optional<UserAuthJpaEntity> findByUsernameHash(String usernameHash);
-
     Optional<UserAuthJpaEntity> findByAccessToken(String accessToken);
-
-    boolean existsByUsernameHash(String usernameHash);
 
     boolean existsById(UUID id);
 

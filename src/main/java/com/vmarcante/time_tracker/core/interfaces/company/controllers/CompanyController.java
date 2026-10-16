@@ -28,8 +28,8 @@ import com.vmarcante.time_tracker.core.application.company.in.FindCompanyByIdUse
 import com.vmarcante.time_tracker.core.application.company.in.FindUserCompaniesUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.UpdateCompanyUseCase;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyOverviewOutputDTO;
-import com.vmarcante.time_tracker.core.application.company.orchestrator.CompanyMenuOverviewOrchestrator;
-import com.vmarcante.time_tracker.core.application.company.orchestrator.CompanyOverviewOrchestrator;
+import com.vmarcante.time_tracker.core.application.company.in.GetCompanyMenuOverviewUseCase;
+import com.vmarcante.time_tracker.core.application.company.in.GetCompanyOverviewUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
@@ -46,8 +46,8 @@ public class CompanyController extends BaseResponseController {
     private final FindUserCompaniesUseCase findUserCompaniesUseCase;
     private final UpdateCompanyUseCase updateCompanyUseCase;
     private final DeactivateCompanyUseCase deactivateCompanyUseCase;
-    private final CompanyMenuOverviewOrchestrator menuOverviewOrchestrator;
-    private final CompanyOverviewOrchestrator overviewOrchestrator;
+    private final GetCompanyMenuOverviewUseCase getCompanyMenuOverviewUseCase;
+    private final GetCompanyOverviewUseCase getCompanyOverviewUseCase;
 
     public CompanyController(
             CreateCompanyUseCase createCompanyUseCase,
@@ -55,15 +55,15 @@ public class CompanyController extends BaseResponseController {
             FindUserCompaniesUseCase findUserCompaniesUseCase,
             UpdateCompanyUseCase updateCompanyUseCase,
             DeactivateCompanyUseCase deactivateCompanyUseCase,
-            CompanyMenuOverviewOrchestrator menuOverviewOrchestrator,
-            CompanyOverviewOrchestrator overviewOrchestrator) {
+            GetCompanyMenuOverviewUseCase getCompanyMenuOverviewUseCase,
+            GetCompanyOverviewUseCase getCompanyOverviewUseCase) {
         this.createCompanyUseCase = createCompanyUseCase;
         this.findCompanyByIdUseCase = findCompanyByIdUseCase;
         this.findUserCompaniesUseCase = findUserCompaniesUseCase;
         this.updateCompanyUseCase = updateCompanyUseCase;
         this.deactivateCompanyUseCase = deactivateCompanyUseCase;
-        this.menuOverviewOrchestrator = menuOverviewOrchestrator;
-        this.overviewOrchestrator = overviewOrchestrator;
+        this.getCompanyMenuOverviewUseCase = getCompanyMenuOverviewUseCase;
+        this.getCompanyOverviewUseCase = getCompanyOverviewUseCase;
     }
 
     @AuthSecure
@@ -87,7 +87,7 @@ public class CompanyController extends BaseResponseController {
     @Operation(summary = "Company menu overview", description = "Returns summarized data for the company side menu (pending requests count, etc.)")
     public ResponseEntity<ApiResponseDTO<CompanyMenuOverviewOutputDTO>> menuOverview(
             @PathVariable UUID id) throws ApplicationException {
-        return ok(menuOverviewOrchestrator.execute(id));
+        return ok(getCompanyMenuOverviewUseCase.execute(id));
     }
 
     @AuthSecure
@@ -95,7 +95,7 @@ public class CompanyController extends BaseResponseController {
     @Operation(summary = "Company overview", description = "Returns counters and recent items for the company overview page")
     public ResponseEntity<ApiResponseDTO<CompanyOverviewOutputDTO>> overview(
             @PathVariable UUID id) throws ApplicationException {
-        return ok(overviewOrchestrator.execute(id));
+        return ok(getCompanyOverviewUseCase.execute(id));
     }
 
     @AuthSecure

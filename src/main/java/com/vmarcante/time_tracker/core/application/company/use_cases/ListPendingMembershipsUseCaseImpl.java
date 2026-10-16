@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.application.pagination.PageableUtils;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
@@ -22,7 +23,6 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
-import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListPendingMembershipsUseCaseImpl implements ListPendingMembershipsUseCase {

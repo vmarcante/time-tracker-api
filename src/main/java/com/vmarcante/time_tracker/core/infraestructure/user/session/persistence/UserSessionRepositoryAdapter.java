@@ -8,7 +8,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
@@ -63,7 +62,6 @@ public class UserSessionRepositoryAdapter implements UserSessionRepository {
     }
 
     @Override
-    @Transactional
     public void invalidateAllByUserId(UUID userId) {
         List<UserSessionJpaEntity> activeSessions = jpaRepository.findByUserIdAndActiveTrue(userId);
         
@@ -77,13 +75,11 @@ public class UserSessionRepositoryAdapter implements UserSessionRepository {
     }
 
     @Override
-    @Transactional
     public void invalidateById(UUID id) {
         jpaRepository.invalidateById(id);
     }
 
     @Override
-    @Transactional
     public void deleteExpiredSessions() {
         jpaRepository.deleteExpiredSessions(LocalDateTime.now());
     }

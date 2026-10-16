@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMenuOverviewOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.CountPendingMembershipsUseCase;
+import com.vmarcante.time_tracker.core.application.company.in.GetCompanyMenuOverviewUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
@@ -14,7 +15,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
-public class CompanyMenuOverviewOrchestrator {
+public class CompanyMenuOverviewOrchestrator implements GetCompanyMenuOverviewUseCase {
 
     private final CountPendingMembershipsUseCase countPendingMembershipsUseCase;
     private final CompanyMembershipRepository membershipRepository;
@@ -29,6 +30,7 @@ public class CompanyMenuOverviewOrchestrator {
         this.securityContext = securityContext;
     }
 
+    @Override
     public CompanyMenuOverviewOutputDTO execute(UUID companyId) throws ApplicationException {
         assertManagerRole(companyId);
 

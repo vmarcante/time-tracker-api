@@ -53,8 +53,10 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
 
     @Override
     public Page<TimeEntry> search(TimeEntryFilter filter, Pageable pageable) {
-        Specification<TimeEntryJpaEntity> specification = TimeEntryRepositorySpecification.withFilter(filter)
-                .and(TimeEntryRepositorySpecification.recentFirst());
+        Specification<TimeEntryJpaEntity> specification = TimeEntryRepositorySpecification.withFilter(filter);
+        if (pageable.getSort().isUnsorted()) {
+            specification = specification.and(TimeEntryRepositorySpecification.recentFirst());
+        }
         return timeEntryJpaRepository.findAll(specification, pageable)
                 .map(TimeEntryPersistenceMapper::toDomain);
     }

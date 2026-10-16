@@ -15,7 +15,7 @@ import com.vmarcante.time_tracker.core.application.person.dto.UpdatePersonProfil
 import com.vmarcante.time_tracker.core.application.person.in.UpdatePersonLocaleUseCase;
 import com.vmarcante.time_tracker.core.application.person.in.UpdatePersonProfileUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CurrentUserOutputDTO;
-import com.vmarcante.time_tracker.core.application.user.orchestrator.CurrentUserDataOrchestrator;
+import com.vmarcante.time_tracker.core.application.user.auth.in.GetCurrentUserDataUseCase;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,15 +28,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "Person Management", description = "Person management private endpoints")
 public class PersonController extends BaseResponseController {
 
-    private final CurrentUserDataOrchestrator currentUserDataOrchestrator;
+    private final GetCurrentUserDataUseCase getCurrentUserDataUseCase;
     private final UpdatePersonLocaleUseCase updatePersonLocaleUseCase;
     private final UpdatePersonProfileUseCase updatePersonProfileUseCase;
 
     public PersonController(
-            CurrentUserDataOrchestrator currentUserDataOrchestrator,
+            GetCurrentUserDataUseCase getCurrentUserDataUseCase,
             UpdatePersonLocaleUseCase updatePersonLocaleUseCase,
             UpdatePersonProfileUseCase updatePersonProfileUseCase) {
-        this.currentUserDataOrchestrator = currentUserDataOrchestrator;
+        this.getCurrentUserDataUseCase = getCurrentUserDataUseCase;
         this.updatePersonLocaleUseCase = updatePersonLocaleUseCase;
         this.updatePersonProfileUseCase = updatePersonProfileUseCase;
     }
@@ -45,7 +45,7 @@ public class PersonController extends BaseResponseController {
     @GetMapping("/me")
     @Operation(summary = "Get current user data", description = "Returns the authenticated user's data")
     public ResponseEntity<ApiResponseDTO<CurrentUserOutputDTO>> getCurrentUser() {
-        CurrentUserOutputDTO currentUserData = currentUserDataOrchestrator.execute();
+        CurrentUserOutputDTO currentUserData = getCurrentUserDataUseCase.execute();
         return ok(currentUserData);
     }
 

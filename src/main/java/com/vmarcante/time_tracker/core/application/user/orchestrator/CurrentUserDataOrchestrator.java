@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CurrentUserOutputDTO;
+import com.vmarcante.time_tracker.core.application.user.auth.in.GetCurrentUserDataUseCase;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
@@ -21,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class CurrentUserDataOrchestrator {
+public class CurrentUserDataOrchestrator implements GetCurrentUserDataUseCase {
 
     private final UserAuthRepository userAuthRepository;
     private final PersonRepository personRepository;
@@ -39,6 +40,7 @@ public class CurrentUserDataOrchestrator {
         this.context = context;
     }
 
+    @Override
     public CurrentUserOutputDTO execute() throws ApplicationException {
 
         Optional<UUID> currentUserId = context.getCurrentUserId();

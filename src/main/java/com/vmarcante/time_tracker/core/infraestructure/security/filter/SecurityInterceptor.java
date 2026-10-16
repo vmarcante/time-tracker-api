@@ -20,7 +20,6 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.enums.AffiliationStatus;
-import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 import com.vmarcante.time_tracker.core.infraestructure.security.exception.SecurityException;
 import com.vmarcante.time_tracker.core.shared.utils.HttpRequestUtils;
 
@@ -149,7 +148,7 @@ public class SecurityInterceptor implements HandlerInterceptor {
         }
 
         if (authSecure.acceptedRoles() != null && authSecure.acceptedRoles().length > 0) {
-            int maxRoleLeve = Arrays.stream(authSecure.acceptedRoles()).mapToInt(UserRoleType::getLevel).max().orElse(0);
+            int maxRoleLeve = Arrays.stream(authSecure.acceptedRoles()).mapToInt(r -> r.getLevel()).max().orElse(0);
             int currentRoleLevel = user.getRole().getLevel();
 
             if (currentRoleLevel < maxRoleLeve) {

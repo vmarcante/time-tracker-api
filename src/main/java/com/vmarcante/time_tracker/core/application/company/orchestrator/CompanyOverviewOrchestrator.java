@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyOverviewOutputDTO;
+import com.vmarcante.time_tracker.core.application.company.in.GetCompanyOverviewUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
@@ -29,7 +30,7 @@ import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
 
 @Service
-public class CompanyOverviewOrchestrator {
+public class CompanyOverviewOrchestrator implements GetCompanyOverviewUseCase {
 
     private static final int RECENT_LIMIT = 5;
 
@@ -58,6 +59,7 @@ public class CompanyOverviewOrchestrator {
         this.securityContext = securityContext;
     }
 
+    @Override
     public CompanyOverviewOutputDTO execute(UUID companyId) throws ApplicationException {
         assertManagerRole(companyId);
 

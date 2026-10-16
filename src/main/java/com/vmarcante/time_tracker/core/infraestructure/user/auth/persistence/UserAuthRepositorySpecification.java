@@ -1,10 +1,13 @@
 package com.vmarcante.time_tracker.core.infraestructure.user.auth.persistence;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.data.jpa.domain.Specification;
 
+import com.vmarcante.time_tracker.base.infraestructure.persistence.converter.EncryptedFieldHashUtils;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.filter.UserAuthFilter;
-
-import jakarta.persistence.criteria.Predicate;
+import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 
 public final class UserAuthRepositorySpecification {
 
@@ -12,49 +15,38 @@ public final class UserAuthRepositorySpecification {
     }
 
     public static Specification<UserAuthJpaEntity> withFilter(UserAuthFilter filter) {
-        return (root, query, criteriaBuilder) -> {
-            if (filter == null) {
-                return criteriaBuilder.conjunction();
-            }
+        if (filter == null) {
+            return Specification.unrestricted();
+        }
+        return Specification.allOf(List.of(
+                hasUsername(filter.getUsername()),
+                hasRole(filter.getRole()),
+                hasAnyRole(filter.getRoles()),
+                isActive(filter.getActive())));
+    }
 
-            Predicate predicate = criteriaBuilder.conjunction();
+    public static Specification<UserAuthJpaEntity> hasUsername(String username) {
+        return (root, query, cb) -> username == null || username.isBlank()
+                ? cb.conjunction()
+                : cb.equal(root.get("usernameHash"),
+                        EncryptedFieldHashUtils.generateSearchHash(username));
+    }
 
-            if (filter.getUsername() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(root.get("username"), filter.getUsername()));
-            } else if (filter.getUsernameContains() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("username")),
-                                "%" + filter.getUsernameContains().toLowerCase() + "%"));
-            }
+    public static Specification<UserAuthJpaEntity> hasRole(UserRoleType role) {
+        return (root, query, cb) -> role == null
+                ? cb.conjunction()
+                : cb.equal(root.get("role"), role);
+    }
 
-            if (filter.getEmail() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(
-                                criteriaBuilder.lower(root.get("email")),
-                                filter.getEmail().toLowerCase()));
-            } else if (filter.getEmailContains() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.like(
-                                criteriaBuilder.lower(root.get("email")),
-                                "%" + filter.getEmailContains().toLowerCase() + "%"));
-            }
+    public static Specification<UserAuthJpaEntity> hasAnyRole(Collection<UserRoleType> roles) {
+        return (root, query, cb) -> roles == null || roles.isEmpty()
+                ? cb.conjunction()
+                : root.get("role").in(roles);
+    }
 
-            if (filter.getRole() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(root.get("role"), filter.getRole()));
-            } else if (filter.getRoles() != null && !filter.getRoles().isEmpty()) {
-                predicate = criteriaBuilder.and(predicate,
-                        root.get("role").in(filter.getRoles()));
-            }
-
-            if (filter.getActive() != null) {
-                predicate = criteriaBuilder.and(predicate,
-                        criteriaBuilder.equal(root.get("active"), filter.getActive()));
-            }
-
-            return predicate;
-        };
+    public static Specification<UserAuthJpaEntity> isActive(Boolean active) {
+        return (root, query, cb) -> active == null
+                ? cb.conjunction()
+                : cb.equal(root.get("active"), active);
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.application.pagination.PageableUtils;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectFilterInputDTO;
@@ -21,7 +22,6 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignme
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.TeamProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
-import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListCompanyProjectsUseCaseImpl implements ListCompanyProjectsUseCase {

@@ -52,7 +52,7 @@ public class TimeEntrySessionRepositoryAdapter implements TimeEntrySessionReposi
                 .stream()
                 .map(TimeEntryPersistenceMapper::toDomain)
                 .filter(Objects::nonNull)
-                .collect(Collectors.groupingBy(TimeEntrySession::getEntryId));
+                .collect(Collectors.groupingBy(s -> s.getEntryId()));
     }
 
     @Override
