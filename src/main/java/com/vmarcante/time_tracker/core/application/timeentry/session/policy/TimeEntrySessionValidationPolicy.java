@@ -26,7 +26,8 @@ public class TimeEntrySessionValidationPolicy {
 
     /**
      * Garante que o intervalo candidato não crie mais de {@value MAX_PARALLEL_SESSIONS}
-     * sessões simultâneas na entry. Sessões em curso contam até o momento atual.
+     * sessões simultâneas na entry. Sessões em curso têm fim em aberto e contam como
+     * concorrentes a qualquer intervalo posterior ao seu início.
      */
     public void validateMaxParallelSessions(
             List<TimeEntrySession> existingSessions,
@@ -35,17 +36,16 @@ public class TimeEntrySessionValidationPolicy {
             LocalDateTime endTime) throws ApplicationException {
         List<LocalDateTime> starts = new ArrayList<>();
         List<LocalDateTime> ends = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now();
 
         for (TimeEntrySession session : existingSessions) {
             if (session.getId() != null && session.getId().equals(excludedSessionId)) {
                 continue;
             }
             starts.add(session.getStartTime());
-            ends.add(session.getEndTime() != null ? session.getEndTime() : now);
+            ends.add(session.getEndTime() != null ? session.getEndTime() : LocalDateTime.MAX);
         }
         starts.add(startTime);
-        ends.add(endTime != null ? endTime : now);
+        ends.add(endTime != null ? endTime : LocalDateTime.MAX);
 
         starts.sort(null);
         ends.sort(null);

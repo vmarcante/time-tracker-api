@@ -28,7 +28,8 @@ public class RefreshTokenCacheAdapter implements RefreshTokenCachePort {
         try {
             Cache cache = cacheManager.getCache(CACHE_NAME);
             if (cache != null) {
-                cache.put(refreshToken, sessionId);
+
+                cache.put(refreshToken, sessionId.toString());
                 log.debug("[RefreshTokenCache] Token cached: sessionId={}", sessionId);
             }
         } catch (Exception e) {
@@ -43,14 +44,32 @@ public class RefreshTokenCacheAdapter implements RefreshTokenCachePort {
             if (cache != null) {
                 Cache.ValueWrapper wrapper = cache.get(refreshToken);
                 if (wrapper != null) {
-                    UUID sessionId = (UUID) wrapper.get();
-                    log.debug("[RefreshTokenCache] Cache HIT: sessionId={}", sessionId);
-                    return sessionId;
+                    UUID sessionId = toSessionId(wrapper.get());
+                    if (sessionId != null) {
+                        log.debug("[RefreshTokenCache] Cache HIT: sessionId={}", sessionId);
+                        return sessionId;
+                    }
+                    cache.evict(refreshToken);
+                    log.warn("[RefreshTokenCache] Invalid cached value evicted");
                 }
             }
             log.debug("[RefreshTokenCache] Cache MISS");
         } catch (Exception e) {
             log.warn("[RefreshTokenCache] Failed to get from cache: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    private UUID toSessionId(Object value) {
+        if (value instanceof UUID sessionId) {
+            return sessionId;
+        }
+        if (value instanceof String stringValue) {
+            try {
+                return UUID.fromString(stringValue);
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
         }
         return null;
     }
