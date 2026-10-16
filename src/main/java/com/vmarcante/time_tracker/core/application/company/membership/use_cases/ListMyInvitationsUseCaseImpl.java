@@ -1,0 +1,69 @@
+package com.vmarcante.time_tracker.core.application.company.membership.use_cases;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilterMapper;
+import com.vmarcante.time_tracker.core.domain.company.model.filter.CompanyMembershipFilter;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+
+import com.vmarcante.time_tracker.base.application.pagination.PageableUtils;
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.membership.dto.input.MembershipFilterInputDTO;
+import com.vmarcante.time_tracker.core.application.company.membership.dto.output.CompanyInvitationOutputDTO;
+import com.vmarcante.time_tracker.core.application.company.membership.in.ListMyInvitationsUseCase;
+import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
+import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
+import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
+
+@Service
+public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
+
+    private final CompanyMembershipRepository membershipRepository;
+    private final CompanyRepository companyRepository;
+    private final SecurityContextPort securityContext;
+
+    public ListMyInvitationsUseCaseImpl(
+            CompanyMembershipRepository membershipRepository,
+            CompanyRepository companyRepository,
+            SecurityContextPort securityContext) {
+        this.membershipRepository = membershipRepository;
+        this.companyRepository = companyRepository;
+        this.securityContext = securityContext;
+    }
+
+    @Override
+    public PageWrapperDTO<CompanyInvitationOutputDTO> execute(MembershipFilterInputDTO filter)
+            throws ApplicationException {
+        Optional<UUID> currentUserId = securityContext.getCurrentUserId();
+        if (currentUserId.isEmpty()) {
+            throw new ApplicationException("user.authenticated.not", null);
+        }
+
+        Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
+        CompanyMembershipFilter companyMembershipFilter = CompanyMembershipFilterMapper.pendingByUser(currentUserId.get(), MembershipOrigin.INVITE);
+        Page<CompanyMembership> invitations = membershipRepository.search(companyMembershipFilter, pageable);
+
+        if (invitations.isEmpty()) {
+            return PageWrapperDTO.of(invitations.map(m -> CompanyInvitationOutputDTO.from(m, null)));
+        }
+
+        List<UUID> companyIds = invitations.getContent().stream()
+                .map(m -> m.getCompanyId())
+                .distinct()
+                .toList();
+
+        Map<UUID, String> companyNames = companyRepository.findLegalNamesByIds(companyIds);
+
+        return PageWrapperDTO.of(invitations.map(membership -> CompanyInvitationOutputDTO.from(
+                membership,
+                companyNames.get(membership.getCompanyId()))));
+    }
+}

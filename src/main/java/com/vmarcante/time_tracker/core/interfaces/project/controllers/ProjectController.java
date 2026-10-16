@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
-import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
+import com.vmarcante.time_tracker.core.application.company.membership.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.input.CreateProjectInputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.input.UpdateProjectInputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.CreateProjectOutputDTO;
-import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAssignmentOutputDTO;
+import com.vmarcante.time_tracker.core.application.project.member.dto.output.ProjectAssignmentOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.ArchiveProjectUseCase;
@@ -32,7 +32,7 @@ import com.vmarcante.time_tracker.core.application.project.in.DeactivateProjectU
 import com.vmarcante.time_tracker.core.application.project.in.FindProjectByIdUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.ListCompanyProjectsUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.ListMyProjectsUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.ListProjectMembersUseCase;
+import com.vmarcante.time_tracker.core.application.project.member.in.ListProjectMembersUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.ReactivateProjectUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.UpdateProjectUseCase;
 

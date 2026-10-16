@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.vmarcante.time_tracker.core.application.company.policy.MembershipApproverPolicy;
+import com.vmarcante.time_tracker.core.application.company.membership.policy.MembershipApproverPolicy;
 import com.vmarcante.time_tracker.core.domain.company.event.MembershipRequestCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;

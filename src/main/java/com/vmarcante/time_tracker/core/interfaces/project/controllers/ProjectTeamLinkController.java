@@ -17,11 +17,11 @@ import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecu
 import com.vmarcante.time_tracker.core.application.team.dto.input.TeamFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAssignmentOutputDTO;
-import com.vmarcante.time_tracker.core.application.project.in.GetUnlinkImpactUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.LinkProjectToTeamUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.ListProjectTeamsUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.UnlinkProjectFromTeamUseCase;
+import com.vmarcante.time_tracker.core.application.project.member.dto.output.ProjectAssignmentOutputDTO;
+import com.vmarcante.time_tracker.core.application.project.link.in.GetUnlinkImpactUseCase;
+import com.vmarcante.time_tracker.core.application.project.link.in.LinkProjectToTeamUseCase;
+import com.vmarcante.time_tracker.core.application.project.link.in.ListProjectTeamsUseCase;
+import com.vmarcante.time_tracker.core.application.project.link.in.UnlinkProjectFromTeamUseCase;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamSummaryOutputDTO;
 
 import io.swagger.v3.oas.annotations.Operation;

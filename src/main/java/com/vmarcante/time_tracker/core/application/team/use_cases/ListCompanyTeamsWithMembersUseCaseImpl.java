@@ -18,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.application.team.dto.output.TeamMemberOutputDTO;
+import com.vmarcante.time_tracker.core.application.team.membership.dto.output.TeamMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamWithMembersOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.in.ListCompanyTeamsWithMembersUseCase;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;

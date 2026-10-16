@@ -17,12 +17,12 @@ import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecu
 import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectMemberEmailInputDTO;
-import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAssignmentOutputDTO;
+import com.vmarcante.time_tracker.core.application.project.member.dto.input.ProjectMemberEmailInputDTO;
+import com.vmarcante.time_tracker.core.application.project.member.dto.output.ProjectAssignmentOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
-import com.vmarcante.time_tracker.core.application.project.in.AssignProjectMemberUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.ListTeamProjectsUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.UnassignProjectMemberUseCase;
+import com.vmarcante.time_tracker.core.application.project.member.in.AssignProjectMemberUseCase;
+import com.vmarcante.time_tracker.core.application.project.link.in.ListTeamProjectsUseCase;
+import com.vmarcante.time_tracker.core.application.project.member.in.UnassignProjectMemberUseCase;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

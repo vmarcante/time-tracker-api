@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.team.dto.output;
 import java.util.List;
 import java.util.UUID;
 
+import com.vmarcante.time_tracker.core.application.team.membership.dto.output.TeamMemberOutputDTO;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 
 public record TeamWithMembersOutputDTO(

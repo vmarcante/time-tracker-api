@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.application.project.orchestrator.ProjectTeamsSyncOrchestrator;
+import com.vmarcante.time_tracker.core.application.project.link.orchestrator.ProjectTeamsSyncOrchestrator;
 import com.vmarcante.time_tracker.core.application.project.dto.input.UpdateProjectInputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.UpdateProjectUseCase;

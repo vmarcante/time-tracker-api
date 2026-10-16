@@ -20,7 +20,7 @@ import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseContro
 import com.vmarcante.time_tracker.core.application.company.dto.input.CreateCompanyInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.UpdateCompanyInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyDetailOutputDTO;
-import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMenuOverviewOutputDTO;
+import com.vmarcante.time_tracker.core.application.company.overview.dto.output.CompanyMenuOverviewOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CreateCompanyOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.CreateCompanyUseCase;
@@ -28,9 +28,9 @@ import com.vmarcante.time_tracker.core.application.company.in.DeactivateCompanyU
 import com.vmarcante.time_tracker.core.application.company.in.FindCompanyByIdUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.FindUserCompaniesUseCase;
 import com.vmarcante.time_tracker.core.application.company.in.UpdateCompanyUseCase;
-import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyOverviewOutputDTO;
-import com.vmarcante.time_tracker.core.application.company.in.GetCompanyMenuOverviewUseCase;
-import com.vmarcante.time_tracker.core.application.company.in.GetCompanyOverviewUseCase;
+import com.vmarcante.time_tracker.core.application.company.overview.dto.output.CompanyOverviewOutputDTO;
+import com.vmarcante.time_tracker.core.application.company.overview.in.GetCompanyMenuOverviewUseCase;
+import com.vmarcante.time_tracker.core.application.company.overview.in.GetCompanyOverviewUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 
 import io.swagger.v3.oas.annotations.Operation;

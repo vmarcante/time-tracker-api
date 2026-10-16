@@ -23,12 +23,12 @@ import com.vmarcante.time_tracker.core.application.project.dto.input.UpdateProje
 import com.vmarcante.time_tracker.core.application.project.dto.output.CreateProjectOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSummaryOutputDTO;
-import com.vmarcante.time_tracker.core.application.project.in.ChangePersonalProjectStatusUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.CreatePersonalProjectUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.DeactivatePersonalProjectUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.FindPersonalProjectByIdUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.ListPersonalProjectsUseCase;
-import com.vmarcante.time_tracker.core.application.project.in.UpdatePersonalProjectUseCase;
+import com.vmarcante.time_tracker.core.application.project.personal.in.ChangePersonalProjectStatusUseCase;
+import com.vmarcante.time_tracker.core.application.project.personal.in.CreatePersonalProjectUseCase;
+import com.vmarcante.time_tracker.core.application.project.personal.in.DeactivatePersonalProjectUseCase;
+import com.vmarcante.time_tracker.core.application.project.personal.in.FindPersonalProjectByIdUseCase;
+import com.vmarcante.time_tracker.core.application.project.personal.in.ListPersonalProjectsUseCase;
+import com.vmarcante.time_tracker.core.application.project.personal.in.UpdatePersonalProjectUseCase;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 
 import io.swagger.v3.oas.annotations.Operation;
