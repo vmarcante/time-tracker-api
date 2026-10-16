@@ -20,14 +20,17 @@ import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecu
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.input.CreateTimeEntryInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.input.MyTimeEntriesFilterInputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.input.MyTimeEntryHeatmapInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.input.SetTimeEntryTagsInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.input.UpdateTimeEntryInputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntryDayStatsOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntryDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntryProjectOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntrySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.in.CreateTimeEntryUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.in.DeactivateTimeEntryUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.in.FindTimeEntryByIdUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.entry.in.GetMyTimeEntryHeatmapUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.in.ListMyTimeEntriesUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.in.ListMyTimeEntryProjectsUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.in.SetTimeEntryTagsUseCase;
@@ -48,6 +51,7 @@ public class TimeEntryController extends BaseResponseController {
     private final ListMyTimeEntriesUseCase listMyTimeEntriesUseCase;
     private final ListMyTimeEntryProjectsUseCase listMyTimeEntryProjectsUseCase;
     private final SetTimeEntryTagsUseCase setTimeEntryTagsUseCase;
+    private final GetMyTimeEntryHeatmapUseCase getMyTimeEntryHeatmapUseCase;
 
     public TimeEntryController(
             CreateTimeEntryUseCase createTimeEntryUseCase,
@@ -56,7 +60,8 @@ public class TimeEntryController extends BaseResponseController {
             FindTimeEntryByIdUseCase findTimeEntryByIdUseCase,
             ListMyTimeEntriesUseCase listMyTimeEntriesUseCase,
             ListMyTimeEntryProjectsUseCase listMyTimeEntryProjectsUseCase,
-            SetTimeEntryTagsUseCase setTimeEntryTagsUseCase) {
+            SetTimeEntryTagsUseCase setTimeEntryTagsUseCase,
+            GetMyTimeEntryHeatmapUseCase getMyTimeEntryHeatmapUseCase) {
         this.createTimeEntryUseCase = createTimeEntryUseCase;
         this.updateTimeEntryUseCase = updateTimeEntryUseCase;
         this.deactivateTimeEntryUseCase = deactivateTimeEntryUseCase;
@@ -64,6 +69,7 @@ public class TimeEntryController extends BaseResponseController {
         this.listMyTimeEntriesUseCase = listMyTimeEntriesUseCase;
         this.listMyTimeEntryProjectsUseCase = listMyTimeEntryProjectsUseCase;
         this.setTimeEntryTagsUseCase = setTimeEntryTagsUseCase;
+        this.getMyTimeEntryHeatmapUseCase = getMyTimeEntryHeatmapUseCase;
     }
 
     @AuthSecure
@@ -88,6 +94,14 @@ public class TimeEntryController extends BaseResponseController {
     public ResponseEntity<ApiResponseDTO<List<TimeEntryProjectOutputDTO>>> listEntryProjects()
             throws ApplicationException {
         return ok(listMyTimeEntryProjectsUseCase.execute());
+    }
+
+    @AuthSecure
+    @GetMapping("/heatmap")
+    @Operation(summary = "My daily totals", description = "Aggregated seconds per day for the authenticated user within a date range (defaults to current month)")
+    public ResponseEntity<ApiResponseDTO<List<TimeEntryDayStatsOutputDTO>>> heatmap(
+            MyTimeEntryHeatmapInputDTO filter) throws ApplicationException {
+        return ok(getMyTimeEntryHeatmapUseCase.execute(filter));
     }
 
     @AuthSecure

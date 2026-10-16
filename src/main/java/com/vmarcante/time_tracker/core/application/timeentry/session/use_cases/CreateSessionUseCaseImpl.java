@@ -1,5 +1,7 @@
 package com.vmarcante.time_tracker.core.application.timeentry.session.use_cases;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -64,6 +66,12 @@ public class CreateSessionUseCaseImpl implements CreateSessionUseCase {
         if (input.endTime() == null && sessionRepository.exists(runningFilter)) {
             throw new ApplicationException("timeentry.timer.already.running", null, HttpStatus.CONFLICT);
         }
+
+        LocalDateTime effectiveEnd = input.endTime() != null ? input.endTime() : LocalDateTime.now();
+        List<TimeEntrySession> overlapping = sessionRepository.search(
+                TimeEntrySessionFilterMapper.overlappingRangeByUser(userId, input.startTime(), effectiveEnd));
+        validationPolicy.validateMaxParallelSessions(
+                overlapping, null, input.startTime(), input.endTime());
 
         TimeEntrySession session = new TimeEntrySession();
         session.setEntryId(entry.getId());

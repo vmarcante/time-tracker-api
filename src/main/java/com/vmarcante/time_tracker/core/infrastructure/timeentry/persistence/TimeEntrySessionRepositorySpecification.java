@@ -1,5 +1,6 @@
 package com.vmarcante.time_tracker.core.infrastructure.timeentry.persistence;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -23,7 +24,9 @@ public final class TimeEntrySessionRepositorySpecification {
                 hasEntryIdIn(filter.getEntryIds()),
                 hasUserId(filter.getUserId()),
                 isRunning(filter.getRunning()),
-                isActive(filter.getActive())));
+                isActive(filter.getActive()),
+                startsBefore(filter.getStartBefore()),
+                endsAfter(filter.getEndAfter())));
     }
 
     public static Specification<TimeEntrySessionJpaEntity> hasId(UUID id) {
@@ -60,5 +63,19 @@ public final class TimeEntrySessionRepositorySpecification {
         return (root, query, cb) -> active == null
                 ? cb.conjunction()
                 : cb.equal(root.get("active"), active);
+    }
+
+    public static Specification<TimeEntrySessionJpaEntity> startsBefore(LocalDateTime instant) {
+        return (root, query, cb) -> instant == null
+                ? cb.conjunction()
+                : cb.lessThan(root.get("startTime"), instant);
+    }
+
+    public static Specification<TimeEntrySessionJpaEntity> endsAfter(LocalDateTime instant) {
+        return (root, query, cb) -> instant == null
+                ? cb.conjunction()
+                : cb.or(
+                        cb.isNull(root.get("endTime")),
+                        cb.greaterThan(root.get("endTime"), instant));
     }
 }

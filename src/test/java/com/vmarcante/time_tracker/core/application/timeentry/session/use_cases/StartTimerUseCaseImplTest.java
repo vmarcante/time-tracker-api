@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,6 +20,7 @@ import org.mockito.ArgumentCaptor;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.assembler.TimeEntryDetailAssembler;
 import com.vmarcante.time_tracker.core.application.timeentry.session.dto.input.StartTimerInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntryDetailOutputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.session.policy.TimeEntrySessionValidationPolicy;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
@@ -26,6 +28,7 @@ import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignme
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TagFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
@@ -41,6 +44,7 @@ class StartTimerUseCaseImplTest {
     private ProjectAssignmentRepository projectAssignmentRepository;
     private TagRepository tagRepository;
     private TimeEntryDetailAssembler assembler;
+    private TimeEntrySessionValidationPolicy validationPolicy;
     private SecurityContextPort securityContext;
     private StartTimerUseCaseImpl useCase;
 
@@ -56,12 +60,14 @@ class StartTimerUseCaseImplTest {
         projectAssignmentRepository = mock(ProjectAssignmentRepository.class);
         tagRepository = mock(TagRepository.class);
         assembler = mock(TimeEntryDetailAssembler.class);
+        validationPolicy = new TimeEntrySessionValidationPolicy();
         securityContext = mock(SecurityContextPort.class);
         useCase = new StartTimerUseCaseImpl(timeEntryRepository, sessionRepository, projectRepository,
-                projectAssignmentRepository, tagRepository, assembler, securityContext);
+                projectAssignmentRepository, tagRepository, assembler, validationPolicy, securityContext);
 
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(USER_ID));
         when(sessionRepository.exists(any(TimeEntrySessionFilter.class))).thenReturn(false);
+        when(sessionRepository.search(any(TimeEntrySessionFilter.class))).thenReturn(List.of());
         when(timeEntryRepository.save(any(TimeEntry.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(assembler.toDetail(any(TimeEntry.class))).thenReturn(mock(TimeEntryDetailOutputDTO.class));
     }
@@ -141,5 +147,29 @@ class StartTimerUseCaseImplTest {
         assertThatThrownBy(() -> useCase.execute(input))
                 .isInstanceOf(ApplicationException.class)
                 .hasMessage("timeentry.tag.not.found");
+    }
+
+    @Test
+    void givenThreeParallelRunningNow_whenStartingTimer_thenThrowsMaxParallel() {
+        // Arrange
+        LocalDateTime now = LocalDateTime.now();
+        TimeEntrySession s1 = sessionStarting(now.minusHours(1));
+        TimeEntrySession s2 = sessionStarting(now.minusMinutes(30));
+        TimeEntrySession s3 = sessionStarting(now.minusMinutes(10));
+        when(sessionRepository.search(any(TimeEntrySessionFilter.class)))
+                .thenReturn(List.of(s1, s2, s3));
+
+        StartTimerInputDTO input = new StartTimerInputDTO(null, null, "My task", null, null);
+
+        // Act & Assert
+        assertThatThrownBy(() -> useCase.execute(input))
+                .isInstanceOf(ApplicationException.class)
+                .hasMessage("timeentry.session.max.parallel");
+    }
+
+    private TimeEntrySession sessionStarting(LocalDateTime startTime) {
+        TimeEntrySession session = new TimeEntrySession();
+        session.setStartTime(startTime);
+        return session;
     }
 }

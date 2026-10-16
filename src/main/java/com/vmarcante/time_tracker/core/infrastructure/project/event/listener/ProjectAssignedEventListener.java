@@ -1,10 +1,8 @@
 package com.vmarcante.time_tracker.core.infrastructure.project.event.listener;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilterMapper;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
@@ -20,7 +18,6 @@ import com.vmarcante.time_tracker.core.domain.project.event.ProjectAssignedEvent
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
-import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 import com.vmarcante.time_tracker.core.shared.utils.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,68 +26,68 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ProjectAssignedEventListener {
 
-    private final EmailService emailService;
-    private final PersonRepository personRepository;
-    private final ProjectRepository projectRepository;
-    private final TeamRepository teamRepository;
-    private final String frontendUrl;
+        private final EmailService emailService;
+        private final PersonRepository personRepository;
+        private final ProjectRepository projectRepository;
+        private final TeamRepository teamRepository;
+        private final String frontendUrl;
 
-    public ProjectAssignedEventListener(
-            EmailService emailService,
-            PersonRepository personRepository,
-            ProjectRepository projectRepository,
-            TeamRepository teamRepository,
-            @Value("${app.frontend.url:https://app.timetracker.com}") String frontendUrl) {
-        this.emailService = emailService;
-        this.personRepository = personRepository;
-        this.projectRepository = projectRepository;
-        this.teamRepository = teamRepository;
-        this.frontendUrl = frontendUrl;
-    }
-
-    @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
-    public void handleProjectAssigned(ProjectAssignedEvent event) {
-        try {
-            Person member = personRepository.findById(event.getUserId()).orElse(null);
-            if (member == null || member.getEmail() == null
-                    || !StringValidationUtils.containsContent(member.getEmail().address())) {
-                log.warn("[Project Assigned Event] Member person not found or without email | User: {}",
-                        event.getUserId());
-                return;
-            }
-
-            ProjectFilter projectFilter = ProjectFilterMapper.byIds(List.of(event.getProjectId()));
-            Project project = projectRepository.search(projectFilter)
-                    .stream().findFirst().orElse(null);
-            String teamName = teamRepository.findById(event.getTeamId())
-                    .map(t -> t.getName())
-                    .orElse("");
-
-            Map<String, Object> templateData = new HashMap<>();
-            templateData.put("name", member.getName());
-            templateData.put("projectName", project != null ? project.getName() : "");
-            templateData.put("clientName", project != null ? project.getClientName() : "");
-            templateData.put("teamName", teamName);
-            templateData.put("projectLink",
-                    frontendUrl + "/companies/" + event.getCompanyId() + "/projects/" + event.getProjectId());
-
-            boolean isPortuguese = "pt".equalsIgnoreCase(member.getLocale());
-            String subject = isPortuguese
-                    ? "Você foi atribuído a um projeto - Time Tracker"
-                    : "You were assigned to a project - Time Tracker";
-            Locale locale = isPortuguese
-                    ? Locale.forLanguageTag("pt-BR")
-                    : Locale.forLanguageTag("en-US");
-
-            emailService.sendEmail(new EmailData(
-                    member.getEmail().address(), subject, "project_assigned", templateData, locale));
-
-            log.info("[Project Assigned Event] Assignment email sent | User: {} | Project: {}",
-                    event.getUserId(), event.getProjectId());
-        } catch (Exception e) {
-            log.error("[Project Assigned Event] Failed to send assignment email | User: {}",
-                    event.getUserId(), e);
+        public ProjectAssignedEventListener(
+                        EmailService emailService,
+                        PersonRepository personRepository,
+                        ProjectRepository projectRepository,
+                        TeamRepository teamRepository,
+                        @Value("${app.frontend.url:https://app.timetracker.com}") String frontendUrl) {
+                this.emailService = emailService;
+                this.personRepository = personRepository;
+                this.projectRepository = projectRepository;
+                this.teamRepository = teamRepository;
+                this.frontendUrl = frontendUrl;
         }
-    }
+
+        @Async
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+        public void handleProjectAssigned(ProjectAssignedEvent event) {
+                try {
+                        Person member = personRepository.findById(event.getUserId()).orElse(null);
+                        if (member == null || member.getEmail() == null
+                                        || !StringValidationUtils.containsContent(member.getEmail().address())) {
+                                log.warn("[Project Assigned Event] Member person not found or without email | User: {}",
+                                                event.getUserId());
+                                return;
+                        }
+
+                        Project project = projectRepository.findById(event.getProjectId()).orElse(null);
+                        String teamName = teamRepository.findById(event.getTeamId())
+                                        .map(t -> t.getName())
+                                        .orElse("");
+
+                        Map<String, Object> templateData = new HashMap<>();
+                        templateData.put("name", member.getName());
+                        templateData.put("projectName", project != null ? project.getName() : "");
+                        templateData.put("clientName", project != null ? project.getClientName() : "");
+                        templateData.put("teamName", teamName);
+                        templateData.put("projectLink",
+                                        frontendUrl + "/companies/" + event.getCompanyId() + "/projects/"
+                                                        + event.getProjectId());
+
+                        boolean isPortuguese = "pt".equalsIgnoreCase(member.getLocale());
+                        String subject = isPortuguese
+                                        ? "Você foi atribuído a um projeto - Time Tracker"
+                                        : "You were assigned to a project - Time Tracker";
+                        Locale locale = isPortuguese
+                                        ? Locale.forLanguageTag("pt-BR")
+                                        : Locale.forLanguageTag("en-US");
+
+                        emailService.sendEmail(new EmailData(
+                                        member.getEmail().address(), subject, "project_assigned", templateData,
+                                        locale));
+
+                        log.info("[Project Assigned Event] Assignment email sent | User: {} | Project: {}",
+                                        event.getUserId(), event.getProjectId());
+                } catch (Exception e) {
+                        log.error("[Project Assigned Event] Failed to send assignment email | User: {}",
+                                        event.getUserId(), e);
+                }
+        }
 }

@@ -17,6 +17,7 @@ import com.vmarcante.time_tracker.core.application.timeentry.entry.assembler.Tim
 import com.vmarcante.time_tracker.core.application.timeentry.session.dto.input.StartTimerInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntryDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.session.in.StartTimerUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.session.policy.TimeEntrySessionValidationPolicy;
 import java.util.List;
 
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
@@ -51,6 +52,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
     private final ProjectAssignmentRepository projectAssignmentRepository;
     private final TagRepository tagRepository;
     private final TimeEntryDetailAssembler assembler;
+    private final TimeEntrySessionValidationPolicy validationPolicy;
     private final SecurityContextPort securityContext;
 
     public StartTimerUseCaseImpl(
@@ -60,6 +62,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
             ProjectAssignmentRepository projectAssignmentRepository,
             TagRepository tagRepository,
             TimeEntryDetailAssembler assembler,
+            TimeEntrySessionValidationPolicy validationPolicy,
             SecurityContextPort securityContext) {
         this.timeEntryRepository = timeEntryRepository;
         this.sessionRepository = sessionRepository;
@@ -67,6 +70,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
         this.projectAssignmentRepository = projectAssignmentRepository;
         this.tagRepository = tagRepository;
         this.assembler = assembler;
+        this.validationPolicy = validationPolicy;
         this.securityContext = securityContext;
     }
 
@@ -93,10 +97,15 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
             entry = createQuickEntry(userId, input);
         }
 
+        LocalDateTime startTime = LocalDateTime.now();
+        List<TimeEntrySession> overlapping = sessionRepository.search(
+                TimeEntrySessionFilterMapper.overlappingRangeByUser(userId, startTime, startTime));
+        validationPolicy.validateMaxParallelSessions(overlapping, null, startTime, null);
+
         TimeEntrySession session = new TimeEntrySession();
         session.setEntryId(entry.getId());
         session.setUserId(userId);
-        session.setStartTime(LocalDateTime.now());
+        session.setStartTime(startTime);
         session.setEndTime(null);
         session.setActive(true);
         session.setCreatedBy(userId);

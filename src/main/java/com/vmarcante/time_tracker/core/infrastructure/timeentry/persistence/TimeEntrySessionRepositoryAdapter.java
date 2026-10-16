@@ -1,6 +1,10 @@
 package com.vmarcante.time_tracker.core.infrastructure.timeentry.persistence;
 
+import java.sql.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,6 +70,23 @@ public class TimeEntrySessionRepositoryAdapter implements TimeEntrySessionReposi
         return search(filter, Sort.by("startTime").ascending()).stream()
                 .filter(Objects::nonNull)
                 .collect(Collectors.groupingBy(s -> Objects.requireNonNull(s.getEntryId())));
+    }
+
+    @Override
+    public Map<LocalDate, Long> sumSessionSecondsByDay(UUID userId, LocalDateTime from, LocalDateTime toExclusive) {
+        Map<LocalDate, Long> secondsByDay = new HashMap<>();
+        for (Object[] row : sessionJpaRepository.sumSecondsByDay(userId, from, toExclusive)) {
+            secondsByDay.put(toLocalDate(row[0]), ((Number) row[1]).longValue());
+        }
+        return secondsByDay;
+    }
+
+    /** A coluna CAST(... AS date) chega como java.sql.Date (ou LocalDate conforme o driver). */
+    private LocalDate toLocalDate(Object value) {
+        if (value instanceof Date sqlDate) {
+            return sqlDate.toLocalDate();
+        }
+        return (LocalDate) value;
     }
 
     @Override

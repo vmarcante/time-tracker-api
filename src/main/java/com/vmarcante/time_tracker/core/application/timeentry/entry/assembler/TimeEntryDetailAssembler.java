@@ -26,76 +26,77 @@ import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
-import com.vmarcante.time_tracker.core.domain.project.model.filter.ProjectFilter;
 
 @Component
 public class TimeEntryDetailAssembler {
 
-    private final TimeEntrySessionRepository sessionRepository;
-    private final TimeEntryRepository timeEntryRepository;
-    private final ProjectRepository projectRepository;
-    private final PersonRepository personRepository;
+        private final TimeEntrySessionRepository sessionRepository;
+        private final TimeEntryRepository timeEntryRepository;
+        private final ProjectRepository projectRepository;
+        private final PersonRepository personRepository;
 
-    public TimeEntryDetailAssembler(
-            TimeEntrySessionRepository sessionRepository,
-            TimeEntryRepository timeEntryRepository,
-            ProjectRepository projectRepository,
-            PersonRepository personRepository) {
-        this.sessionRepository = sessionRepository;
-        this.timeEntryRepository = timeEntryRepository;
-        this.projectRepository = projectRepository;
-        this.personRepository = personRepository;
-    }
-
-    public TimeEntryDetailOutputDTO toDetail(TimeEntry entry) {
-        TimeEntrySessionFilter sessionFilter = TimeEntrySessionFilterMapper.activeByEntryId(entry.getId());
-        List<TimeEntrySession> sessions = sessionRepository
-                .search(sessionFilter, Sort.by("startTime").ascending());
-        List<Tag> tags = timeEntryRepository.findActiveTagsByEntryId(entry.getId());
-        ProjectFilter projectFilter = ProjectFilterMapper.byIds(List.of(entry.getProjectId()));
-        Project project = entry.getProjectId() != null
-                ? projectRepository.search(projectFilter).stream().findFirst().orElse(null)
-                : null;
-        String userName = personRepository.findNameById(entry.getUserId()).orElse(null);
-        return TimeEntryDetailOutputDTO.from(entry, sessions, tags, project, userName);
-    }
-
-    public Page<TimeEntrySummaryOutputDTO> toSummaryPage(Page<TimeEntry> page) {
-        List<TimeEntry> content = page.getContent();
-        if (content.isEmpty()) {
-            return new PageImpl<>(List.of(), page.getPageable(), page.getTotalElements());
+        public TimeEntryDetailAssembler(
+                        TimeEntrySessionRepository sessionRepository,
+                        TimeEntryRepository timeEntryRepository,
+                        ProjectRepository projectRepository,
+                        PersonRepository personRepository) {
+                this.sessionRepository = sessionRepository;
+                this.timeEntryRepository = timeEntryRepository;
+                this.projectRepository = projectRepository;
+                this.personRepository = personRepository;
         }
 
-        Set<UUID> entryIds = content.stream()
-                .filter(Objects::nonNull)
-                .map(e -> e.getId())
-                .collect(Collectors.toSet());
-                
-        Set<UUID> projectIds = content.stream()
-                .filter(Objects::nonNull)
-                .map(e -> e.getProjectId())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-                
-        Set<UUID> userIds = content.stream()
-                .filter(Objects::nonNull)
-                .map(e -> e.getUserId())
-                .collect(Collectors.toSet());
+        public TimeEntryDetailOutputDTO toDetail(TimeEntry entry) {
+                TimeEntrySessionFilter sessionFilter = TimeEntrySessionFilterMapper.activeByEntryId(entry.getId());
+                List<TimeEntrySession> sessions = sessionRepository
+                                .search(sessionFilter, Sort.by("startTime").ascending());
+                List<Tag> tags = timeEntryRepository.findActiveTagsByEntryId(entry.getId());
+                UUID projectId = entry.getProjectId();
+                Project project = null;
+                if (projectId != null) {
+                        project = projectRepository.findById(projectId).orElse(null);
+                }
+                String userName = personRepository.findNameById(entry.getUserId()).orElse(null);
+                return TimeEntryDetailOutputDTO.from(entry, sessions, tags, project, userName);
+        }
 
-        Map<UUID, List<TimeEntrySession>> sessionsByEntry = sessionRepository.findActiveByEntryIds(entryIds);
-        Map<UUID, List<Tag>> tagsByEntry = timeEntryRepository.findTagsGroupedByEntryIds(entryIds);
-        ProjectFilter projectsFilter = ProjectFilterMapper.byIds(projectIds);
-        Map<UUID, Project> projectsById = projectRepository.search(projectsFilter)
-                .stream()
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(p -> p.getId(), Function.identity()));
-        Map<UUID, String> namesByUserId = personRepository.findNamesByIds(userIds);
+        public Page<TimeEntrySummaryOutputDTO> toSummaryPage(Page<TimeEntry> page) {
+                List<TimeEntry> content = page.getContent();
+                if (content.isEmpty()) {
+                        return new PageImpl<>(List.of(), page.getPageable(), page.getTotalElements());
+                }
 
-        return page.map(entry -> TimeEntrySummaryOutputDTO.from(
-                entry,
-                sessionsByEntry.getOrDefault(entry.getId(), List.of()),
-                tagsByEntry.getOrDefault(entry.getId(), List.of()),
-                projectsById.get(entry.getProjectId()),
-                namesByUserId.get(entry.getUserId())));
-    }
+                Set<UUID> entryIds = content.stream()
+                                .filter(Objects::nonNull)
+                                .map(e -> e.getId())
+                                .collect(Collectors.toSet());
+
+                Set<UUID> projectIds = content.stream()
+                                .filter(Objects::nonNull)
+                                .map(e -> e.getProjectId())
+                                .filter(Objects::nonNull)
+                                .collect(Collectors.toSet());
+
+                Set<UUID> userIds = content.stream()
+                                .filter(Objects::nonNull)
+                                .map(e -> e.getUserId())
+                                .collect(Collectors.toSet());
+
+                Map<UUID, List<TimeEntrySession>> sessionsByEntry = sessionRepository.findActiveByEntryIds(entryIds);
+                Map<UUID, List<Tag>> tagsByEntry = timeEntryRepository.findTagsGroupedByEntryIds(entryIds);
+                Map<UUID, Project> projectsById = projectIds.isEmpty()
+                                ? Map.of()
+                                : projectRepository.search(ProjectFilterMapper.byIds(projectIds))
+                                                .stream()
+                                                .filter(Objects::nonNull)
+                                                .collect(Collectors.toMap(p -> p.getId(), Function.identity()));
+                Map<UUID, String> namesByUserId = personRepository.findNamesByIds(userIds);
+
+                return page.map(entry -> TimeEntrySummaryOutputDTO.from(
+                                entry,
+                                sessionsByEntry.getOrDefault(entry.getId(), List.of()),
+                                tagsByEntry.getOrDefault(entry.getId(), List.of()),
+                                projectsById.get(entry.getProjectId()),
+                                namesByUserId.get(entry.getUserId())));
+        }
 }
