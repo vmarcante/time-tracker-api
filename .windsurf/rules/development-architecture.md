@@ -39,10 +39,10 @@ The project intentionally accepts a few framework couplings instead of pursuing 
 - **Spring Data pagination**: `Page`, `Pageable` and `Sort` are allowed in domain repository ports and application DTOs. Pagination is treated as `base`-level plumbing (`BaseJpaRepository`, `PageableUtils`, `SortType`, `BaseInputFilterDTO`), so `base` may depend on Spring Data.
 - **`HttpStatus` in exceptions**: `BaseException` accepts an optional `HttpStatus` custom status consumed by `RestExceptionHandler` (use cases may legitimately override the per-layer default status, e.g. 401/403 instead of 400).
 - **Spring stereotypes in application**: `@Service`/`@Component`/`@Transactional` are allowed on use case implementations, orchestrators and policies.
-- **Cross-cutting contracts in `base`**: exceptions (`InfraestructureException`, `SecurityException`, `RateLimitExceededException`), interface annotations (`@RateLimit`, `@ProgressiveLevel`) and generic ports (`DomainEventPublisher`) live in `base`, not in `core.infraestructure`.
+- **Cross-cutting contracts in `base`**: exceptions (`InfrastructureException`, `SecurityException`, `RateLimitExceededException`), interface annotations (`@RateLimit`, `@ProgressiveLevel`) and generic ports (`DomainEventPublisher`) live in `base`, not in `core.infrastructure`.
 - **Delivery contracts in application**: method-level annotations consumed by both controllers and infrastructure (e.g. `@AuthSecure`) live in `application/[context]/annotation/` so that Interfaces→Application and Infrastructure→Application remain legal.
 
-What is still NOT allowed: domain/application importing `core.infraestructure` or `core.interfaces`, interfaces importing `core.infraestructure`, and `base` importing `core`. These are enforced by `ArchitectureTest` (ArchUnit).
+What is still NOT allowed: domain/application importing `core.infrastructure` or `core.interfaces`, interfaces importing `core.infrastructure`, and `base` importing `core`. These are enforced by `ArchitectureTest` (ArchUnit).
 
 ## Package Structure
 

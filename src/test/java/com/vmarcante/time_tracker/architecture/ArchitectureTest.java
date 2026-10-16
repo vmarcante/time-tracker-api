@@ -25,12 +25,12 @@ class ArchitectureTest {
                     "com.vmarcante.time_tracker.core.application..")
             .should().dependOnClassesThat()
             .resideInAnyPackage(
-                    "com.vmarcante.time_tracker.core.infraestructure..",
+                    "com.vmarcante.time_tracker.core.infrastructure..",
                     "com.vmarcante.time_tracker.core.interfaces..");
 
     @ArchTest
     static final ArchRule interfacesMustNotDependOnInfrastructure = noClasses()
             .that().resideInAPackage("com.vmarcante.time_tracker.core.interfaces..")
             .should().dependOnClassesThat()
-            .resideInAPackage("com.vmarcante.time_tracker.core.infraestructure..");
+            .resideInAPackage("com.vmarcante.time_tracker.core.infrastructure..");
 }

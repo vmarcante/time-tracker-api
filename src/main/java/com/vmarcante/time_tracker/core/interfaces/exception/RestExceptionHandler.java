@@ -16,7 +16,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import com.vmarcante.time_tracker.base.domain.exception.ApiErrorResponse;
 import com.vmarcante.time_tracker.base.domain.exception.BaseException;
-import com.vmarcante.time_tracker.base.domain.exception.InfraestructureException;
+import com.vmarcante.time_tracker.base.domain.exception.InfrastructureException;
 import com.vmarcante.time_tracker.base.domain.exception.RateLimitExceededException;
 import com.vmarcante.time_tracker.base.domain.exception.SecurityException;
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
@@ -36,7 +36,7 @@ public class RestExceptionHandler {
     private final TranslationService translationService;
     private final Environment environment;
     private final HttpStatus domainDefaultStatus = HttpStatus.UNPROCESSABLE_CONTENT;
-    private final HttpStatus infraestructureDefaultStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+    private final HttpStatus infrastructureDefaultStatus = HttpStatus.INTERNAL_SERVER_ERROR;
     private final HttpStatus applicationDefaultStatus = HttpStatus.BAD_REQUEST;
     private final HttpStatus securityDefaultStatus = HttpStatus.UNAUTHORIZED;
     private final HttpStatus voDefaultStatus = HttpStatus.BAD_REQUEST;
@@ -54,12 +54,12 @@ public class RestExceptionHandler {
         return buildErrorResponse(ex, domainDefaultStatus, request);
     }
 
-    @ExceptionHandler(InfraestructureException.class)
-    public ResponseEntity<ApiResponseDTO<ApiErrorResponse>> handleInfraestructureException(InfraestructureException ex,
+    @ExceptionHandler(InfrastructureException.class)
+    public ResponseEntity<ApiResponseDTO<ApiErrorResponse>> handleInfrastructureException(InfrastructureException ex,
             HttpServletRequest request) {
         String requestId = request.getHeader("X-Request-ID");
-        logException(ex, "Infraestructure", requestId);
-        return buildErrorResponse(ex, infraestructureDefaultStatus, request);
+        logException(ex, "Infrastructure", requestId);
+        return buildErrorResponse(ex, infrastructureDefaultStatus, request);
     }
 
     @ExceptionHandler(ApplicationException.class)
