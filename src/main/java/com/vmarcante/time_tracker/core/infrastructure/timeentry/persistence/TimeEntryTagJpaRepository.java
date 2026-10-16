@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 
-public interface TimeEntryTagJpaRepository extends JpaRepository<TimeEntryTagJpaEntity, UUID> {
+public interface TimeEntryTagJpaRepository extends BaseJpaRepository<TimeEntryTagJpaEntity, UUID, Integer> {
 
     List<TimeEntryTagJpaEntity> findByEntryIdAndActiveTrue(UUID entryId);
 

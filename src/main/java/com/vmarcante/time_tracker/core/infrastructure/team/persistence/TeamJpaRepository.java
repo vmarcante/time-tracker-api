@@ -5,9 +5,9 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 
-public interface TeamJpaRepository extends JpaRepository<TeamJpaEntity, UUID> {
+public interface TeamJpaRepository extends BaseJpaRepository<TeamJpaEntity, UUID, Integer> {
 
     List<TeamJpaEntity> findByCompanyIdAndActiveTrue(UUID companyId);
 

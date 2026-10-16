@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 
-public interface CompanyJpaRepository extends JpaRepository<CompanyJpaEntity, UUID> {
+public interface CompanyJpaRepository extends BaseJpaRepository<CompanyJpaEntity, UUID, Integer> {
 
     Optional<CompanyJpaEntity> findByDocument(String document);
 

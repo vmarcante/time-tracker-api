@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.infrastructure.system.config.persistence
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntity;
 import com.vmarcante.time_tracker.core.domain.system.config.enums.SystemConfigValueType;
 
 import jakarta.persistence.Column;
@@ -26,7 +26,7 @@ import lombok.Data;
         @Index(name = "IX0016_ACTIVE", columnList = "C0016_ACTIVE")
 })
 @Data
-public class SystemConfigJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class SystemConfigJpaEntity implements BaseActiveEntity<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

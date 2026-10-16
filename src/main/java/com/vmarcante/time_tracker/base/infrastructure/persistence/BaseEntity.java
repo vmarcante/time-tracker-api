@@ -7,7 +7,7 @@ import jakarta.persistence.PreUpdate;
 
 // ID -> ID
 // SID -> Sequential ID
-public interface BaseEntityInterface<ID, SID> {
+public interface BaseEntity<ID, SID> {
 
     public ID getId();
 

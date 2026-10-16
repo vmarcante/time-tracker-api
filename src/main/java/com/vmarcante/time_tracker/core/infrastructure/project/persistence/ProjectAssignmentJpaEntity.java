@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.infrastructure.project.persistence;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,7 +17,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "TB0012_USER_PROJECT", schema = "dbo", indexes = {
+@Table(name = "TB0012_PROJECT_ASSIGNMENT", schema = "dbo", indexes = {
         @Index(name = "IX0012_SQ_ID", columnList = "C0012_SQ_ID", unique = true),
         @Index(name = "IX0012_USER_ID", columnList = "C0012_USER_ID"),
         @Index(name = "IX0012_PROJECT_ID", columnList = "C0012_PROJECT_ID"),
@@ -26,7 +26,7 @@ import lombok.Data;
         @Index(name = "IX0012_CREATED_AT", columnList = "C0012_CREATED_AT")
 })
 @Data
-public class ProjectAssignmentJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class ProjectAssignmentJpaEntity implements BaseActiveEntity<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

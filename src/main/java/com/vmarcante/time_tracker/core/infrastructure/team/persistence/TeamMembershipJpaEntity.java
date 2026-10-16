@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.infrastructure.team.persistence;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntity;
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 
 import jakarta.persistence.Column;
@@ -20,7 +20,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 
 @Entity
-@Table(name = "TB0010_USER_TEAM", schema = "dbo", indexes = {
+@Table(name = "TB0010_TEAM_MEMBERSHIP", schema = "dbo", indexes = {
         @Index(name = "IX0010_SQ_ID", columnList = "C0010_SQ_ID", unique = true),
         @Index(name = "IX0010_USER_ID", columnList = "C0010_USER_ID"),
         @Index(name = "IX0010_TEAM_ID", columnList = "C0010_TEAM_ID"),
@@ -29,7 +29,7 @@ import lombok.Data;
         @Index(name = "IX0010_CREATED_AT", columnList = "C0010_CREATED_AT")
 })
 @Data
-public class TeamMembershipJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class TeamMembershipJpaEntity implements BaseActiveEntity<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

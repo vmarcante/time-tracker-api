@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.infrastructure.person.persistence;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseAuthEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseAuditedEntity;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.annotation.EncryptedSearchable;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.converter.EncryptedStringConverter;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.listener.EncryptedSearchableHashListener;
@@ -32,7 +32,7 @@ import lombok.Data;
         @Index(name = "IX0001_CREATED_AT", columnList = "C0001_CREATED_AT")
 })
 @Data
-public class PersonJpaEntity implements BaseAuthEntityInterface<UUID, Integer> {
+public class PersonJpaEntity implements BaseAuditedEntity<UUID, Integer> {
 
     // Basic Fields
     @Id

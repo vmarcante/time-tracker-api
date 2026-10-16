@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.infrastructure.user.session.persistence;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseAuthEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseAuditedEntity;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.converter.EncryptedStringConverter;
 
 import jakarta.persistence.Column;
@@ -27,7 +27,7 @@ import lombok.Data;
         @Index(name = "IX0004_EXPIRY", columnList = "C0004_REFRESH_TOKEN_EXPIRY")
 })
 @Data
-public class UserSessionJpaEntity implements BaseAuthEntityInterface<UUID, Integer> {
+public class UserSessionJpaEntity implements BaseAuditedEntity<UUID, Integer> {
 
     // Basic Fields
     @Id

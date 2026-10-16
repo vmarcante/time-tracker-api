@@ -1,6 +1,6 @@
 package com.vmarcante.time_tracker.base.infrastructure.persistence;
 
-public interface BaseActiveEntityInterface<ID, SID> extends BaseEntityInterface<ID, SID> {
+public interface BaseActiveEntity<ID, SID> extends BaseEntity<ID, SID> {
 
     public Boolean getActive();
 

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntity;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.annotation.EncryptedSearchable;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.converter.EncryptedStringConverter;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.listener.EncryptedSearchableHashListener;
@@ -37,7 +37,7 @@ import jakarta.persistence.Table;
         @Index(name = "IX0002_CREATED_AT", columnList = "C0002_CREATED_AT")
 })
 @Data
-public class UserAuthJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class UserAuthJpaEntity implements BaseActiveEntity<UUID, Integer> {
 
     // Basic Fields
     @Id

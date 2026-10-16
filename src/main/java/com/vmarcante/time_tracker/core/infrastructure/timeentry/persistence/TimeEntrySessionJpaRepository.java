@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TimeEntrySessionJpaRepository extends JpaRepository<TimeEntrySessionJpaEntity, UUID> {
+public interface TimeEntrySessionJpaRepository extends BaseJpaRepository<TimeEntrySessionJpaEntity, UUID, Integer> {
 
     Optional<TimeEntrySessionJpaEntity> findByIdAndActiveTrue(UUID id);
 

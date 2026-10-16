@@ -6,13 +6,13 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 
-public interface CompanyMembershipJpaRepository extends JpaRepository<CompanyMembershipJpaEntity, UUID> {
+public interface CompanyMembershipJpaRepository extends BaseJpaRepository<CompanyMembershipJpaEntity, UUID, Integer> {
 
     Optional<CompanyMembershipJpaEntity> findByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(
             UUID userId, UUID companyId);

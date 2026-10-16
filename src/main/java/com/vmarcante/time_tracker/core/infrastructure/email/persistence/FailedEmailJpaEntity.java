@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.infrastructure.email.persistence;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseEntity;
 import com.vmarcante.time_tracker.base.infrastructure.persistence.converter.EncryptedStringConverter;
 
 import jakarta.persistence.Column;
@@ -25,7 +25,7 @@ import lombok.Data;
         @Index(name = "IX0003_RETRY_COUNT", columnList = "C0003_RETRY_COUNT")
 })
 @Data
-public class FailedEmailJpaEntity implements BaseEntityInterface<UUID, Integer> {
+public class FailedEmailJpaEntity implements BaseEntity<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

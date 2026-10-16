@@ -4,10 +4,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface TagJpaRepository extends JpaRepository<TagJpaEntity, UUID> {
+public interface TagJpaRepository extends BaseJpaRepository<TagJpaEntity, UUID, Integer> {
 
     Optional<TagJpaEntity> findByIdAndActiveTrue(UUID id);
 

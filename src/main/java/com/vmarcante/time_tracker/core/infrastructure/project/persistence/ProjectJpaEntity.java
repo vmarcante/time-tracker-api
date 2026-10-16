@@ -4,7 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntityInterface;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseActiveEntity;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 
 import jakarta.persistence.Column;
@@ -31,7 +31,7 @@ import lombok.Data;
         @Index(name = "IX0007_CREATED_AT", columnList = "C0007_CREATED_AT")
 })
 @Data
-public class ProjectJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class ProjectJpaEntity implements BaseActiveEntity<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

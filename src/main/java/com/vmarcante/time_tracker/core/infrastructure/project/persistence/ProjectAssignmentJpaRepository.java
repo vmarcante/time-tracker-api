@@ -6,12 +6,12 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import com.vmarcante.time_tracker.base.infrastructure.persistence.BaseJpaRepository;
 
-public interface ProjectAssignmentJpaRepository extends JpaRepository<ProjectAssignmentJpaEntity, UUID> {
+public interface ProjectAssignmentJpaRepository extends BaseJpaRepository<ProjectAssignmentJpaEntity, UUID, Integer> {
 
     boolean existsByUserIdAndProjectIdAndTeamIdAndActiveTrue(UUID userId, UUID projectId, UUID teamId);
 
