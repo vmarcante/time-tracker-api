@@ -26,11 +26,17 @@ public interface TimeEntryRepository {
 
     List<UUID> findDistinctProjectIdsByUserId(UUID userId);
 
-    Page<TimeEntry> findActiveByCompanyId(UUID companyId, UUID userId, UUID projectId,
-            LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<TimeEntry> findActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
+            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable);
 
-    Page<TimeEntry> findActiveLeadScope(UUID companyId, UUID leadUserId, UUID userId, UUID projectId,
-            LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<TimeEntry> findActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds, UUID projectId,
+            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable);
+
+    List<TimeEntry> findAllActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
+            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to);
+
+    List<TimeEntry> findAllActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds, UUID projectId,
+            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to);
 
     boolean canLeadViewEntry(UUID entryId, UUID leadUserId);
 

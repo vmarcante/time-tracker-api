@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -40,8 +41,9 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
     }
 
     @Override
-    public Page<TimeEntrySummaryOutputDTO> execute(UUID companyId, UUID userId, UUID projectId,
-            LocalDateTime from, LocalDateTime to, Pageable pageable) throws ApplicationException {
+    public Page<TimeEntrySummaryOutputDTO> execute(UUID companyId, List<UUID> userIds, UUID projectId,
+            List<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -54,9 +56,11 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
 
         Page<TimeEntry> entries;
         if (membership.getRole().canManage(CompanyRole.MEMBER)) {
-            entries = timeEntryRepository.findActiveByCompanyId(companyId, userId, projectId, from, to, pageable);
+            entries = timeEntryRepository.findActiveByCompanyId(companyId, userIds, projectId, teamIds, from, to,
+                    pageable);
         } else {
-            entries = timeEntryRepository.findActiveLeadScope(companyId, actorId, userId, projectId, from, to, pageable);
+            entries = timeEntryRepository.findActiveLeadScope(companyId, actorId, userIds, projectId, teamIds, from,
+                    to, pageable);
         }
 
         return assembler.toSummaryPage(entries);

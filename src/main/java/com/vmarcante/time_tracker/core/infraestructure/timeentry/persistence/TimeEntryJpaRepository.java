@@ -29,6 +29,15 @@ public interface TimeEntryJpaRepository extends JpaRepository<TimeEntryJpaEntity
             + "AND member.approved = true AND member.active = true "
             + "AND pt.teamId = lead.teamId AND pt.projectId = e.projectId AND pt.active = true)";
 
+    String ENTITY_FILTER = "("
+            + "(:#{#userIds == null || #userIds.isEmpty()} = true "
+            + "AND :#{#teamIds == null || #teamIds.isEmpty()} = true) "
+            + "OR (:#{#userIds == null || #userIds.isEmpty()} = false AND e.userId IN :userIds) "
+            + "OR (:#{#teamIds == null || #teamIds.isEmpty()} = false AND EXISTS ("
+            + "SELECT 1 FROM UserTeamJpaEntity tm "
+            + "WHERE tm.teamId IN :teamIds AND tm.userId = e.userId "
+            + "AND tm.approved = true AND tm.active = true)))";
+
     String RECENT_FIRST_ORDER = " ORDER BY COALESCE(("
             + "SELECT MAX(s.startTime) FROM TimeEntrySessionJpaEntity s "
             + "WHERE s.entryId = e.id AND s.active = true), e.createdAt) DESC, e.seqId DESC";
@@ -52,20 +61,39 @@ public interface TimeEntryJpaRepository extends JpaRepository<TimeEntryJpaEntity
     List<UUID> findDistinctProjectIdsByUserId(@Param("userId") UUID userId);
 
     @Query("SELECT e FROM TimeEntryJpaEntity e WHERE e.active = true AND e.companyId = :companyId "
-            + "AND (:userId IS NULL OR e.userId = :userId) "
+            + "AND " + ENTITY_FILTER + " "
             + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER
             + RECENT_FIRST_ORDER)
     Page<TimeEntryJpaEntity> findActiveByCompanyId(@Param("companyId") UUID companyId,
-            @Param("userId") UUID userId, @Param("projectId") UUID projectId,
+            @Param("userIds") Collection<UUID> userIds, @Param("projectId") UUID projectId,
+            @Param("teamIds") Collection<UUID> teamIds,
             @Param("from") LocalDateTime from, @Param("to") LocalDateTime to, Pageable pageable);
 
     @Query("SELECT e FROM TimeEntryJpaEntity e WHERE e.active = true AND e.companyId = :companyId "
-            + "AND (:userId IS NULL OR e.userId = :userId) "
+            + "AND " + ENTITY_FILTER + " "
             + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER
             + " AND (e.userId = :leadId OR " + LEAD_SCOPE + ")" + RECENT_FIRST_ORDER)
     Page<TimeEntryJpaEntity> findActiveLeadScope(@Param("companyId") UUID companyId,
-            @Param("leadId") UUID leadId, @Param("userId") UUID userId, @Param("projectId") UUID projectId,
+            @Param("leadId") UUID leadId, @Param("userIds") Collection<UUID> userIds,
+            @Param("projectId") UUID projectId, @Param("teamIds") Collection<UUID> teamIds,
             @Param("from") LocalDateTime from, @Param("to") LocalDateTime to, Pageable pageable);
+
+    @Query("SELECT e FROM TimeEntryJpaEntity e WHERE e.active = true AND e.companyId = :companyId "
+            + "AND " + ENTITY_FILTER + " "
+            + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER)
+    List<TimeEntryJpaEntity> findAllActiveByCompanyId(@Param("companyId") UUID companyId,
+            @Param("userIds") Collection<UUID> userIds, @Param("projectId") UUID projectId,
+            @Param("teamIds") Collection<UUID> teamIds,
+            @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
+
+    @Query("SELECT e FROM TimeEntryJpaEntity e WHERE e.active = true AND e.companyId = :companyId "
+            + "AND " + ENTITY_FILTER + " "
+            + "AND (:projectId IS NULL OR e.projectId = :projectId) AND " + RANGE_FILTER
+            + " AND (e.userId = :leadId OR " + LEAD_SCOPE + ")")
+    List<TimeEntryJpaEntity> findAllActiveLeadScope(@Param("companyId") UUID companyId,
+            @Param("leadId") UUID leadId, @Param("userIds") Collection<UUID> userIds,
+            @Param("projectId") UUID projectId, @Param("teamIds") Collection<UUID> teamIds,
+            @Param("from") LocalDateTime from, @Param("to") LocalDateTime to);
 
     @Query("SELECT COUNT(e) > 0 FROM TimeEntryJpaEntity e WHERE e.id = :entryId AND e.active = true AND " + LEAD_SCOPE)
     boolean canLeadViewEntry(@Param("entryId") UUID entryId, @Param("leadId") UUID leadId);

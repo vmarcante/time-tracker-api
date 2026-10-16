@@ -63,17 +63,34 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
     }
 
     @Override
-    public Page<TimeEntry> findActiveByCompanyId(UUID companyId, UUID userId, UUID projectId,
-            LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return timeEntryJpaRepository.findActiveByCompanyId(companyId, userId, projectId, from, to, pageable)
+    public Page<TimeEntry> findActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
+            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable) {
+        return timeEntryJpaRepository
+                .findActiveByCompanyId(companyId, userIds, projectId, teamIds, from, to, pageable)
                 .map(TimeEntryPersistenceMapper::toDomain);
     }
 
     @Override
-    public Page<TimeEntry> findActiveLeadScope(UUID companyId, UUID leadUserId, UUID userId, UUID projectId,
-            LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return timeEntryJpaRepository.findActiveLeadScope(companyId, leadUserId, userId, projectId, from, to, pageable)
+    public Page<TimeEntry> findActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds,
+            UUID projectId, Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable) {
+        return timeEntryJpaRepository
+                .findActiveLeadScope(companyId, leadUserId, userIds, projectId, teamIds, from, to, pageable)
                 .map(TimeEntryPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<TimeEntry> findAllActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
+            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to) {
+        return timeEntryJpaRepository.findAllActiveByCompanyId(companyId, userIds, projectId, teamIds, from, to)
+                .stream().map(TimeEntryPersistenceMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<TimeEntry> findAllActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds,
+            UUID projectId, Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to) {
+        return timeEntryJpaRepository
+                .findAllActiveLeadScope(companyId, leadUserId, userIds, projectId, teamIds, from, to)
+                .stream().map(TimeEntryPersistenceMapper::toDomain).toList();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.interfaces.timeentry.controllers;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -16,8 +17,10 @@ import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.timeentry.dto.output.CompanyTimeEntryStatsOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntrySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.in.ListCompanyTimeEntriesUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.in.ListCompanyTimeEntryStatsUseCase;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
@@ -30,9 +33,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class CompanyTimeEntryController extends BaseResponseController {
 
     private final ListCompanyTimeEntriesUseCase listCompanyTimeEntriesUseCase;
+    private final ListCompanyTimeEntryStatsUseCase listCompanyTimeEntryStatsUseCase;
 
-    public CompanyTimeEntryController(ListCompanyTimeEntriesUseCase listCompanyTimeEntriesUseCase) {
+    public CompanyTimeEntryController(ListCompanyTimeEntriesUseCase listCompanyTimeEntriesUseCase,
+            ListCompanyTimeEntryStatsUseCase listCompanyTimeEntryStatsUseCase) {
         this.listCompanyTimeEntriesUseCase = listCompanyTimeEntriesUseCase;
+        this.listCompanyTimeEntryStatsUseCase = listCompanyTimeEntryStatsUseCase;
     }
 
     @AuthSecure
@@ -41,14 +47,30 @@ public class CompanyTimeEntryController extends BaseResponseController {
             description = "Lists entries visible to the actor: all for managers, own + led-team scope for members")
     public ResponseEntity<ApiResponseDTO<PageWrapperDTO<TimeEntrySummaryOutputDTO>>> list(
             @PathVariable UUID companyId,
-            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) List<UUID> userIds,
             @RequestParam(required = false) UUID projectId,
+            @RequestParam(required = false) List<UUID> teamIds,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) throws ApplicationException {
         Pageable pageable = PageableUtils.pageable(page, size, null);
         return ok(PageWrapperDTO.of(
-                listCompanyTimeEntriesUseCase.execute(companyId, userId, projectId, from, to, pageable)));
+                listCompanyTimeEntriesUseCase.execute(companyId, userIds, projectId, teamIds, from, to, pageable)));
+    }
+
+    @AuthSecure
+    @GetMapping("/stats")
+    @Operation(summary = "Company time entry statistics",
+            description = "Aggregated stats (totals, per member, per project, per day) within the actor's visibility scope")
+    public ResponseEntity<ApiResponseDTO<CompanyTimeEntryStatsOutputDTO>> stats(
+            @PathVariable UUID companyId,
+            @RequestParam(required = false) List<UUID> userIds,
+            @RequestParam(required = false) UUID projectId,
+            @RequestParam(required = false) List<UUID> teamIds,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to)
+            throws ApplicationException {
+        return ok(listCompanyTimeEntryStatsUseCase.execute(companyId, userIds, projectId, teamIds, from, to));
     }
 }
