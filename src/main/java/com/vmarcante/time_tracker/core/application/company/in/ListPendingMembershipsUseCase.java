@@ -2,13 +2,13 @@ package com.vmarcante.time_tracker.core.application.company.in;
 
 import java.util.UUID;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 
 public interface ListPendingMembershipsUseCase {
 
-    Page<CompanyMemberOutputDTO> execute(UUID companyId, Pageable pageable) throws ApplicationException;
+    PageWrapperDTO<CompanyMemberOutputDTO> execute(UUID companyId, MembershipFilterInputDTO filter)
+            throws ApplicationException;
 }

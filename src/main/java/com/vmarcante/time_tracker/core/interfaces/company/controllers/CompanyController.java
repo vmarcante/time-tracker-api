@@ -2,7 +2,6 @@ package com.vmarcante.time_tracker.core.interfaces.company.controllers;
 
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,11 +10,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.CompanyFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.company.dto.input.CreateCompanyInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.input.UpdateCompanyInputDTO;
@@ -33,7 +32,6 @@ import com.vmarcante.time_tracker.core.application.company.orchestrator.CompanyM
 import com.vmarcante.time_tracker.core.application.company.orchestrator.CompanyOverviewOrchestrator;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
-import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -80,10 +78,8 @@ public class CompanyController extends BaseResponseController {
     @GetMapping("/me")
     @Operation(summary = "My companies", description = "Returns all active companies the authenticated user belongs to")
     public ResponseEntity<ApiResponseDTO<PageWrapperDTO<CompanySummaryOutputDTO>>> myCompanies(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) throws ApplicationException {
-        Pageable pageable = PageableUtils.pageable(page, size, null);
-        return ok(PageWrapperDTO.of(findUserCompaniesUseCase.execute(pageable)));
+            CompanyFilterInputDTO filter) throws ApplicationException {
+        return ok(findUserCompaniesUseCase.execute(filter));
     }
 
     @AuthSecure

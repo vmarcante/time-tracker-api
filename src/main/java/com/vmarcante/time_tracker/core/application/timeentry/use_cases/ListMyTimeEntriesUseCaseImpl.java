@@ -1,7 +1,5 @@
 package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -9,13 +7,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.assembler.TimeEntryDetailAssembler;
+import com.vmarcante.time_tracker.core.application.timeentry.dto.input.MyTimeEntriesFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntrySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTimeEntriesUseCase;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListMyTimeEntriesUseCaseImpl implements ListMyTimeEntriesUseCase {
@@ -34,16 +36,19 @@ public class ListMyTimeEntriesUseCaseImpl implements ListMyTimeEntriesUseCase {
     }
 
     @Override
-    public Page<TimeEntrySummaryOutputDTO> execute(UUID projectId, List<UUID> tagIds, LocalDateTime from,
-            LocalDateTime to, Pageable pageable) throws ApplicationException {
+    public PageWrapperDTO<TimeEntrySummaryOutputDTO> execute(MyTimeEntriesFilterInputDTO input)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
-        Page<TimeEntry> entries = timeEntryRepository.findActiveByUserId(
-                currentUserId.get(), projectId, tagIds, from, to, pageable);
+        TimeEntryFilter filter = input.toDomainFilter();
+        filter.setUserId(currentUserId.get());
+        Pageable pageable = PageableUtils.unsortedPageable(input.getPageNumber(), input.getPageSize());
 
-        return assembler.toSummaryPage(entries);
+        Page<TimeEntry> entries = timeEntryRepository.search(filter, pageable);
+
+        return PageWrapperDTO.of(assembler.toSummaryPage(entries));
     }
 }

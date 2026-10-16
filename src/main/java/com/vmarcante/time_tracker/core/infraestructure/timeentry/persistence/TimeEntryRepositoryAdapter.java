@@ -1,6 +1,5 @@
 package com.vmarcante.time_tracker.core.infraestructure.timeentry.persistence;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -13,10 +12,12 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.infraestructure.timeentry.mapper.TimeEntryPersistenceMapper;
 
@@ -51,46 +52,24 @@ public class TimeEntryRepositoryAdapter implements TimeEntryRepository {
     }
 
     @Override
-    public Page<TimeEntry> findActiveByUserId(UUID userId, UUID projectId, Collection<UUID> tagIds,
-            LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return timeEntryJpaRepository.findActiveByUserId(userId, projectId, tagIds, from, to, pageable)
+    public Page<TimeEntry> search(TimeEntryFilter filter, Pageable pageable) {
+        Specification<TimeEntryJpaEntity> specification = TimeEntryRepositorySpecification.withFilter(filter)
+                .and(TimeEntryRepositorySpecification.recentFirst());
+        return timeEntryJpaRepository.findAll(specification, pageable)
                 .map(TimeEntryPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public List<TimeEntry> search(TimeEntryFilter filter) {
+        Specification<TimeEntryJpaEntity> specification = TimeEntryRepositorySpecification.withFilter(filter)
+                .and(TimeEntryRepositorySpecification.recentFirst());
+        return timeEntryJpaRepository.findAll(specification)
+                .stream().map(TimeEntryPersistenceMapper::toDomain).toList();
     }
 
     @Override
     public List<UUID> findDistinctProjectIdsByUserId(UUID userId) {
         return timeEntryJpaRepository.findDistinctProjectIdsByUserId(userId);
-    }
-
-    @Override
-    public Page<TimeEntry> findActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
-            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return timeEntryJpaRepository
-                .findActiveByCompanyId(companyId, userIds, projectId, teamIds, from, to, pageable)
-                .map(TimeEntryPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public Page<TimeEntry> findActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds,
-            UUID projectId, Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable) {
-        return timeEntryJpaRepository
-                .findActiveLeadScope(companyId, leadUserId, userIds, projectId, teamIds, from, to, pageable)
-                .map(TimeEntryPersistenceMapper::toDomain);
-    }
-
-    @Override
-    public List<TimeEntry> findAllActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
-            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to) {
-        return timeEntryJpaRepository.findAllActiveByCompanyId(companyId, userIds, projectId, teamIds, from, to)
-                .stream().map(TimeEntryPersistenceMapper::toDomain).toList();
-    }
-
-    @Override
-    public List<TimeEntry> findAllActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds,
-            UUID projectId, Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to) {
-        return timeEntryJpaRepository
-                .findAllActiveLeadScope(companyId, leadUserId, userIds, projectId, teamIds, from, to)
-                .stream().map(TimeEntryPersistenceMapper::toDomain).toList();
     }
 
     @Override

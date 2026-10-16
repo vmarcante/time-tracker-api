@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.ListPendingMembershipsUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -20,6 +22,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListPendingMembershipsUseCaseImpl implements ListPendingMembershipsUseCase {
@@ -38,7 +41,7 @@ public class ListPendingMembershipsUseCaseImpl implements ListPendingMemberships
     }
 
     @Override
-    public Page<CompanyMemberOutputDTO> execute(UUID companyId, Pageable pageable)
+    public PageWrapperDTO<CompanyMemberOutputDTO> execute(UUID companyId, MembershipFilterInputDTO filter)
             throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
@@ -52,11 +55,12 @@ public class ListPendingMembershipsUseCaseImpl implements ListPendingMemberships
             throw new ApplicationException("company.permission.denied", null, HttpStatus.FORBIDDEN);
         }
 
+        Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
         Page<CompanyMembership> pending = membershipRepository
                 .findPendingMembershipsByCompanyId(companyId, pageable);
 
         if (pending.isEmpty()) {
-            return pending.map(m -> CompanyMemberOutputDTO.from(m, null, null));
+            return PageWrapperDTO.of(pending.map(m -> CompanyMemberOutputDTO.from(m, null, null)));
         }
 
         List<UUID> userIds = pending.getContent().stream()
@@ -67,10 +71,10 @@ public class ListPendingMembershipsUseCaseImpl implements ListPendingMemberships
         Map<UUID, Person> members = personRepository.findAllByIds(userIds).stream()
                 .collect(Collectors.toMap(p -> p.getId(), p -> p));
 
-        return pending.map(membership -> CompanyMemberOutputDTO.fromPerson(
+        return PageWrapperDTO.of(pending.map(membership -> CompanyMemberOutputDTO.fromPerson(
                 membership,
                 members.get(membership.getUserId()),
                 null,
-                null));
+                null)));
     }
 }

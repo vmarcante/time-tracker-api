@@ -14,12 +14,16 @@ import com.vmarcante.time_tracker.core.application.timeentry.assembler.TimeEntry
 import com.vmarcante.time_tracker.core.application.timeentry.dto.input.StartTimerInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntryDetailOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.in.StartTimerUseCase;
+import java.util.List;
+
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.repository.TagRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -39,6 +43,7 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
     private final TimeEntrySessionRepository sessionRepository;
     private final ProjectRepository projectRepository;
     private final ProjectAssignmentRepository projectAssignmentRepository;
+    private final TagRepository tagRepository;
     private final TimeEntryDetailAssembler assembler;
     private final SecurityContextPort securityContext;
 
@@ -47,12 +52,14 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
             TimeEntrySessionRepository sessionRepository,
             ProjectRepository projectRepository,
             ProjectAssignmentRepository projectAssignmentRepository,
+            TagRepository tagRepository,
             TimeEntryDetailAssembler assembler,
             SecurityContextPort securityContext) {
         this.timeEntryRepository = timeEntryRepository;
         this.sessionRepository = sessionRepository;
         this.projectRepository = projectRepository;
         this.projectAssignmentRepository = projectAssignmentRepository;
+        this.tagRepository = tagRepository;
         this.assembler = assembler;
         this.securityContext = securityContext;
     }
@@ -121,6 +128,12 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
                 ? resolveDefaultEntryName()
                 : input.name().trim();
 
+        List<UUID> tagIds = input.tagIds() == null ? List.of() : input.tagIds();
+        List<Tag> tags = tagRepository.findActiveByIdsAndUserId(tagIds, userId);
+        if (tags.size() != tagIds.size()) {
+            throw new ApplicationException("timeentry.tag.not.found", null, HttpStatus.NOT_FOUND);
+        }
+
         TimeEntry entry = new TimeEntry();
         entry.setUserId(userId);
         entry.setCompanyId(companyId);
@@ -131,7 +144,9 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
         entry.setCreatedBy(userId);
         entry.setUpdatedBy(userId);
 
-        return timeEntryRepository.save(entry);
+        TimeEntry saved = timeEntryRepository.save(entry);
+        timeEntryRepository.replaceTags(saved.getId(), tagIds, userId);
+        return saved;
     }
 
     private String resolveDefaultEntryName() {

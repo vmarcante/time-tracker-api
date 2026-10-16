@@ -1,6 +1,5 @@
 package com.vmarcante.time_tracker.core.domain.timeentry.repository;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 
 import com.vmarcante.time_tracker.core.domain.timeentry.model.Tag;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 
 public interface TimeEntryRepository {
 
@@ -21,22 +21,11 @@ public interface TimeEntryRepository {
 
     boolean existsActiveByIdAndUserId(UUID entryId, UUID userId);
 
-    Page<TimeEntry> findActiveByUserId(UUID userId, UUID projectId, Collection<UUID> tagIds,
-            LocalDateTime from, LocalDateTime to, Pageable pageable);
+    Page<TimeEntry> search(TimeEntryFilter filter, Pageable pageable);
+
+    List<TimeEntry> search(TimeEntryFilter filter);
 
     List<UUID> findDistinctProjectIdsByUserId(UUID userId);
-
-    Page<TimeEntry> findActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
-            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable);
-
-    Page<TimeEntry> findActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds, UUID projectId,
-            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable);
-
-    List<TimeEntry> findAllActiveByCompanyId(UUID companyId, Collection<UUID> userIds, UUID projectId,
-            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to);
-
-    List<TimeEntry> findAllActiveLeadScope(UUID companyId, UUID leadUserId, Collection<UUID> userIds, UUID projectId,
-            Collection<UUID> teamIds, LocalDateTime from, LocalDateTime to);
 
     boolean canLeadViewEntry(UUID entryId, UUID leadUserId);
 

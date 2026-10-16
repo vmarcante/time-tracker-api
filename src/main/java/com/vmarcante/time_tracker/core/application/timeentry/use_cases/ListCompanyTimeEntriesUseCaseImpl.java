@@ -1,25 +1,27 @@
 package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.http.HttpStatus;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.assembler.TimeEntryDetailAssembler;
+import com.vmarcante.time_tracker.core.application.timeentry.dto.input.CompanyTimeEntriesFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntrySummaryOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.in.ListCompanyTimeEntriesUseCase;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntriesUseCase {
@@ -41,8 +43,7 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
     }
 
     @Override
-    public Page<TimeEntrySummaryOutputDTO> execute(UUID companyId, List<UUID> userIds, UUID projectId,
-            List<UUID> teamIds, LocalDateTime from, LocalDateTime to, Pageable pageable)
+    public PageWrapperDTO<TimeEntrySummaryOutputDTO> execute(UUID companyId, CompanyTimeEntriesFilterInputDTO input)
             throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
@@ -54,15 +55,15 @@ public class ListCompanyTimeEntriesUseCaseImpl implements ListCompanyTimeEntries
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
-        Page<TimeEntry> entries;
-        if (membership.getRole().canManage(CompanyRole.MEMBER)) {
-            entries = timeEntryRepository.findActiveByCompanyId(companyId, userIds, projectId, teamIds, from, to,
-                    pageable);
-        } else {
-            entries = timeEntryRepository.findActiveLeadScope(companyId, actorId, userIds, projectId, teamIds, from,
-                    to, pageable);
+        TimeEntryFilter filter = input.toDomainFilter();
+        filter.setCompanyId(companyId);
+        if (!membership.getRole().canManage(CompanyRole.MEMBER)) {
+            filter.setLeadScopeUserId(actorId);
         }
+        Pageable pageable = PageableUtils.unsortedPageable(input.getPageNumber(), input.getPageSize());
 
-        return assembler.toSummaryPage(entries);
+        Page<TimeEntry> entries = timeEntryRepository.search(filter, pageable);
+
+        return PageWrapperDTO.of(assembler.toSummaryPage(entries));
     }
 }

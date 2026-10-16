@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.team.in.ListTeamMembersUseCase;
@@ -19,6 +21,7 @@ import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
@@ -43,8 +46,8 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
     }
 
     @Override
-    public Page<TeamMemberOutputDTO> execute(UUID companyId, UUID teamId, Pageable pageable)
-            throws ApplicationException {
+    public PageWrapperDTO<TeamMemberOutputDTO> execute(UUID companyId, UUID teamId,
+            MembershipFilterInputDTO filter) throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -58,11 +61,12 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
             throw new ApplicationException("team.not.found", null, HttpStatus.NOT_FOUND);
         }
 
+        Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
         Page<TeamMembership> members = teamMembershipRepository
                 .findApprovedMembershipsByTeamId(teamId, pageable);
 
         if (members.isEmpty()) {
-            return members.map(m -> TeamMemberOutputDTO.from(m, null));
+            return PageWrapperDTO.of(members.map(m -> TeamMemberOutputDTO.from(m, null)));
         }
 
         List<UUID> userIds = members.getContent().stream()
@@ -72,8 +76,8 @@ public class ListTeamMembersUseCaseImpl implements ListTeamMembersUseCase {
 
         Map<UUID, String> memberNames = personRepository.findNamesByIds(userIds);
 
-        return members.map(membership -> TeamMemberOutputDTO.from(
+        return PageWrapperDTO.of(members.map(membership -> TeamMemberOutputDTO.from(
                 membership,
-                memberNames.get(membership.getUserId())));
+                memberNames.get(membership.getUserId()))));
     }
 }

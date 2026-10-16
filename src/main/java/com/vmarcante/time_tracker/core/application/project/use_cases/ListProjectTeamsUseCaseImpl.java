@@ -10,8 +10,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.in.ListProjectTeamsUseCase;
+import com.vmarcante.time_tracker.core.application.team.dto.input.TeamFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamSummaryOutputDTO;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
@@ -20,6 +22,7 @@ import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.team.repository.TeamRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListProjectTeamsUseCaseImpl implements ListProjectTeamsUseCase {
@@ -47,7 +50,7 @@ public class ListProjectTeamsUseCaseImpl implements ListProjectTeamsUseCase {
     }
 
     @Override
-    public Page<TeamSummaryOutputDTO> execute(UUID companyId, UUID projectId, Pageable pageable)
+    public PageWrapperDTO<TeamSummaryOutputDTO> execute(UUID companyId, UUID projectId, TeamFilterInputDTO filter)
             throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
@@ -62,10 +65,11 @@ public class ListProjectTeamsUseCaseImpl implements ListProjectTeamsUseCase {
             throw new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND);
         }
 
+        Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
         Page<Team> teams = teamRepository.findActiveByProjectId(projectId, pageable);
 
         if (teams.isEmpty()) {
-            return teams.map(t -> TeamSummaryOutputDTO.from(t, null, 0));
+            return PageWrapperDTO.of(teams.map(t -> TeamSummaryOutputDTO.from(t, null, 0)));
         }
 
         List<UUID> teamIds = teams.getContent().stream().map(t -> t.getId()).toList();
@@ -74,11 +78,11 @@ public class ListProjectTeamsUseCaseImpl implements ListProjectTeamsUseCase {
         Map<UUID, UUID> leadUserIds = teamMembershipRepository.findLeadUserIdsByTeamIds(teamIds);
         Map<UUID, String> leadNames = personRepository.findNamesByIds(leadUserIds.values());
 
-        return teams.map(team -> {
+        return PageWrapperDTO.of(teams.map(team -> {
             UUID leadUserId = leadUserIds.get(team.getId());
             String leadName = leadUserId != null ? leadNames.get(leadUserId) : null;
             long memberCount = memberCounts.getOrDefault(team.getId(), 0L);
             return TeamSummaryOutputDTO.from(team, leadName, memberCount);
-        });
+        }));
     }
 }

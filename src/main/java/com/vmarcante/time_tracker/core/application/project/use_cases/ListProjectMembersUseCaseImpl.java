@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectAssignmentOutputDTO;
 import com.vmarcante.time_tracker.core.application.project.in.ListProjectMembersUseCase;
@@ -20,6 +22,7 @@ import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectAssignmentRepository;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase {
@@ -44,8 +47,8 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
     }
 
     @Override
-    public Page<ProjectAssignmentOutputDTO> execute(UUID companyId, UUID projectId, Pageable pageable)
-            throws ApplicationException {
+    public PageWrapperDTO<ProjectAssignmentOutputDTO> execute(UUID companyId, UUID projectId,
+            MembershipFilterInputDTO filter) throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -60,11 +63,12 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
                 .filter(p -> Boolean.TRUE.equals(p.getActive()))
                 .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
 
+        Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
         Page<ProjectAssignment> assignments = projectAssignmentRepository
                 .findActiveAssignmentsByProjectId(projectId, pageable);
 
         if (assignments.isEmpty()) {
-            return assignments.map(a -> ProjectAssignmentOutputDTO.from(a, null, project.getName()));
+            return PageWrapperDTO.of(assignments.map(a -> ProjectAssignmentOutputDTO.from(a, null, project.getName())));
         }
 
         List<UUID> userIds = assignments.getContent().stream()
@@ -73,7 +77,7 @@ public class ListProjectMembersUseCaseImpl implements ListProjectMembersUseCase 
                 .toList();
         Map<UUID, String> userNames = personRepository.findNamesByIds(userIds);
 
-        return assignments.map(a -> ProjectAssignmentOutputDTO.from(
-                a, userNames.get(a.getUserId()), project.getName()));
+        return PageWrapperDTO.of(assignments.map(a -> ProjectAssignmentOutputDTO.from(
+                a, userNames.get(a.getUserId()), project.getName())));
     }
 }

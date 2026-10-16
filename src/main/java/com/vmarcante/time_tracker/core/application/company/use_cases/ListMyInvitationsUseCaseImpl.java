@@ -9,6 +9,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyInvitationOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.ListMyInvitationsUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -16,6 +18,7 @@ import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
@@ -34,16 +37,18 @@ public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
     }
 
     @Override
-    public Page<CompanyInvitationOutputDTO> execute(Pageable pageable) throws ApplicationException {
+    public PageWrapperDTO<CompanyInvitationOutputDTO> execute(MembershipFilterInputDTO filter)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
         }
 
+        Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
         Page<CompanyMembership> invitations = membershipRepository.findPendingInvitationsByUserId(currentUserId.get(), pageable);
 
         if (invitations.isEmpty()) {
-            return invitations.map(m -> CompanyInvitationOutputDTO.from(m, null));
+            return PageWrapperDTO.of(invitations.map(m -> CompanyInvitationOutputDTO.from(m, null)));
         }
 
         List<UUID> companyIds = invitations.getContent().stream()
@@ -53,8 +58,8 @@ public class ListMyInvitationsUseCaseImpl implements ListMyInvitationsUseCase {
 
         Map<UUID, String> companyNames = companyRepository.findLegalNamesByIds(companyIds);
 
-        return invitations.map(membership -> CompanyInvitationOutputDTO.from(
+        return PageWrapperDTO.of(invitations.map(membership -> CompanyInvitationOutputDTO.from(
                 membership,
-                companyNames.get(membership.getCompanyId())));
+                companyNames.get(membership.getCompanyId()))));
     }
 }

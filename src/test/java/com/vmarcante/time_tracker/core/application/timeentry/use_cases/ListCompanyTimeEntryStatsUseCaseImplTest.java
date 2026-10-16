@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -20,6 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.timeentry.dto.input.CompanyTimeEntriesFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.CompanyTimeEntryStatsOutputDTO;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
@@ -29,6 +30,7 @@ import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -66,6 +68,13 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(ACTOR_ID));
     }
 
+    private CompanyTimeEntriesFilterInputDTO filter() {
+        CompanyTimeEntriesFilterInputDTO filter = new CompanyTimeEntriesFilterInputDTO();
+        filter.setFrom(FROM);
+        filter.setTo(TO);
+        return filter;
+    }
+
     private CompanyMembership membership(CompanyRole role) {
         CompanyMembership membership = new CompanyMembership();
         membership.setRole(role);
@@ -97,7 +106,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
                 .thenReturn(Optional.of(membership(CompanyRole.OWNER)));
 
         TimeEntry entry = entry(MEMBER_ID, PROJECT_ID);
-        when(timeEntryRepository.findAllActiveByCompanyId(eq(COMPANY_ID), any(), any(), any(), any(), any()))
+        when(timeEntryRepository.search(any(TimeEntryFilter.class)))
                 .thenReturn(List.of(entry));
 
         LocalDateTime start = LocalDateTime.of(2026, 10, 2, 22, 0);
@@ -113,7 +122,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
         when(projectRepository.findAllByIds(any())).thenReturn(List.of(project));
 
         // Act
-        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, null, null, null, FROM, TO);
+        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, filter());
 
         // Assert
         assertThat(result.totalSeconds()).isEqualTo(4 * 3600);
@@ -145,7 +154,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
                 .thenReturn(Optional.of(membership(CompanyRole.OWNER)));
 
         TimeEntry entry = entry(MEMBER_ID, PROJECT_ID);
-        when(timeEntryRepository.findAllActiveByCompanyId(eq(COMPANY_ID), any(), any(), any(), any(), any()))
+        when(timeEntryRepository.search(any(TimeEntryFilter.class)))
                 .thenReturn(List.of(entry));
 
         LocalDateTime start = LocalDateTime.of(2026, 10, 3, 20, 0);
@@ -156,7 +165,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
         when(projectRepository.findAllByIds(any())).thenReturn(List.of());
 
         // Act
-        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, null, null, null, FROM, TO);
+        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, filter());
 
         // Assert
         assertThat(result.runningCount()).isEqualTo(1);
@@ -173,19 +182,20 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
         when(membershipRepository.findMembership(ACTOR_ID, COMPANY_ID))
                 .thenReturn(Optional.of(membership(CompanyRole.MEMBER)));
 
-        when(timeEntryRepository.findAllActiveLeadScope(eq(COMPANY_ID), eq(ACTOR_ID), any(), any(), any(), any(), any()))
+        when(timeEntryRepository.search(any(TimeEntryFilter.class)))
                 .thenReturn(List.of());
         when(personRepository.findNamesByIds(any())).thenReturn(Map.of());
 
         // Act
-        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, null, null, null, FROM, TO);
+        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, filter());
 
         // Assert
         assertThat(result.totalSeconds()).isZero();
         assertThat(result.entryCount()).isZero();
         assertThat(result.days()).hasSize(3);
         verify(timeEntryRepository, times(2))
-                .findAllActiveLeadScope(eq(COMPANY_ID), eq(ACTOR_ID), any(), any(), any(), any(), any());
+                .search(argThat((TimeEntryFilter filter) -> COMPANY_ID.equals(filter.getCompanyId())
+                        && ACTOR_ID.equals(filter.getLeadScopeUserId())));
     }
 
     @Test
@@ -195,7 +205,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
                 .thenReturn(Optional.of(membership(CompanyRole.OWNER)));
 
         TimeEntry entry = entry(MEMBER_ID, null);
-        when(timeEntryRepository.findAllActiveByCompanyId(eq(COMPANY_ID), any(), any(), any(), any(), any()))
+        when(timeEntryRepository.search(any(TimeEntryFilter.class)))
                 .thenReturn(List.of(entry));
 
         LocalDateTime start = LocalDateTime.of(2026, 10, 2, 10, 0);
@@ -205,7 +215,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
         when(personRepository.findNamesByIds(any())).thenReturn(Map.of(MEMBER_ID, "Ana"));
 
         // Act
-        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, null, null, null, FROM, TO);
+        CompanyTimeEntryStatsOutputDTO result = useCase.execute(COMPANY_ID, filter());
 
         // Assert
         assertThat(result.totalSeconds()).isEqualTo(3600);
@@ -222,7 +232,7 @@ class ListCompanyTimeEntryStatsUseCaseImplTest {
                 .thenReturn(Optional.of(membership));
 
         // Act & Assert
-        assertThatThrownBy(() -> useCase.execute(COMPANY_ID, null, null, null, FROM, TO))
+        assertThatThrownBy(() -> useCase.execute(COMPANY_ID, filter()))
                 .isInstanceOf(ApplicationException.class);
     }
 }

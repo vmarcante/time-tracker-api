@@ -2,7 +2,6 @@ package com.vmarcante.time_tracker.core.interfaces.project.controllers;
 
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,11 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
+import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.input.CreateProjectInputDTO;
@@ -35,7 +35,6 @@ import com.vmarcante.time_tracker.core.application.project.in.ListProjectMembers
 import com.vmarcante.time_tracker.core.application.project.in.ReactivateProjectUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.UpdateProjectUseCase;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
-import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -93,10 +92,8 @@ public class ProjectController extends BaseResponseController {
     @Operation(summary = "List company projects", description = "Lists all active projects of the company")
     public ResponseEntity<ApiResponseDTO<PageWrapperDTO<ProjectSummaryOutputDTO>>> listProjects(
             @PathVariable UUID companyId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) throws ApplicationException {
-        Pageable pageable = PageableUtils.pageable(page, size, null);
-        return ok(PageWrapperDTO.of(listCompanyProjectsUseCase.execute(companyId, pageable)));
+            ProjectFilterInputDTO filter) throws ApplicationException {
+        return ok(listCompanyProjectsUseCase.execute(companyId, filter));
     }
 
     @AuthSecure
@@ -104,10 +101,8 @@ public class ProjectController extends BaseResponseController {
     @Operation(summary = "My projects", description = "Lists the projects assigned to the authenticated user in this company")
     public ResponseEntity<ApiResponseDTO<PageWrapperDTO<ProjectSummaryOutputDTO>>> myProjects(
             @PathVariable UUID companyId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) throws ApplicationException {
-        Pageable pageable = PageableUtils.pageable(page, size, null);
-        return ok(PageWrapperDTO.of(listMyProjectsUseCase.execute(companyId, pageable)));
+            ProjectFilterInputDTO filter) throws ApplicationException {
+        return ok(listMyProjectsUseCase.execute(companyId, filter));
     }
 
     @AuthSecure
@@ -172,9 +167,7 @@ public class ProjectController extends BaseResponseController {
     public ResponseEntity<ApiResponseDTO<PageWrapperDTO<ProjectAssignmentOutputDTO>>> listMembers(
             @PathVariable UUID companyId,
             @PathVariable UUID projectId,
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) throws ApplicationException {
-        Pageable pageable = PageableUtils.pageable(page, size, null);
-        return ok(PageWrapperDTO.of(listProjectMembersUseCase.execute(companyId, projectId, pageable)));
+            MembershipFilterInputDTO filter) throws ApplicationException {
+        return ok(listProjectMembersUseCase.execute(companyId, projectId, filter));
     }
 }

@@ -48,6 +48,10 @@ public class PageableUtils {
         return PageRequest.of(effectivePage, effectiveSize, effectiveSort);
     }
 
+    public static Pageable unsortedPageable(Integer pageNumber, Integer pageSize) {
+        return PageRequest.of(normalizePageNumber(pageNumber), normalizePageSize(pageSize));
+    }
+
     public static Pageable unpageable(SortType sort) {
         return unpageable(sort, DEFAULT_SORT_FIELD);
     }

@@ -3,6 +3,7 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -14,9 +15,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
@@ -39,7 +41,6 @@ class ListCompanyMembersUseCaseImplTest {
     private static final UUID ACTOR_ID = UUID.randomUUID();
     private static final UUID MEMBER_ID = UUID.randomUUID();
     private static final UUID APPROVER_ID = UUID.randomUUID();
-    private static final Pageable PAGEABLE = PageRequest.of(0, 10);
 
     @BeforeEach
     void setUp() {
@@ -79,16 +80,18 @@ class ListCompanyMembersUseCaseImplTest {
 
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(ACTOR_ID));
         when(membershipRepository.isMember(ACTOR_ID, COMPANY_ID)).thenReturn(true);
-        when(membershipRepository.findApprovedMembershipsByCompanyId(COMPANY_ID, PAGEABLE))
+        when(membershipRepository.findApprovedMembershipsByCompanyId(eq(COMPANY_ID), any(Pageable.class)))
                 .thenReturn(page);
         when(personRepository.findAllByIds(any())).thenReturn(List.of(member, approver));
 
         // Act
-        Page<CompanyMemberOutputDTO> result = useCase.execute(COMPANY_ID, PAGEABLE);
+        PageWrapperDTO<CompanyMemberOutputDTO> result = useCase.execute(COMPANY_ID, new MembershipFilterInputDTO());
 
         // Assert
-        assertThat(result.getContent()).hasSize(1);
-        CompanyMemberOutputDTO dto = result.getContent().get(0);
+        assertThat(result.content()).hasSize(1);
+        assertThat(result.pageNumber()).isEqualTo(1);
+        assertThat(result.totalElements()).isEqualTo(1);
+        CompanyMemberOutputDTO dto = result.content().get(0);
         assertThat(dto.userId()).isEqualTo(MEMBER_ID);
         assertThat(dto.name()).isEqualTo("Jane Doe");
         assertThat(dto.email()).isEqualTo("jane@example.com");
@@ -100,14 +103,15 @@ class ListCompanyMembersUseCaseImplTest {
         // Arrange
         when(securityContext.getCurrentUserId()).thenReturn(Optional.of(ACTOR_ID));
         when(membershipRepository.isMember(ACTOR_ID, COMPANY_ID)).thenReturn(true);
-        when(membershipRepository.findApprovedMembershipsByCompanyId(COMPANY_ID, PAGEABLE))
+        when(membershipRepository.findApprovedMembershipsByCompanyId(eq(COMPANY_ID), any(Pageable.class)))
                 .thenReturn(Page.empty());
 
         // Act
-        Page<CompanyMemberOutputDTO> result = useCase.execute(COMPANY_ID, PAGEABLE);
+        PageWrapperDTO<CompanyMemberOutputDTO> result = useCase.execute(COMPANY_ID, new MembershipFilterInputDTO());
 
         // Assert
-        assertThat(result.getContent()).isEmpty();
+        assertThat(result.content()).isEmpty();
+        assertThat(result.empty()).isTrue();
     }
 
     @Test
@@ -117,7 +121,7 @@ class ListCompanyMembersUseCaseImplTest {
         when(membershipRepository.isMember(ACTOR_ID, COMPANY_ID)).thenReturn(false);
 
         // Act + Assert
-        assertThatThrownBy(() -> useCase.execute(COMPANY_ID, PAGEABLE))
+        assertThatThrownBy(() -> useCase.execute(COMPANY_ID, new MembershipFilterInputDTO()))
                 .isInstanceOf(ApplicationException.class);
     }
 }

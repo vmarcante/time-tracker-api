@@ -2,7 +2,6 @@ package com.vmarcante.time_tracker.core.interfaces.project.controllers;
 
 import java.util.UUID;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,11 +10,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.input.CreateProjectInputDTO;
@@ -31,7 +30,6 @@ import com.vmarcante.time_tracker.core.application.project.in.ListPersonalProjec
 import com.vmarcante.time_tracker.core.application.project.in.UpdatePersonalProjectUseCase;
 import com.vmarcante.time_tracker.core.domain.project.enums.ProjectStatus;
 import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
-import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,10 +73,8 @@ public class PersonalProjectController extends BaseResponseController {
     @GetMapping
     @Operation(summary = "List my personal projects", description = "Lists active projects owned by the authenticated user")
     public ResponseEntity<ApiResponseDTO<PageWrapperDTO<ProjectSummaryOutputDTO>>> list(
-            @RequestParam(required = false) Integer page,
-            @RequestParam(required = false) Integer size) throws ApplicationException {
-        Pageable pageable = PageableUtils.pageable(page, size, null);
-        return ok(PageWrapperDTO.of(listPersonalProjectsUseCase.execute(pageable)));
+            ProjectFilterInputDTO filter) throws ApplicationException {
+        return ok(listPersonalProjectsUseCase.execute(filter));
     }
 
     @AuthSecure

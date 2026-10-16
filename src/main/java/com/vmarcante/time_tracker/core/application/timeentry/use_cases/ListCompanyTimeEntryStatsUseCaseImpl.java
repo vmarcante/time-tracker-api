@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.timeentry.dto.input.CompanyTimeEntriesFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.CompanyDayStatsOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.CompanyMemberStatsOutputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.CompanyProjectDayStatsOutputDTO;
@@ -34,6 +35,7 @@ import com.vmarcante.time_tracker.core.domain.project.model.Project;
 import com.vmarcante.time_tracker.core.domain.project.repository.ProjectRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
 import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
@@ -66,8 +68,8 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
     }
 
     @Override
-    public CompanyTimeEntryStatsOutputDTO execute(UUID companyId, List<UUID> userIds, UUID projectId,
-            List<UUID> teamIds, LocalDateTime from, LocalDateTime to) throws ApplicationException {
+    public CompanyTimeEntryStatsOutputDTO execute(UUID companyId, CompanyTimeEntriesFilterInputDTO input)
+            throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);
@@ -78,12 +80,12 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
                 .filter(m -> Boolean.TRUE.equals(m.getApproved()))
                 .orElseThrow(() -> new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN));
 
-        LocalDateTime toEffective = to != null ? to : LocalDateTime.now();
-        LocalDateTime fromEffective = from != null ? from
+        LocalDateTime toEffective = input.getTo() != null ? input.getTo() : LocalDateTime.now();
+        LocalDateTime fromEffective = input.getFrom() != null ? input.getFrom()
                 : toEffective.toLocalDate().minusDays(DEFAULT_RANGE_DAYS).atTime(LocalTime.MIN);
 
         boolean fullScope = membership.getRole().canManage(CompanyRole.MEMBER);
-        List<TimeEntry> entries = fetchEntries(companyId, actorId, userIds, projectId, teamIds,
+        List<TimeEntry> entries = fetchEntries(companyId, actorId, input,
                 fromEffective, toEffective, fullScope);
 
         Map<UUID, TimeEntry> entryById = entries.stream()
@@ -122,13 +124,13 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
                 long chunkSeconds = Duration.between(chunkStart, chunkLimit).getSeconds();
                 if (chunkSeconds > 0) {
                     LocalDate day = chunkStart.toLocalDate();
-                    secondsByDay.merge(day, chunkSeconds, Long::sum);
-                    secondsByUser.merge(entry.getUserId(), chunkSeconds, Long::sum);
+                    secondsByDay.merge(day, chunkSeconds, (a, b) -> a + b);
+                    secondsByUser.merge(entry.getUserId(), chunkSeconds, (a, b) -> a + b);
                     if (entry.getProjectId() != null) {
-                        secondsByProject.merge(entry.getProjectId(), chunkSeconds, Long::sum);
+                        secondsByProject.merge(entry.getProjectId(), chunkSeconds, (a, b) -> a + b);
                         secondsByProjectDay
                                 .computeIfAbsent(entry.getProjectId(), k -> new HashMap<>())
-                                .merge(day, chunkSeconds, Long::sum);
+                                .merge(day, chunkSeconds, (a, b) -> a + b);
                     }
                     totalSeconds += chunkSeconds;
                 }
@@ -139,7 +141,7 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
         long rangeDays = ChronoUnit.DAYS.between(fromEffective.toLocalDate(), toEffective.toLocalDate()) + 1;
         LocalDateTime previousTo = fromEffective;
         LocalDateTime previousFrom = fromEffective.minusDays(rangeDays);
-        List<TimeEntry> previousEntries = fetchEntries(companyId, actorId, userIds, projectId, teamIds,
+        List<TimeEntry> previousEntries = fetchEntries(companyId, actorId, input,
                 previousFrom, previousTo, fullScope);
         Map<UUID, TimeEntry> previousEntryById = previousEntries.stream()
                 .collect(Collectors.toMap(TimeEntry::getId, e -> e, (a, b) -> a));
@@ -159,9 +161,9 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
         Map<UUID, Integer> entryCountByUser = new HashMap<>();
         Map<UUID, Integer> entryCountByProject = new HashMap<>();
         for (TimeEntry entry : entries) {
-            entryCountByUser.merge(entry.getUserId(), 1, Integer::sum);
+            entryCountByUser.merge(entry.getUserId(), 1, (a, b) -> a + b);
             if (entry.getProjectId() != null) {
-                entryCountByProject.merge(entry.getProjectId(), 1, Integer::sum);
+                entryCountByProject.merge(entry.getProjectId(), 1, (a, b) -> a + b);
             }
         }
 
@@ -223,12 +225,16 @@ public class ListCompanyTimeEntryStatsUseCaseImpl implements ListCompanyTimeEntr
                 running);
     }
 
-    private List<TimeEntry> fetchEntries(UUID companyId, UUID actorId, List<UUID> userIds, UUID projectId,
-            List<UUID> teamIds, LocalDateTime from, LocalDateTime to, boolean fullScope) {
-        if (fullScope) {
-            return timeEntryRepository.findAllActiveByCompanyId(companyId, userIds, projectId, teamIds, from, to);
+    private List<TimeEntry> fetchEntries(UUID companyId, UUID actorId, CompanyTimeEntriesFilterInputDTO input,
+            LocalDateTime from, LocalDateTime to, boolean fullScope) {
+        TimeEntryFilter filter = input.toDomainFilter();
+        filter.setCompanyId(companyId);
+        filter.setFrom(from);
+        filter.setTo(to);
+        if (!fullScope) {
+            filter.setLeadScopeUserId(actorId);
         }
-        return timeEntryRepository.findAllActiveLeadScope(companyId, actorId, userIds, projectId, teamIds, from, to);
+        return timeEntryRepository.search(filter);
     }
 
     private long sumClampedSeconds(List<TimeEntrySession> sessions, LocalDateTime from, LocalDateTime to) {

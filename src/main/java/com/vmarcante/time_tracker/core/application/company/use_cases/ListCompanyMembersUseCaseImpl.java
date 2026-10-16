@@ -13,6 +13,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.core.application.company.dto.output.CompanyMemberOutputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.ListCompanyMembersUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -21,6 +23,7 @@ import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembersh
 import com.vmarcante.time_tracker.core.domain.person.model.Person;
 import com.vmarcante.time_tracker.core.domain.person.repository.PersonRepository;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+import com.vmarcante.time_tracker.core.shared.utils.PageableUtils;
 
 @Service
 public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase {
@@ -39,7 +42,7 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
     }
 
     @Override
-    public Page<CompanyMemberOutputDTO> execute(UUID companyId, Pageable pageable)
+    public PageWrapperDTO<CompanyMemberOutputDTO> execute(UUID companyId, MembershipFilterInputDTO filter)
             throws ApplicationException {
         Optional<UUID> currentUserId = securityContext.getCurrentUserId();
         if (currentUserId.isEmpty()) {
@@ -50,11 +53,12 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
             throw new ApplicationException("company.access.denied", null, HttpStatus.FORBIDDEN);
         }
 
+        Pageable pageable = PageableUtils.pageable(filter.getPageNumber(), filter.getPageSize(), filter.getSort());
         Page<CompanyMembership> members = membershipRepository
                 .findApprovedMembershipsByCompanyId(companyId, pageable);
 
         if (members.isEmpty()) {
-            return members.map(m -> CompanyMemberOutputDTO.from(m, null, null));
+            return PageWrapperDTO.of(members.map(m -> CompanyMemberOutputDTO.from(m, null, null)));
         }
 
         List<UUID> userIds = members.getContent().stream()
@@ -66,13 +70,13 @@ public class ListCompanyMembersUseCaseImpl implements ListCompanyMembersUseCase 
         Map<UUID, Person> persons = personRepository.findAllByIds(userIds).stream()
                 .collect(Collectors.toMap(p -> p.getId(), p -> p));
 
-        return members.map(membership -> {
+        return PageWrapperDTO.of(members.map(membership -> {
             Person approver = persons.get(membership.getApprovedBy());
             return CompanyMemberOutputDTO.fromPerson(
                     membership,
                     persons.get(membership.getUserId()),
                     approver != null ? approver.getName() : null,
                     null);
-        });
+        }));
     }
 }
