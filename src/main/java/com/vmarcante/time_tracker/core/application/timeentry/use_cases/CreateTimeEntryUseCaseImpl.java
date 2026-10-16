@@ -65,7 +65,9 @@ public class CreateTimeEntryUseCaseImpl implements CreateTimeEntryUseCase {
         UUID userId = currentUserId.get();
 
         validationPolicy.validateName(input.name());
-        Project project = resolveProjectForLogging(userId, input.projectId());
+        Project project = input.projectId() != null
+                ? resolveProjectForLogging(userId, input.projectId())
+                : null;
 
         List<UUID> tagIds = input.tagIds() == null ? List.of() : input.tagIds();
         List<Tag> tags = tagRepository.findActiveByIdsAndUserId(tagIds, userId);
@@ -75,8 +77,8 @@ public class CreateTimeEntryUseCaseImpl implements CreateTimeEntryUseCase {
 
         TimeEntry entry = new TimeEntry();
         entry.setUserId(userId);
-        entry.setCompanyId(project.getCompanyId());
-        entry.setProjectId(project.getId());
+        entry.setCompanyId(project != null ? project.getCompanyId() : null);
+        entry.setProjectId(project != null ? project.getId() : null);
         entry.setName(input.name().trim());
         entry.setDescription(input.description());
         entry.setActive(true);
@@ -86,7 +88,8 @@ public class CreateTimeEntryUseCaseImpl implements CreateTimeEntryUseCase {
         TimeEntry saved = timeEntryRepository.save(entry);
         timeEntryRepository.replaceTags(saved.getId(), tagIds, userId);
 
-        log.info("[Create Time Entry] Entry {} created by user {} on project {}", saved.getId(), userId, project.getId());
+        log.info("[Create Time Entry] Entry {} created by user {} on project {}", saved.getId(), userId,
+                project != null ? project.getId() : "none");
 
         return assembler.toDetail(saved);
     }

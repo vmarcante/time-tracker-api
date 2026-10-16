@@ -45,8 +45,10 @@ public class TimeEntryDetailAssembler {
     public TimeEntryDetailOutputDTO toDetail(TimeEntry entry) {
         List<TimeEntrySession> sessions = sessionRepository.findActiveByEntryId(entry.getId());
         List<Tag> tags = timeEntryRepository.findActiveTagsByEntryId(entry.getId());
-        Project project = projectRepository.findAllByIds(List.of(entry.getProjectId()))
-                .stream().findFirst().orElse(null);
+        Project project = entry.getProjectId() != null
+                ? projectRepository.findAllByIds(List.of(entry.getProjectId()))
+                        .stream().findFirst().orElse(null)
+                : null;
         String userName = personRepository.findNameById(entry.getUserId()).orElse(null);
         return TimeEntryDetailOutputDTO.from(entry, sessions, tags, project, userName);
     }
@@ -65,6 +67,7 @@ public class TimeEntryDetailAssembler {
         Set<UUID> projectIds = content.stream()
                 .filter(Objects::nonNull)
                 .map(TimeEntry::getProjectId)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
                 
         Set<UUID> userIds = content.stream()

@@ -51,7 +51,7 @@ public class TimeEntryJpaEntity implements BaseActiveEntityInterface<UUID, Integ
     @Column(name = "C0008_COMPANY_ID")
     private UUID companyId;
 
-    @Column(name = "C0008_PROJECT_ID", nullable = false)
+    @Column(name = "C0008_PROJECT_ID")
     private UUID projectId;
 
     @Column(name = "C0008_NAME", nullable = false, length = 200)

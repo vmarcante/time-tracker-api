@@ -1,6 +1,7 @@
 package com.vmarcante.time_tracker.core.application.timeentry.use_cases;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class StartTimerUseCaseImpl implements StartTimerUseCase {
 
-    private static final String DEFAULT_ENTRY_NAME = "Untitled";
+    private static final String FALLBACK_ENTRY_NAME = "Untitled";
+    private static final Map<String, String> DEFAULT_ENTRY_NAMES = Map.of(
+            "pt", "Sem título",
+            "en", "Untitled");
 
     private final TimeEntryRepository timeEntryRepository;
     private final TimeEntrySessionRepository sessionRepository;
@@ -92,30 +96,35 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
     }
 
     private TimeEntry createQuickEntry(UUID userId, StartTimerInputDTO input) throws ApplicationException {
-        if (input.projectId() == null) {
-            throw new ApplicationException("timeentry.project.required", null);
-        }
-        Project project = projectRepository.findById(input.projectId())
-                .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
-        if (project.getStatus() != ProjectStatus.ACTIVE) {
-            throw new ApplicationException("project.not.active", null, HttpStatus.CONFLICT);
-        }
-        if (project.getCompanyId() == null) {
-            if (!userId.equals(project.getUserId())) {
+        UUID projectId = null;
+        UUID companyId = null;
+
+        if (input.projectId() != null) {
+            Project project = projectRepository.findById(input.projectId())
+                    .orElseThrow(() -> new ApplicationException("project.not.found", null, HttpStatus.NOT_FOUND));
+            if (project.getStatus() != ProjectStatus.ACTIVE) {
+                throw new ApplicationException("project.not.active", null, HttpStatus.CONFLICT);
+            }
+            if (project.getCompanyId() == null) {
+                if (!userId.equals(project.getUserId())) {
+                    throw new ApplicationException("timeentry.project.access.denied", null,
+                            HttpStatus.FORBIDDEN);
+                }
+            } else if (!projectAssignmentRepository.hasAnyActiveAssignment(userId, project.getId())) {
                 throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
             }
-        } else if (!projectAssignmentRepository.hasAnyActiveAssignment(userId, project.getId())) {
-            throw new ApplicationException("timeentry.project.access.denied", null, HttpStatus.FORBIDDEN);
+            projectId = project.getId();
+            companyId = project.getCompanyId();
         }
 
         String name = input.name() == null || input.name().isBlank()
-                ? DEFAULT_ENTRY_NAME
+                ? resolveDefaultEntryName()
                 : input.name().trim();
 
         TimeEntry entry = new TimeEntry();
         entry.setUserId(userId);
-        entry.setCompanyId(project.getCompanyId());
-        entry.setProjectId(project.getId());
+        entry.setCompanyId(companyId);
+        entry.setProjectId(projectId);
         entry.setName(name);
         entry.setDescription(input.description());
         entry.setActive(true);
@@ -123,5 +132,12 @@ public class StartTimerUseCaseImpl implements StartTimerUseCase {
         entry.setUpdatedBy(userId);
 
         return timeEntryRepository.save(entry);
+    }
+
+    private String resolveDefaultEntryName() {
+        return securityContext.getCurrentUser()
+                .map(user -> DEFAULT_ENTRY_NAMES.getOrDefault(
+                        user.locale() != null ? user.locale().getLanguage() : "", FALLBACK_ENTRY_NAME))
+                .orElse(FALLBACK_ENTRY_NAME);
     }
 }
