@@ -11,7 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntryFilter;
 import com.vmarcante.time_tracker.core.infraestructure.project.persistence.ProjectTeamJpaEntity;
-import com.vmarcante.time_tracker.core.infraestructure.team.persistence.UserTeamJpaEntity;
+import com.vmarcante.time_tracker.core.infraestructure.team.persistence.TeamMembershipJpaEntity;
 
 import org.hibernate.query.criteria.HibernateCriteriaBuilder;
 
@@ -126,7 +126,7 @@ public final class TimeEntryRepositorySpecification {
             }
             if (hasTeams) {
                 Subquery<Integer> subquery = query.subquery(Integer.class);
-                Root<UserTeamJpaEntity> member = subquery.from(UserTeamJpaEntity.class);
+                Root<TeamMembershipJpaEntity> member = subquery.from(TeamMembershipJpaEntity.class);
                 subquery.select(cb.literal(1));
                 subquery.where(cb.and(
                         member.get("teamId").in(teamIds),
@@ -145,8 +145,8 @@ public final class TimeEntryRepositorySpecification {
                 return cb.conjunction();
             }
             Subquery<Integer> subquery = query.subquery(Integer.class);
-            Root<UserTeamJpaEntity> lead = subquery.from(UserTeamJpaEntity.class);
-            Root<UserTeamJpaEntity> member = subquery.from(UserTeamJpaEntity.class);
+            Root<TeamMembershipJpaEntity> lead = subquery.from(TeamMembershipJpaEntity.class);
+            Root<TeamMembershipJpaEntity> member = subquery.from(TeamMembershipJpaEntity.class);
             Root<ProjectTeamJpaEntity> projectTeam = subquery.from(ProjectTeamJpaEntity.class);
             subquery.select(cb.literal(1));
             subquery.where(cb.and(

@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.infraestructure.user.auth.security;
+package com.vmarcante.time_tracker.core.infraestructure.security.crypto;
 
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Component;

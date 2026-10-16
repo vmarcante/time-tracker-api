@@ -19,59 +19,59 @@ import com.vmarcante.time_tracker.core.infraestructure.team.mapper.TeamPersisten
 @Component
 public class TeamMembershipRepositoryAdapter implements TeamMembershipRepository {
 
-    private final UserTeamJpaRepository userTeamJpaRepository;
+    private final TeamMembershipJpaRepository teamMembershipJpaRepository;
 
-    public TeamMembershipRepositoryAdapter(UserTeamJpaRepository userTeamJpaRepository) {
-        this.userTeamJpaRepository = userTeamJpaRepository;
+    public TeamMembershipRepositoryAdapter(TeamMembershipJpaRepository teamMembershipJpaRepository) {
+        this.teamMembershipJpaRepository = teamMembershipJpaRepository;
     }
 
     @Override
     public TeamMembership saveMembership(TeamMembership membership) {
-        UserTeamJpaEntity entity = TeamPersistenceMapper.toEntity(membership);
-        return TeamPersistenceMapper.toDomain(userTeamJpaRepository.save(entity));
+        TeamMembershipJpaEntity entity = TeamPersistenceMapper.toEntity(membership);
+        return TeamPersistenceMapper.toDomain(teamMembershipJpaRepository.save(entity));
     }
 
     @Override
     public boolean isTeamMember(UUID userId, UUID teamId) {
-        return userTeamJpaRepository
+        return teamMembershipJpaRepository
                 .existsByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(userId, teamId);
     }
 
     @Override
     public boolean isTeamLead(UUID userId, UUID teamId) {
-        return userTeamJpaRepository
+        return teamMembershipJpaRepository
                 .existsByUserIdAndTeamIdAndRoleAndActiveTrueAndApprovedTrue(
                         userId, teamId, TeamRole.LEAD);
     }
 
     @Override
     public boolean hasAnyActiveMembership(UUID userId, UUID teamId) {
-        return userTeamJpaRepository.existsByUserIdAndTeamIdAndActiveTrue(userId, teamId);
+        return teamMembershipJpaRepository.existsByUserIdAndTeamIdAndActiveTrue(userId, teamId);
     }
 
     @Override
     public Optional<TeamMembership> findMembership(UUID userId, UUID teamId) {
-        return userTeamJpaRepository
+        return teamMembershipJpaRepository
                 .findByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(userId, teamId)
                 .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<TeamMembership> findMembershipById(UUID membershipId) {
-        return userTeamJpaRepository.findById(membershipId)
+        return teamMembershipJpaRepository.findById(membershipId)
                 .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<TeamMembership> findLeadMembership(UUID teamId) {
-        return userTeamJpaRepository
+        return teamMembershipJpaRepository
                 .findByTeamIdAndRoleAndActiveTrueAndApprovedTrue(teamId, TeamRole.LEAD)
                 .map(TeamPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<TeamMembership> findApprovedMembershipsByTeamId(UUID teamId, Pageable pageable) {
-        return userTeamJpaRepository.findByTeamIdAndActiveTrueAndApprovedTrue(teamId, pageable)
+        return teamMembershipJpaRepository.findByTeamIdAndActiveTrueAndApprovedTrue(teamId, pageable)
                 .map(TeamPersistenceMapper::toDomain);
     }
 
@@ -80,21 +80,21 @@ public class TeamMembershipRepositoryAdapter implements TeamMembershipRepository
         if (teamIds == null || teamIds.isEmpty()) {
             return List.of();
         }
-        return userTeamJpaRepository.findByTeamIdInAndActiveTrueAndApprovedTrue(teamIds).stream()
+        return teamMembershipJpaRepository.findByTeamIdInAndActiveTrueAndApprovedTrue(teamIds).stream()
                 .map(TeamPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
     public List<TeamMembership> findActiveMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId) {
-        return userTeamJpaRepository.findActiveByUserIdAndCompanyId(userId, companyId).stream()
+        return teamMembershipJpaRepository.findActiveByUserIdAndCompanyId(userId, companyId).stream()
                 .map(TeamPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
     public Map<UUID, Long> countApprovedMembersByTeamIds(Collection<UUID> teamIds) {
-        return userTeamJpaRepository.countApprovedMembersByTeamIds(teamIds).stream()
+        return teamMembershipJpaRepository.countApprovedMembersByTeamIds(teamIds).stream()
                 .collect(Collectors.toMap(
                         row -> (UUID) row[0],
                         row -> (Long) row[1]));
@@ -102,7 +102,7 @@ public class TeamMembershipRepositoryAdapter implements TeamMembershipRepository
 
     @Override
     public Map<UUID, UUID> findLeadUserIdsByTeamIds(Collection<UUID> teamIds) {
-        return userTeamJpaRepository.findLeadUserIdsByTeamIds(teamIds).stream()
+        return teamMembershipJpaRepository.findLeadUserIdsByTeamIds(teamIds).stream()
                 .collect(Collectors.toMap(
                         row -> (UUID) row[0],
                         row -> (UUID) row[1]));
@@ -110,17 +110,17 @@ public class TeamMembershipRepositoryAdapter implements TeamMembershipRepository
 
     @Override
     public void deactivateMembershipsByTeamId(UUID teamId, UUID updatedBy) {
-        userTeamJpaRepository.deactivateByTeamId(teamId, updatedBy);
+        teamMembershipJpaRepository.deactivateByTeamId(teamId, updatedBy);
     }
 
     @Override
     public void deactivateMembershipsByUserIdAndCompanyId(UUID userId, UUID companyId, UUID updatedBy) {
-        userTeamJpaRepository.deactivateByUserIdAndCompanyId(userId, companyId, updatedBy);
+        teamMembershipJpaRepository.deactivateByUserIdAndCompanyId(userId, companyId, updatedBy);
     }
 
     @Override
     public void demoteLeadsByUserIdAndCompanyId(UUID userId, UUID companyId, UUID updatedBy) {
-        userTeamJpaRepository.demoteLeadsByUserIdAndCompanyId(
+        teamMembershipJpaRepository.demoteLeadsByUserIdAndCompanyId(
                 userId, companyId, TeamRole.LEAD, TeamRole.MEMBER, updatedBy);
     }
 }

@@ -30,6 +30,19 @@ Interfaces (Presentation)
 - **Infrastructure** depends on **Domain** and **Application**. It implements the ports they define.
 - **Interfaces** depends only on **Application**. It calls use cases through `Port/In` interfaces.
 - **Shared** contains utilities usable by any layer, but must not violate dependency rules.
+- **Base** is the generic foundation (`base/`): it must not depend on `core`, and any layer may depend on it.
+
+### Accepted pragmatic boundaries
+
+The project intentionally accepts a few framework couplings instead of pursuing absolute purity. These are part of the accepted style and must not be flagged as violations:
+
+- **Spring Data pagination**: `Page`, `Pageable` and `Sort` are allowed in domain repository ports and application DTOs. Pagination is treated as `base`-level plumbing (`BaseJpaRepository`, `PageableUtils`, `SortType`, `BaseInputFilterDTO`), so `base` may depend on Spring Data.
+- **`HttpStatus` in exceptions**: `BaseException` accepts an optional `HttpStatus` custom status consumed by `RestExceptionHandler` (use cases may legitimately override the per-layer default status, e.g. 401/403 instead of 400).
+- **Spring stereotypes in application**: `@Service`/`@Component`/`@Transactional` are allowed on use case implementations, orchestrators and policies.
+- **Cross-cutting contracts in `base`**: exceptions (`InfraestructureException`, `SecurityException`, `RateLimitExceededException`), interface annotations (`@RateLimit`, `@ProgressiveLevel`) and generic ports (`DomainEventPublisher`) live in `base`, not in `core.infraestructure`.
+- **Delivery contracts in application**: method-level annotations consumed by both controllers and infrastructure (e.g. `@AuthSecure`) live in `application/[context]/annotation/` so that Interfaces→Application and Infrastructure→Application remain legal.
+
+What is still NOT allowed: domain/application importing `core.infraestructure` or `core.interfaces`, interfaces importing `core.infraestructure`, and `base` importing `core`. These are enforced by `ArchitectureTest` (ArchUnit).
 
 ## Package Structure
 

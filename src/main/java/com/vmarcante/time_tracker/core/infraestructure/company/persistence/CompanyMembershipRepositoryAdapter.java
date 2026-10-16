@@ -15,106 +15,106 @@ import com.vmarcante.time_tracker.core.infraestructure.company.mapper.CompanyMem
 @Component
 public class CompanyMembershipRepositoryAdapter implements CompanyMembershipRepository {
 
-    private final UserCompanyJpaRepository userCompanyJpaRepository;
+    private final CompanyMembershipJpaRepository companyMembershipJpaRepository;
 
-    public CompanyMembershipRepositoryAdapter(UserCompanyJpaRepository userCompanyJpaRepository) {
-        this.userCompanyJpaRepository = userCompanyJpaRepository;
+    public CompanyMembershipRepositoryAdapter(CompanyMembershipJpaRepository companyMembershipJpaRepository) {
+        this.companyMembershipJpaRepository = companyMembershipJpaRepository;
     }
 
     @Override
     public CompanyMembership saveMembership(CompanyMembership membership) {
-        UserCompanyJpaEntity entity = CompanyMembershipPersistenceMapper.toEntity(membership);
-        return CompanyMembershipPersistenceMapper.toDomain(userCompanyJpaRepository.save(entity));
+        CompanyMembershipJpaEntity entity = CompanyMembershipPersistenceMapper.toEntity(membership);
+        return CompanyMembershipPersistenceMapper.toDomain(companyMembershipJpaRepository.save(entity));
     }
 
     @Override
     public boolean isMember(UUID userId, UUID companyId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .existsByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(userId, companyId);
     }
 
     @Override
     public boolean hasAnyActiveMembership(UUID userId, UUID companyId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .existsByUserIdAndCompanyIdAndActiveTrue(userId, companyId);
     }
 
     @Override
     public boolean hasAnyApprovedMembership(UUID userId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .existsByUserIdAndActiveTrueAndApprovedTrue(userId);
     }
 
     @Override
     public Optional<CompanyMembership> findMembership(UUID userId, UUID companyId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(userId, companyId)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<CompanyMembership> findPendingMembership(UUID userId, UUID companyId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findByUserIdAndCompanyIdAndActiveTrueAndApprovedFalse(userId, companyId)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<CompanyMembership> findMembershipById(UUID membershipId) {
-        return userCompanyJpaRepository.findById(membershipId)
+        return companyMembershipJpaRepository.findById(membershipId)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findApprovedMembershipsByCompanyId(UUID companyId, Pageable pageable) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findByCompanyIdAndActiveTrueAndApprovedTrue(companyId, pageable)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findPendingMembershipsByCompanyId(UUID companyId, Pageable pageable) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findByCompanyIdAndActiveTrueAndApprovedFalse(companyId, pageable)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findResolvedMembershipsByCompanyId(UUID companyId, Pageable pageable) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findResolvedByCompanyId(companyId, pageable)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Page<CompanyMembership> findPendingInvitationsByUserId(UUID userId, Pageable pageable) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.INVITE, pageable)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public Optional<CompanyMembership> findApprovedMembershipByUserId(UUID userId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findFirstByUserIdAndActiveTrueAndApprovedTrue(userId)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }
 
     @Override
     public long countPendingInvitationsByUserId(UUID userId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .countByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.INVITE);
     }
 
     @Override
     public long countPendingMembershipsByCompanyId(UUID companyId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .countByCompanyIdAndActiveTrueAndApprovedFalse(companyId);
     }
 
     @Override
     public Optional<CompanyMembership> findPendingRequestMembershipByUserId(UUID userId) {
-        return userCompanyJpaRepository
+        return companyMembershipJpaRepository
                 .findFirstByUserIdAndActiveTrueAndApprovedFalseAndOrigin(userId, MembershipOrigin.REQUEST)
                 .map(CompanyMembershipPersistenceMapper::toDomain);
     }

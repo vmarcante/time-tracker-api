@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.health.dto.output.HealthStatusOutputDTO;
 import com.vmarcante.time_tracker.core.application.health.in.HealthCheckUseCase;
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 
 @RestController

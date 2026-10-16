@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.input.CreateTimeEntryInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.input.MyTimeEntriesFilterInputDTO;
@@ -31,7 +32,6 @@ import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTimeEntrie
 import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTimeEntryProjectsUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.SetTimeEntryTagsUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.UpdateTimeEntryUseCase;
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

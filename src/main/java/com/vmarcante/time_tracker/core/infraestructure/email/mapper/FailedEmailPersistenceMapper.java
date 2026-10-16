@@ -4,7 +4,10 @@ import com.vmarcante.time_tracker.core.domain.email.model.EmailData;
 import com.vmarcante.time_tracker.core.domain.email.model.FailedEmail;
 import com.vmarcante.time_tracker.core.infraestructure.email.persistence.FailedEmailJpaEntity;
 
-public class FailedEmailPersistenceMapper {
+public final class FailedEmailPersistenceMapper {
+
+    private FailedEmailPersistenceMapper() {
+    }
 
     public static FailedEmailJpaEntity toEntity(FailedEmail domain) {
         if (domain == null) {

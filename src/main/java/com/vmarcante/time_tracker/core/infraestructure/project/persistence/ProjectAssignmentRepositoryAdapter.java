@@ -18,16 +18,16 @@ import com.vmarcante.time_tracker.core.infraestructure.project.mapper.ProjectPer
 @Component
 public class ProjectAssignmentRepositoryAdapter implements ProjectAssignmentRepository {
 
-    private final UserProjectJpaRepository userProjectJpaRepository;
+    private final ProjectAssignmentJpaRepository projectAssignmentJpaRepository;
 
-    public ProjectAssignmentRepositoryAdapter(UserProjectJpaRepository userProjectJpaRepository) {
-        this.userProjectJpaRepository = userProjectJpaRepository;
+    public ProjectAssignmentRepositoryAdapter(ProjectAssignmentJpaRepository projectAssignmentJpaRepository) {
+        this.projectAssignmentJpaRepository = projectAssignmentJpaRepository;
     }
 
     @Override
     public ProjectAssignment saveAssignment(ProjectAssignment assignment) {
-        UserProjectJpaEntity entity = ProjectPersistenceMapper.toEntity(assignment);
-        return ProjectPersistenceMapper.toDomain(userProjectJpaRepository.save(entity));
+        ProjectAssignmentJpaEntity entity = ProjectPersistenceMapper.toEntity(assignment);
+        return ProjectPersistenceMapper.toDomain(projectAssignmentJpaRepository.save(entity));
     }
 
     @Override
@@ -35,68 +35,68 @@ public class ProjectAssignmentRepositoryAdapter implements ProjectAssignmentRepo
         if (assignments == null || assignments.isEmpty()) {
             return List.of();
         }
-        List<UserProjectJpaEntity> entities = assignments.stream()
+        List<ProjectAssignmentJpaEntity> entities = assignments.stream()
                 .map(ProjectPersistenceMapper::toEntity)
                 .toList();
-        return userProjectJpaRepository.saveAll(entities).stream()
+        return projectAssignmentJpaRepository.saveAll(entities).stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
     public Optional<ProjectAssignment> findAssignmentById(UUID assignmentId) {
-        return userProjectJpaRepository.findById(assignmentId)
+        return projectAssignmentJpaRepository.findById(assignmentId)
                 .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
     public boolean hasActiveAssignment(UUID userId, UUID projectId, UUID teamId) {
-        return userProjectJpaRepository
+        return projectAssignmentJpaRepository
                 .existsByUserIdAndProjectIdAndTeamIdAndActiveTrue(userId, projectId, teamId);
     }
 
     @Override
     public boolean hasAnyActiveAssignment(UUID userId, UUID projectId) {
-        return userProjectJpaRepository.existsByUserIdAndProjectIdAndActiveTrue(userId, projectId);
+        return projectAssignmentJpaRepository.existsByUserIdAndProjectIdAndActiveTrue(userId, projectId);
     }
 
     @Override
     public Page<ProjectAssignment> findActiveAssignmentsByProjectId(UUID projectId, Pageable pageable) {
-        return userProjectJpaRepository.findByProjectIdAndActiveTrue(projectId, pageable)
+        return projectAssignmentJpaRepository.findByProjectIdAndActiveTrue(projectId, pageable)
                 .map(ProjectPersistenceMapper::toDomain);
     }
 
     @Override
     public List<ProjectAssignment> findAllActiveAssignmentsByProjectId(UUID projectId) {
-        return userProjectJpaRepository.findByProjectIdAndActiveTrue(projectId).stream()
+        return projectAssignmentJpaRepository.findByProjectIdAndActiveTrue(projectId).stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
     public List<ProjectAssignment> findActiveAssignmentsByUserIdAndTeamId(UUID userId, UUID teamId) {
-        return userProjectJpaRepository.findByUserIdAndTeamIdAndActiveTrue(userId, teamId).stream()
+        return projectAssignmentJpaRepository.findByUserIdAndTeamIdAndActiveTrue(userId, teamId).stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
     public List<ProjectAssignment> findActiveAssignmentsByProjectIdAndTeamId(UUID projectId, UUID teamId) {
-        return userProjectJpaRepository.findByProjectIdAndTeamIdAndActiveTrue(projectId, teamId).stream()
+        return projectAssignmentJpaRepository.findByProjectIdAndTeamIdAndActiveTrue(projectId, teamId).stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
     public List<ProjectAssignment> findActiveAssignmentsByUserIdAndCompanyId(UUID userId, UUID companyId) {
-        return userProjectJpaRepository.findActiveByUserIdAndCompanyId(userId, companyId).stream()
+        return projectAssignmentJpaRepository.findActiveByUserIdAndCompanyId(userId, companyId).stream()
                 .map(ProjectPersistenceMapper::toDomain)
                 .toList();
     }
 
     @Override
     public Map<UUID, Long> countActiveAssignmentsByProjectIds(Collection<UUID> projectIds) {
-        return userProjectJpaRepository.countActiveByProjectIds(projectIds).stream()
+        return projectAssignmentJpaRepository.countActiveByProjectIds(projectIds).stream()
                 .collect(Collectors.toMap(
                         row -> (UUID) row[0],
                         row -> (Long) row[1]));
@@ -107,31 +107,31 @@ public class ProjectAssignmentRepositoryAdapter implements ProjectAssignmentRepo
         if (assignmentIds == null || assignmentIds.isEmpty()) {
             return;
         }
-        userProjectJpaRepository.deactivateByIdIn(assignmentIds, updatedBy);
+        projectAssignmentJpaRepository.deactivateByIdIn(assignmentIds, updatedBy);
     }
 
     @Override
     public void deactivateAssignmentsByProjectIdAndTeamId(UUID projectId, UUID teamId, UUID updatedBy) {
-        userProjectJpaRepository.deactivateByProjectIdAndTeamId(projectId, teamId, updatedBy);
+        projectAssignmentJpaRepository.deactivateByProjectIdAndTeamId(projectId, teamId, updatedBy);
     }
 
     @Override
     public void deactivateAssignmentsByUserIdAndTeamId(UUID userId, UUID teamId, UUID updatedBy) {
-        userProjectJpaRepository.deactivateByUserIdAndTeamId(userId, teamId, updatedBy);
+        projectAssignmentJpaRepository.deactivateByUserIdAndTeamId(userId, teamId, updatedBy);
     }
 
     @Override
     public void deactivateAssignmentsByUserIdAndCompanyId(UUID userId, UUID companyId, UUID updatedBy) {
-        userProjectJpaRepository.deactivateByUserIdAndCompanyId(userId, companyId, updatedBy);
+        projectAssignmentJpaRepository.deactivateByUserIdAndCompanyId(userId, companyId, updatedBy);
     }
 
     @Override
     public void deactivateAssignmentsByProjectId(UUID projectId, UUID updatedBy) {
-        userProjectJpaRepository.deactivateByProjectId(projectId, updatedBy);
+        projectAssignmentJpaRepository.deactivateByProjectId(projectId, updatedBy);
     }
 
     @Override
     public void deactivateAssignmentsByTeamId(UUID teamId, UUID updatedBy) {
-        userProjectJpaRepository.deactivateByTeamId(teamId, updatedBy);
+        projectAssignmentJpaRepository.deactivateByTeamId(teamId, updatedBy);
     }
 }

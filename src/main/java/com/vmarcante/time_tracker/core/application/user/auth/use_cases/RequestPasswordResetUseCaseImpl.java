@@ -3,7 +3,7 @@ package com.vmarcante.time_tracker.core.application.user.auth.use_cases;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -28,13 +28,13 @@ public class RequestPasswordResetUseCaseImpl implements RequestPasswordResetUseC
     private final UserAuthRepository userAuthRepository;
     private final PersonRepository personRepository;
     private final GenerateRandomAccessTokenService generateRandomAccessTokenService;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public RequestPasswordResetUseCaseImpl(
             UserAuthRepository userAuthRepository,
             PersonRepository personRepository,
             GenerateRandomAccessTokenService generateRandomAccessTokenService,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.userAuthRepository = userAuthRepository;
         this.personRepository = personRepository;
         this.generateRandomAccessTokenService = generateRandomAccessTokenService;
@@ -98,7 +98,7 @@ public class RequestPasswordResetUseCaseImpl implements RequestPasswordResetUseC
                     resetToken,
                     userLocale);
 
-            eventPublisher.publishEvent(event);
+            eventPublisher.publish(event);
 
             log.info("[Password Reset] Event published successfully | User: {}", input.username());
 

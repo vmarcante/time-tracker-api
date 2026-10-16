@@ -19,7 +19,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
-import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
+import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 import com.vmarcante.time_tracker.core.shared.utils.StringValidationUtils;
 import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
@@ -32,7 +32,7 @@ public class RefreshTokenUseCaseImpl implements RefreshTokenUseCase {
     private final JwtPort jwtPort;
     private final UserAuthRepository userAuthRepository;
     private final UserSessionRepository userSessionRepository;
-    private final RefreshTokenCacheService refreshTokenCacheService;
+    private final RefreshTokenCachePort refreshTokenCacheService;
     private final Long refreshTokenExpirationMs;
     private final Long accessTokenExpirationMs;
 
@@ -40,7 +40,7 @@ public class RefreshTokenUseCaseImpl implements RefreshTokenUseCase {
             JwtPort jwtPort,
             UserAuthRepository userAuthRepository,
             UserSessionRepository userSessionRepository,
-            RefreshTokenCacheService refreshTokenCacheService,
+            RefreshTokenCachePort refreshTokenCacheService,
             @Value("${jwt.refresh-token.expiration:604800000}") Long refreshTokenExpirationMs,
             @Value("${jwt.access-token.expiration:300000}") Long accessTokenExpirationMs) {
         this.jwtPort = jwtPort;

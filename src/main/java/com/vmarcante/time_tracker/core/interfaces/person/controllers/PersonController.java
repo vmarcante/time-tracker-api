@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.person.dto.UpdatePersonLocaleInputDTO;
 import com.vmarcante.time_tracker.core.application.person.dto.UpdatePersonProfileInputDTO;
@@ -16,7 +17,6 @@ import com.vmarcante.time_tracker.core.application.person.in.UpdatePersonLocaleU
 import com.vmarcante.time_tracker.core.application.person.in.UpdatePersonProfileUseCase;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.output.CurrentUserOutputDTO;
 import com.vmarcante.time_tracker.core.application.user.auth.in.GetCurrentUserDataUseCase;
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

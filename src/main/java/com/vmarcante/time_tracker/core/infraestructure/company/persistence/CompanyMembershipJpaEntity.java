@@ -29,7 +29,7 @@ import lombok.Data;
         @Index(name = "IX0009_ACTIVE", columnList = "C0009_ACTIVE")
 })
 @Data
-public class UserCompanyJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class CompanyMembershipJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -21,7 +21,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepos
 import com.vmarcante.time_tracker.core.domain.user.auth.services.ValidateUserAuthCredentialsService;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
-import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
+import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,7 +37,7 @@ public class AuthenticateUserUseCaseImpl implements AuthenticateUserUseCase {
     private final JwtPort jwtPort;
     private final CreateUserSessionOrchestrator createUserSessionOrchestrator;
     private final UserSessionRepository userSessionRepository;
-    private final RefreshTokenCacheService refreshTokenCacheService;
+    private final RefreshTokenCachePort refreshTokenCacheService;
 
     private final Long accessTokenExpirationMs;
     private final Long refreshTokenExpirationMs;
@@ -49,7 +49,7 @@ public class AuthenticateUserUseCaseImpl implements AuthenticateUserUseCase {
             JwtPort jwtPort,
             CreateUserSessionOrchestrator createUserSessionOrchestrator,
             UserSessionRepository userSessionRepository,
-            RefreshTokenCacheService refreshTokenCacheService,
+            RefreshTokenCachePort refreshTokenCacheService,
             @Value("${jwt.access-token.expiration:300000}") Long accessTokenExpirationMs,
             @Value("${jwt.refresh-token.expiration:604800000}") Long refreshTokenExpirationMs,
             @Value("${auth.lockout.duration:900000}") Long lockoutDurationMs) {

@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,13 +30,13 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public InviteMemberUseCaseImpl(
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.securityContext = securityContext;
@@ -91,7 +91,7 @@ public class InviteMemberUseCaseImpl implements InviteMemberUseCase {
 
         CompanyMembership saved = membershipRepository.saveMembership(membership);
 
-        eventPublisher.publishEvent(new CompanyInvitationCreatedEvent(
+        eventPublisher.publish(new CompanyInvitationCreatedEvent(
                 saved.getId(), invitee.getId(), companyId, actorId));
 
         log.info("[Invite Member] User {} invited to company {} as {} by {}",

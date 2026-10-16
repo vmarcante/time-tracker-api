@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +25,12 @@ public class RejectMembershipRequestUseCaseImpl implements RejectMembershipReque
 
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public RejectMembershipRequestUseCaseImpl(
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.membershipRepository = membershipRepository;
         this.securityContext = securityContext;
         this.eventPublisher = eventPublisher;
@@ -79,7 +79,7 @@ public class RejectMembershipRequestUseCaseImpl implements RejectMembershipReque
         target.setUpdatedBy(actorId);
         membershipRepository.saveMembership(target);
 
-        eventPublisher.publishEvent(new MembershipRejectedEvent(
+        eventPublisher.publish(new MembershipRejectedEvent(
                 target.getUserId(), companyId, target.getRejectionReason()));
 
         log.info("[Reject Membership] Membership {} rejected by {}", membershipId, actorId);

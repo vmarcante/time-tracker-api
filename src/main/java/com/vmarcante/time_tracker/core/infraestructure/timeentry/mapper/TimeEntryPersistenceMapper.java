@@ -10,7 +10,10 @@ import com.vmarcante.time_tracker.core.infraestructure.timeentry.persistence.Tim
 import com.vmarcante.time_tracker.core.infraestructure.timeentry.persistence.TimeEntrySessionJpaEntity;
 import com.vmarcante.time_tracker.core.infraestructure.timeentry.persistence.TimeEntryTagJpaEntity;
 
-public class TimeEntryPersistenceMapper {
+public final class TimeEntryPersistenceMapper {
+
+    private TimeEntryPersistenceMapper() {
+    }
 
     public static TimeEntry toDomain(TimeEntryJpaEntity entity) {
         TimeEntry entry = new TimeEntry();

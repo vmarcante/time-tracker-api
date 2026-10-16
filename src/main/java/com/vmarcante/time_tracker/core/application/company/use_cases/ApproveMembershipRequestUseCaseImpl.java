@@ -5,7 +5,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,14 +31,14 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
     private final PersonRepository personRepository;
     private final UserAuthRepository userAuthRepository;
     private final SecurityContextPort securityContext;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public ApproveMembershipRequestUseCaseImpl(
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             UserAuthRepository userAuthRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.membershipRepository = membershipRepository;
         this.personRepository = personRepository;
         this.userAuthRepository = userAuthRepository;
@@ -91,7 +91,7 @@ public class ApproveMembershipRequestUseCaseImpl implements ApproveMembershipReq
         String memberName = personRepository.findNameById(target.getUserId()).orElse(null);
         String approverName = personRepository.findNameById(actorId).orElse(null);
 
-        eventPublisher.publishEvent(new MembershipApprovedEvent(membershipId, target.getUserId(), companyId));
+        eventPublisher.publish(new MembershipApprovedEvent(membershipId, target.getUserId(), companyId));
 
         log.info("[Approve Membership] Membership {} approved by {}", membershipId, actorId);
 

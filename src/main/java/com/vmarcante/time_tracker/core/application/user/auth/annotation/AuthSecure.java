@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.domain.user.auth.annotation;
+package com.vmarcante.time_tracker.core.application.user.auth.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

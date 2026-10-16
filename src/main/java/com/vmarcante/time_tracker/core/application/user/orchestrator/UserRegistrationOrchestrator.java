@@ -1,6 +1,6 @@
 package com.vmarcante.time_tracker.core.application.user.orchestrator;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,7 @@ public class UserRegistrationOrchestrator implements RegisterUserUseCase {
     private final CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase;
     private final PersonRepository personRepository;
     private final UserAuthRepository userAuthRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public UserRegistrationOrchestrator(
             CreateUserUseCase createUserUseCase,
@@ -44,7 +44,7 @@ public class UserRegistrationOrchestrator implements RegisterUserUseCase {
             CheckUsernameAvailabilityUseCase checkUsernameAvailabilityUseCase,
             PersonRepository personRepository,
             UserAuthRepository userAuthRepository,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.createUserUseCase = createUserUseCase;
         this.createPersonUseCase = createPersonUseCase;
         this.checkEmailAvailabilityUseCase = checkEmailAvailabilityUseCase;
@@ -107,7 +107,7 @@ public class UserRegistrationOrchestrator implements RegisterUserUseCase {
         personRepository.updateAuditFields(person.getId(), userAuth.getId(), userAuth.getId());
 
         UserAuthCreatedEvent emailEvent = new UserAuthCreatedEvent(person, userAuth.getAccessToken());
-        eventPublisher.publishEvent(emailEvent);
+        eventPublisher.publish(emailEvent);
 
         // Returns to user
         CreateUserOutputDTO userAuthOutput = new CreateUserOutputDTO(

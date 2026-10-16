@@ -28,7 +28,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepos
 import com.vmarcante.time_tracker.core.domain.user.auth.services.ValidateUserAuthCredentialsService;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
-import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
+import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 
 class AuthenticateUserUseCaseImplTest {
 
@@ -37,7 +37,7 @@ class AuthenticateUserUseCaseImplTest {
     private JwtPort jwtPort;
     private CreateUserSessionOrchestrator createUserSessionOrchestrator;
     private UserSessionRepository userSessionRepository;
-    private RefreshTokenCacheService refreshTokenCacheService;
+    private RefreshTokenCachePort refreshTokenCacheService;
     private AuthenticateUserUseCaseImpl useCase;
 
     private static final String USERNAME = "john";
@@ -51,7 +51,7 @@ class AuthenticateUserUseCaseImplTest {
         jwtPort = mock(JwtPort.class);
         createUserSessionOrchestrator = mock(CreateUserSessionOrchestrator.class);
         userSessionRepository = mock(UserSessionRepository.class);
-        refreshTokenCacheService = mock(RefreshTokenCacheService.class);
+        refreshTokenCacheService = mock(RefreshTokenCachePort.class);
         useCase = new AuthenticateUserUseCaseImpl(
                 userAuthRepository,
                 validateCredentialsService,

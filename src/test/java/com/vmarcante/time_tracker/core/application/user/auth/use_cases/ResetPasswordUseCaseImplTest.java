@@ -16,7 +16,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.user.auth.dto.input.ResetPasswordInputDTO;
@@ -38,7 +38,7 @@ class ResetPasswordUseCaseImplTest {
     private GeneratePasswordHashService generatePasswordHashService;
     private PasswordEncryptionPort passwordEncryption;
     private CreateUserInputValidationPolicy validationPolicy;
-    private ApplicationEventPublisher eventPublisher;
+    private DomainEventPublisher eventPublisher;
     private ResetPasswordUseCase useCase;
 
     private static final String TOKEN = "reset-token";
@@ -52,7 +52,7 @@ class ResetPasswordUseCaseImplTest {
         generatePasswordHashService = mock(GeneratePasswordHashService.class);
         passwordEncryption = mock(PasswordEncryptionPort.class);
         validationPolicy = mock(CreateUserInputValidationPolicy.class);
-        eventPublisher = mock(ApplicationEventPublisher.class);
+        eventPublisher = mock(DomainEventPublisher.class);
         useCase = new ResetPasswordUseCaseImpl(
                 userAuthRepository,
                 userSessionRepository,
@@ -89,7 +89,7 @@ class ResetPasswordUseCaseImplTest {
         assertThat(saved.getAccessToken()).isNull();
 
         verify(userSessionRepository).invalidateAllByUserId(USER_ID);
-        verify(eventPublisher).publishEvent(isA(PasswordChangedEvent.class));
+        verify(eventPublisher).publish(isA(PasswordChangedEvent.class));
     }
 
     @Test

@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.input.StartTimerInputDTO;
 import com.vmarcante.time_tracker.core.application.timeentry.dto.output.RunningTimerOutputDTO;
@@ -16,7 +17,6 @@ import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntr
 import com.vmarcante.time_tracker.core.application.timeentry.in.GetRunningTimerUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.StartTimerUseCase;
 import com.vmarcante.time_tracker.core.application.timeentry.in.StopTimerUseCase;
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

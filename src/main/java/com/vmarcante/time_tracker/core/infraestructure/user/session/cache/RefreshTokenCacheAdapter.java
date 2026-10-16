@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.domain.user.session.service;
+package com.vmarcante.time_tracker.core.infraestructure.user.session.cache;
 
 import java.time.Duration;
 import java.util.Set;
@@ -6,21 +6,24 @@ import java.util.UUID;
 
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
+
+import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Service
+@Component
 @Slf4j
-public class RefreshTokenCacheService {
+public class RefreshTokenCacheAdapter implements RefreshTokenCachePort {
 
     private static final String CACHE_NAME = "refreshTokens";
     private final CacheManager cacheManager;
 
-    public RefreshTokenCacheService(CacheManager cacheManager) {
+    public RefreshTokenCacheAdapter(CacheManager cacheManager) {
         this.cacheManager = cacheManager;
     }
 
+    @Override
     public void cacheToken(String refreshToken, UUID sessionId, Duration ttl) {
         try {
             Cache cache = cacheManager.getCache(CACHE_NAME);
@@ -33,6 +36,7 @@ public class RefreshTokenCacheService {
         }
     }
 
+    @Override
     public UUID getSessionId(String refreshToken) {
         try {
             Cache cache = cacheManager.getCache(CACHE_NAME);
@@ -51,6 +55,7 @@ public class RefreshTokenCacheService {
         return null;
     }
 
+    @Override
     public void invalidateToken(String refreshToken) {
         try {
             Cache cache = cacheManager.getCache(CACHE_NAME);
@@ -63,6 +68,7 @@ public class RefreshTokenCacheService {
         }
     }
 
+    @Override
     public void invalidateAllByUserId(UUID userId, Set<String> refreshTokens) {
         if (refreshTokens == null || refreshTokens.isEmpty()) {
             log.debug("[RefreshTokenCache] No tokens to invalidate for userId={}", userId);

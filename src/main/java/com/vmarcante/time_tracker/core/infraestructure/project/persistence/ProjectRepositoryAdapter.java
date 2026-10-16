@@ -20,15 +20,15 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
 
     private final ProjectJpaRepository projectJpaRepository;
     private final ProjectTeamJpaRepository projectTeamJpaRepository;
-    private final UserProjectJpaRepository userProjectJpaRepository;
+    private final ProjectAssignmentJpaRepository projectAssignmentJpaRepository;
 
     public ProjectRepositoryAdapter(
             ProjectJpaRepository projectJpaRepository,
             ProjectTeamJpaRepository projectTeamJpaRepository,
-            UserProjectJpaRepository userProjectJpaRepository) {
+            ProjectAssignmentJpaRepository projectAssignmentJpaRepository) {
         this.projectJpaRepository = projectJpaRepository;
         this.projectTeamJpaRepository = projectTeamJpaRepository;
-        this.userProjectJpaRepository = userProjectJpaRepository;
+        this.projectAssignmentJpaRepository = projectAssignmentJpaRepository;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ProjectRepositoryAdapter implements ProjectRepository {
 
     @Override
     public Page<Project> findActiveProjectsByUserId(UUID userId, UUID companyId, Pageable pageable) {
-        return userProjectJpaRepository
+        return projectAssignmentJpaRepository
                 .findActiveProjectsByUserIdAndCompanyId(userId, companyId, pageable)
                 .map(ProjectPersistenceMapper::toDomain);
     }

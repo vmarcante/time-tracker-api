@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.infraestructure.user.auth.security;
+package com.vmarcante.time_tracker.core.infraestructure.security.jwt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;

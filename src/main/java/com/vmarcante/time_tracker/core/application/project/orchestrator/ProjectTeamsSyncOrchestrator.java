@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -30,14 +30,14 @@ public class ProjectTeamsSyncOrchestrator {
     private final TeamRepository teamRepository;
     private final TeamMembershipRepository teamMembershipRepository;
     private final TeamProjectRepository teamProjectRepository;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public ProjectTeamsSyncOrchestrator(
             ProjectAssignmentRepository projectAssignmentRepository,
             TeamRepository teamRepository,
             TeamMembershipRepository teamMembershipRepository,
             TeamProjectRepository teamProjectRepository,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.projectAssignmentRepository = projectAssignmentRepository;
         this.teamRepository = teamRepository;
         this.teamMembershipRepository = teamMembershipRepository;
@@ -136,7 +136,7 @@ public class ProjectTeamsSyncOrchestrator {
         }
 
         for (ProjectAssignment assignment : assignmentsToCreate) {
-            eventPublisher.publishEvent(new ProjectAssignedEvent(
+            eventPublisher.publish(new ProjectAssignedEvent(
                     assignment.getUserId(), projectId, assignment.getTeamId(), companyId));
         }
     }

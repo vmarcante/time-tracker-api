@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.model.UserContextData;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.team.dto.input.TeamFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -22,7 +23,6 @@ import com.vmarcante.time_tracker.core.application.project.in.LinkProjectToTeamU
 import com.vmarcante.time_tracker.core.application.project.in.ListProjectTeamsUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.UnlinkProjectFromTeamUseCase;
 import com.vmarcante.time_tracker.core.application.team.dto.output.TeamSummaryOutputDTO;
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -4,7 +4,7 @@ import com.vmarcante.time_tracker.core.domain.system.config.enums.SystemConfigKe
 import com.vmarcante.time_tracker.core.domain.system.config.model.SystemConfig;
 import com.vmarcante.time_tracker.core.infraestructure.system.config.persistence.SystemConfigJpaEntity;
 
-public class SystemConfigPersistenceMapper {
+public final class SystemConfigPersistenceMapper {
 
     private SystemConfigPersistenceMapper() {
     }

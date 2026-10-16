@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,7 +42,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
     private final CompanyMembershipRepository membershipRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public AssignProjectMemberUseCaseImpl(
             ProjectRepository projectRepository,
@@ -53,7 +53,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
             CompanyMembershipRepository membershipRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.projectRepository = projectRepository;
         this.projectAssignmentRepository = projectAssignmentRepository;
         this.teamProjectRepository = teamProjectRepository;
@@ -127,7 +127,7 @@ public class AssignProjectMemberUseCaseImpl implements AssignProjectMemberUseCas
 
         ProjectAssignment saved = projectAssignmentRepository.saveAssignment(assignment);
 
-        eventPublisher.publishEvent(new ProjectAssignedEvent(
+        eventPublisher.publish(new ProjectAssignedEvent(
                 target.getId(), projectId, teamId, companyId));
 
         log.info("[Assign Project Member] User {} assigned to project {} via team {} by {}",

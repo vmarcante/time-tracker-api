@@ -3,7 +3,10 @@ package com.vmarcante.time_tracker.core.infraestructure.company.mapper;
 import com.vmarcante.time_tracker.core.domain.company.model.Company;
 import com.vmarcante.time_tracker.core.infraestructure.company.persistence.CompanyJpaEntity;
 
-public class CompanyPersistenceMapper {
+public final class CompanyPersistenceMapper {
+
+    private CompanyPersistenceMapper() {
+    }
 
     public static Company toDomain(CompanyJpaEntity entity) {
         Company company = new Company();

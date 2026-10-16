@@ -62,6 +62,9 @@ TB0003_PRODUCT
 - Prefixo `TB` seguido de 4 dígitos
 - Nome em MAIÚSCULAS separado por underscore
 - Nome descritivo e singular quando possível
+- Todas as tabelas vivem no schema `dbo` (`@Table(schema = "dbo")` e `spring.flyway.schemas=dbo`)
+
+**Sobre o schema `dbo`:** a convenção `dbo`/`TB####_`/`C####_`/`seq_`/`IX####_` é herança de nomenclatura de SQL Server mantida intencionalmente. No PostgreSQL o Flyway cria e versiona o schema `dbo` normalmente — não há custo operacional. A decisão é manter a convenção por consistência histórica e porque migrar schema/tabelas em todos os ambientes não traz ganho funcional. Objetos novos devem seguir a mesma convenção.
 
 ---
 

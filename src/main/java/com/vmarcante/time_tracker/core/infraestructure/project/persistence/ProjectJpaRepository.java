@@ -33,7 +33,7 @@ public interface ProjectJpaRepository extends JpaRepository<ProjectJpaEntity, UU
     List<Object[]> findIdAndNameByIds(@Param("ids") Collection<UUID> ids);
 
     @Query("""
-            SELECT DISTINCT up.projectId FROM UserProjectJpaEntity up
+            SELECT DISTINCT up.projectId FROM ProjectAssignmentJpaEntity up
             JOIN ProjectJpaEntity p ON p.id = up.projectId
             WHERE up.userId = :userId AND p.companyId = :companyId
                 AND up.active = true AND p.active = true

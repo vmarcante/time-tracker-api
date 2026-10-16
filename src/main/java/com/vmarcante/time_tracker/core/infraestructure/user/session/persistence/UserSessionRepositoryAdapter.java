@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
-import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
+import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 import com.vmarcante.time_tracker.core.infraestructure.user.session.mapper.UserSessionPersistenceMapper;
 import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
@@ -19,11 +19,11 @@ import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 public class UserSessionRepositoryAdapter implements UserSessionRepository {
 
     private final UserSessionJpaRepository jpaRepository;
-    private final RefreshTokenCacheService refreshTokenCacheService;
+    private final RefreshTokenCachePort refreshTokenCacheService;
 
     public UserSessionRepositoryAdapter(
             UserSessionJpaRepository jpaRepository,
-            RefreshTokenCacheService refreshTokenCacheService) {
+            RefreshTokenCachePort refreshTokenCacheService) {
         this.jpaRepository = jpaRepository;
         this.refreshTokenCacheService = refreshTokenCacheService;
     }

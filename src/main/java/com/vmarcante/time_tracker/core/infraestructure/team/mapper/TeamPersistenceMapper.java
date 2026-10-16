@@ -3,9 +3,12 @@ package com.vmarcante.time_tracker.core.infraestructure.team.mapper;
 import com.vmarcante.time_tracker.core.domain.team.model.Team;
 import com.vmarcante.time_tracker.core.domain.team.model.TeamMembership;
 import com.vmarcante.time_tracker.core.infraestructure.team.persistence.TeamJpaEntity;
-import com.vmarcante.time_tracker.core.infraestructure.team.persistence.UserTeamJpaEntity;
+import com.vmarcante.time_tracker.core.infraestructure.team.persistence.TeamMembershipJpaEntity;
 
-public class TeamPersistenceMapper {
+public final class TeamPersistenceMapper {
+
+    private TeamPersistenceMapper() {
+    }
 
     public static Team toDomain(TeamJpaEntity entity) {
         Team team = new Team();
@@ -34,7 +37,7 @@ public class TeamPersistenceMapper {
         return entity;
     }
 
-    public static TeamMembership toDomain(UserTeamJpaEntity entity) {
+    public static TeamMembership toDomain(TeamMembershipJpaEntity entity) {
         TeamMembership membership = new TeamMembership();
         membership.setId(entity.getId());
         membership.setSeqId(entity.getSeqId());
@@ -50,8 +53,8 @@ public class TeamPersistenceMapper {
         return membership;
     }
 
-    public static UserTeamJpaEntity toEntity(TeamMembership membership) {
-        UserTeamJpaEntity entity = new UserTeamJpaEntity();
+    public static TeamMembershipJpaEntity toEntity(TeamMembership membership) {
+        TeamMembershipJpaEntity entity = new TeamMembershipJpaEntity();
         entity.setId(membership.getId());
         entity.setUserId(membership.getUserId());
         entity.setTeamId(membership.getTeamId());

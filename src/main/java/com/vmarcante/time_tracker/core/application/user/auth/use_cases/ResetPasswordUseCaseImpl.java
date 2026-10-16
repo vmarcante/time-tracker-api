@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +34,7 @@ public class ResetPasswordUseCaseImpl implements ResetPasswordUseCase {
     private final GeneratePasswordHashService generatePasswordHashService;
     private final PasswordEncryptionPort passwordEncryption;
     private final CreateUserInputValidationPolicy validationPolicy;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
     private final int resetTokenExpirationMinutes;
 
     public ResetPasswordUseCaseImpl(
@@ -44,7 +44,7 @@ public class ResetPasswordUseCaseImpl implements ResetPasswordUseCase {
             GeneratePasswordHashService generatePasswordHashService,
             PasswordEncryptionPort passwordEncryption,
             CreateUserInputValidationPolicy validationPolicy,
-            ApplicationEventPublisher eventPublisher,
+            DomainEventPublisher eventPublisher,
             @Value("${app.reset-token.expiration-minutes:15}") int resetTokenExpirationMinutes) {
         this.userAuthRepository = userAuthRepository;
         this.userSessionRepository = userSessionRepository;
@@ -118,7 +118,7 @@ public class ResetPasswordUseCaseImpl implements ResetPasswordUseCase {
         userSessionRepository.invalidateAllByUserId(userAuth.getId());
         log.info("[Reset Password] All sessions invalidated for user: {}", userAuth.getUsername());
 
-        eventPublisher.publishEvent(new PasswordChangedEvent(userAuth.getId()));
+        eventPublisher.publish(new PasswordChangedEvent(userAuth.getId()));
 
         log.info("[Reset Password] Password reset successfully for user: {} | New salt and hash generated | All sessions invalidated",
                 userAuth.getUsername());

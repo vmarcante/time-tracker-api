@@ -10,7 +10,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.model.UserAuth;
 import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
-import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
+import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ public class CreateUserSessionOrchestrator {
 
     private final JwtPort jwtPort;
     private final UserSessionRepository userSessionRepository;
-    private final RefreshTokenCacheService refreshTokenCacheService;
+    private final RefreshTokenCachePort refreshTokenCacheService;
 
     @Value("${jwt.refresh-token.expiration:604800000}")
     private Long refreshTokenExpirationMs;
@@ -29,7 +29,7 @@ public class CreateUserSessionOrchestrator {
     public CreateUserSessionOrchestrator(
             JwtPort jwtPort,
             UserSessionRepository userSessionRepository,
-            RefreshTokenCacheService refreshTokenCacheService) {
+            RefreshTokenCachePort refreshTokenCacheService) {
         this.jwtPort = jwtPort;
         this.userSessionRepository = userSessionRepository;
         this.refreshTokenCacheService = refreshTokenCacheService;

@@ -18,15 +18,15 @@ import com.vmarcante.time_tracker.core.infraestructure.team.mapper.TeamPersisten
 public class TeamRepositoryAdapter implements TeamRepository {
 
     private final TeamJpaRepository teamJpaRepository;
-    private final UserTeamJpaRepository userTeamJpaRepository;
+    private final TeamMembershipJpaRepository teamMembershipJpaRepository;
     private final ProjectTeamJpaRepository projectTeamJpaRepository;
 
     public TeamRepositoryAdapter(
             TeamJpaRepository teamJpaRepository,
-            UserTeamJpaRepository userTeamJpaRepository,
+            TeamMembershipJpaRepository teamMembershipJpaRepository,
             ProjectTeamJpaRepository projectTeamJpaRepository) {
         this.teamJpaRepository = teamJpaRepository;
-        this.userTeamJpaRepository = userTeamJpaRepository;
+        this.teamMembershipJpaRepository = teamMembershipJpaRepository;
         this.projectTeamJpaRepository = projectTeamJpaRepository;
     }
 
@@ -60,7 +60,7 @@ public class TeamRepositoryAdapter implements TeamRepository {
 
     @Override
     public Page<Team> findActiveTeamsByUserId(UUID userId, UUID companyId, Pageable pageable) {
-        return userTeamJpaRepository
+        return teamMembershipJpaRepository
                 .findActiveTeamsByUserIdAndCompanyId(userId, companyId, pageable)
                 .map(TeamPersistenceMapper::toDomain);
     }

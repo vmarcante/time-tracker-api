@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,14 +30,14 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
     private final CompanyRepository companyRepository;
     private final PersonRepository personRepository;
     private final SecurityContextPort securityContext;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public RequestToJoinCompanyUseCaseImpl(
             CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             PersonRepository personRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
         this.personRepository = personRepository;
@@ -82,7 +82,7 @@ public class RequestToJoinCompanyUseCaseImpl implements RequestToJoinCompanyUseC
 
         String memberName = personRepository.findNameById(userId).orElse(null);
 
-        eventPublisher.publishEvent(new MembershipRequestCreatedEvent(saved.getId(), userId, companyId));
+        eventPublisher.publish(new MembershipRequestCreatedEvent(saved.getId(), userId, companyId));
 
         log.info("[Request To Join] User {} requested to join company {}", userId, companyId);
 

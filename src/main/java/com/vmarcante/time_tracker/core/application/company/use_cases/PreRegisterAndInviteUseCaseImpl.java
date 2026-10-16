@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,14 +34,14 @@ public class PreRegisterAndInviteUseCaseImpl implements PreRegisterAndInviteUseC
     private final PersonRepository personRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final SecurityContextPort securityContext;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
     private final PersonInputValidationPolicy personInputValidationPolicy;
 
     public PreRegisterAndInviteUseCaseImpl(
             PersonRepository personRepository,
             CompanyMembershipRepository membershipRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher,
+            DomainEventPublisher eventPublisher,
             PersonInputValidationPolicy personInputValidationPolicy) {
         this.personRepository = personRepository;
         this.membershipRepository = membershipRepository;
@@ -84,7 +84,7 @@ public class PreRegisterAndInviteUseCaseImpl implements PreRegisterAndInviteUseC
 
         CompanyMembership savedMembership = membershipRepository.saveMembership(membership);
 
-        eventPublisher.publishEvent(new CompanyInvitationPreRegisteredEvent(
+        eventPublisher.publish(new CompanyInvitationPreRegisteredEvent(
                 savedMembership.getId(), saved.getId(), companyId, actorId, input.email()));
 
         log.info("[Pre-Register & Invite] Pre-registered person {} invited to company {} as {} by {}",

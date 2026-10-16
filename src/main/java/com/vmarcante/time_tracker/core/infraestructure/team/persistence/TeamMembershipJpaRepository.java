@@ -14,12 +14,12 @@ import org.springframework.data.repository.query.Param;
 
 import com.vmarcante.time_tracker.core.domain.team.enums.TeamRole;
 
-public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, UUID> {
+public interface TeamMembershipJpaRepository extends JpaRepository<TeamMembershipJpaEntity, UUID> {
 
-    Optional<UserTeamJpaEntity> findByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(
+    Optional<TeamMembershipJpaEntity> findByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(
             UUID userId, UUID teamId);
 
-    Optional<UserTeamJpaEntity> findByTeamIdAndRoleAndActiveTrueAndApprovedTrue(
+    Optional<TeamMembershipJpaEntity> findByTeamIdAndRoleAndActiveTrueAndApprovedTrue(
             UUID teamId, TeamRole role);
 
     boolean existsByUserIdAndTeamIdAndActiveTrueAndApprovedTrue(UUID userId, UUID teamId);
@@ -29,14 +29,14 @@ public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, 
 
     boolean existsByUserIdAndTeamIdAndActiveTrue(UUID userId, UUID teamId);
 
-    List<UserTeamJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId);
+    List<TeamMembershipJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId);
 
-    List<UserTeamJpaEntity> findByTeamIdInAndActiveTrueAndApprovedTrue(Collection<UUID> teamIds);
+    List<TeamMembershipJpaEntity> findByTeamIdInAndActiveTrueAndApprovedTrue(Collection<UUID> teamIds);
 
-    Page<UserTeamJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId, Pageable pageable);
+    Page<TeamMembershipJpaEntity> findByTeamIdAndActiveTrueAndApprovedTrue(UUID teamId, Pageable pageable);
 
     @Query("""
-            SELECT t FROM UserTeamJpaEntity ut
+            SELECT t FROM TeamMembershipJpaEntity ut
             JOIN TeamJpaEntity t ON t.id = ut.teamId
             WHERE ut.userId = :userId AND t.companyId = :companyId
                 AND ut.active = true AND ut.approved = true AND t.active = true
@@ -45,7 +45,7 @@ public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, 
             @Param("userId") UUID userId, @Param("companyId") UUID companyId, Pageable pageable);
 
     @Query("""
-            SELECT ut.teamId FROM UserTeamJpaEntity ut
+            SELECT ut.teamId FROM TeamMembershipJpaEntity ut
             JOIN TeamJpaEntity t ON t.id = ut.teamId
             WHERE ut.userId = :userId AND t.companyId = :companyId
                 AND ut.active = true AND ut.approved = true AND t.active = true
@@ -54,14 +54,14 @@ public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, 
             @Param("userId") UUID userId, @Param("companyId") UUID companyId);
 
     @Query("""
-            SELECT ut.teamId, COUNT(ut) FROM UserTeamJpaEntity ut
+            SELECT ut.teamId, COUNT(ut) FROM TeamMembershipJpaEntity ut
             WHERE ut.teamId IN :teamIds AND ut.active = true AND ut.approved = true
             GROUP BY ut.teamId
             """)
     List<Object[]> countApprovedMembersByTeamIds(@Param("teamIds") Collection<UUID> teamIds);
 
     @Query("""
-            SELECT ut.teamId, ut.userId FROM UserTeamJpaEntity ut
+            SELECT ut.teamId, ut.userId FROM TeamMembershipJpaEntity ut
             WHERE ut.teamId IN :teamIds AND ut.role = 'LEAD'
                 AND ut.active = true AND ut.approved = true
             """)
@@ -69,23 +69,23 @@ public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, 
 
     @Modifying
     @Query("""
-            UPDATE UserTeamJpaEntity ut
+            UPDATE TeamMembershipJpaEntity ut
             SET ut.active = false, ut.updatedAt = CURRENT_TIMESTAMP, ut.updatedBy = :updatedBy
             WHERE ut.teamId = :teamId AND ut.active = true
             """)
     void deactivateByTeamId(@Param("teamId") UUID teamId, @Param("updatedBy") UUID updatedBy);
 
     @Query("""
-            SELECT ut FROM UserTeamJpaEntity ut
+            SELECT ut FROM TeamMembershipJpaEntity ut
             JOIN TeamJpaEntity t ON t.id = ut.teamId
             WHERE ut.userId = :userId AND t.companyId = :companyId AND ut.active = true
             """)
-    List<UserTeamJpaEntity> findActiveByUserIdAndCompanyId(
+    List<TeamMembershipJpaEntity> findActiveByUserIdAndCompanyId(
             @Param("userId") UUID userId, @Param("companyId") UUID companyId);
 
     @Modifying
     @Query("""
-            UPDATE UserTeamJpaEntity ut
+            UPDATE TeamMembershipJpaEntity ut
             SET ut.active = false, ut.updatedAt = CURRENT_TIMESTAMP, ut.updatedBy = :updatedBy
             WHERE ut.userId = :userId AND ut.active = true
                 AND ut.teamId IN (
@@ -99,7 +99,7 @@ public interface UserTeamJpaRepository extends JpaRepository<UserTeamJpaEntity, 
 
     @Modifying
     @Query("""
-            UPDATE UserTeamJpaEntity ut
+            UPDATE TeamMembershipJpaEntity ut
             SET ut.role = :newRole, ut.updatedAt = CURRENT_TIMESTAMP, ut.updatedBy = :updatedBy
             WHERE ut.userId = :userId AND ut.role = :leadRole AND ut.active = true
                 AND ut.teamId IN (

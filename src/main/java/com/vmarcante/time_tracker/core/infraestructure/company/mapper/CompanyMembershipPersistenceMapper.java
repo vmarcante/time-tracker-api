@@ -1,11 +1,14 @@
 package com.vmarcante.time_tracker.core.infraestructure.company.mapper;
 
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
-import com.vmarcante.time_tracker.core.infraestructure.company.persistence.UserCompanyJpaEntity;
+import com.vmarcante.time_tracker.core.infraestructure.company.persistence.CompanyMembershipJpaEntity;
 
-public class CompanyMembershipPersistenceMapper {
+public final class CompanyMembershipPersistenceMapper {
 
-    public static CompanyMembership toDomain(UserCompanyJpaEntity entity) {
+    private CompanyMembershipPersistenceMapper() {
+    }
+
+    public static CompanyMembership toDomain(CompanyMembershipJpaEntity entity) {
         CompanyMembership membership = new CompanyMembership();
         membership.setId(entity.getId());
         membership.setSeqId(entity.getSeqId());
@@ -26,8 +29,8 @@ public class CompanyMembershipPersistenceMapper {
         return membership;
     }
 
-    public static UserCompanyJpaEntity toEntity(CompanyMembership membership) {
-        UserCompanyJpaEntity entity = new UserCompanyJpaEntity();
+    public static CompanyMembershipJpaEntity toEntity(CompanyMembership membership) {
+        CompanyMembershipJpaEntity entity = new CompanyMembershipJpaEntity();
         entity.setId(membership.getId());
         entity.setUserId(membership.getUserId());
         entity.setCompanyId(membership.getCompanyId());

@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.vmarcante.time_tracker.core.domain.company.enums.CompanyRole;
+import com.vmarcante.time_tracker.core.application.company.policy.MembershipApproverPolicy;
 import com.vmarcante.time_tracker.core.domain.company.event.MembershipRequestCreatedEvent;
 import com.vmarcante.time_tracker.core.domain.company.model.CompanyMembership;
 import com.vmarcante.time_tracker.core.domain.company.repository.CompanyMembershipRepository;
@@ -37,6 +37,7 @@ public class MembershipRequestCreatedEventListener {
     private final PersonRepository personRepository;
     private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
+    private final MembershipApproverPolicy approverPolicy;
     private final String frontendUrl;
 
     public MembershipRequestCreatedEventListener(
@@ -44,11 +45,13 @@ public class MembershipRequestCreatedEventListener {
             PersonRepository personRepository,
             CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
+            MembershipApproverPolicy approverPolicy,
             @Value("${app.frontend.url:https://app.timetracker.com}") String frontendUrl) {
         this.emailService = emailService;
         this.personRepository = personRepository;
         this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
+        this.approverPolicy = approverPolicy;
         this.frontendUrl = frontendUrl;
     }
 
@@ -63,11 +66,9 @@ public class MembershipRequestCreatedEventListener {
                 return;
             }
 
-            List<CompanyMembership> approvers = membershipRepository.findApprovedMembershipsByCompanyId(event.getCompanyId(), Pageable.unpaged())
-                    .getContent()
-                    .stream()
-                    .filter(m -> m.getRole() == CompanyRole.OWNER || m.getRole() == CompanyRole.ADMIN)
-                    .toList();
+            List<CompanyMembership> approvers = approverPolicy.selectApprovers(
+                    membershipRepository.findApprovedMembershipsByCompanyId(event.getCompanyId(), Pageable.unpaged())
+                            .getContent());
 
             if (approvers.isEmpty()) {
                 log.warn("[Membership Request Event] No approvers found for company {}", event.getCompanyId());

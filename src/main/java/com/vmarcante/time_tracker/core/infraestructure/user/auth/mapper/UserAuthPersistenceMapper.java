@@ -6,7 +6,10 @@ import com.vmarcante.time_tracker.core.domain.user.enums.UserRoleType;
 import com.vmarcante.time_tracker.core.infraestructure.person.mapper.PersonPersistenceMapper;
 import com.vmarcante.time_tracker.core.infraestructure.user.auth.persistence.UserAuthJpaEntity;
 
-public class UserAuthPersistenceMapper {
+public final class UserAuthPersistenceMapper {
+
+    private UserAuthPersistenceMapper() {
+    }
 
     public static UserAuthJpaEntity toEntity(UserAuth domain) {
         if (domain == null) {

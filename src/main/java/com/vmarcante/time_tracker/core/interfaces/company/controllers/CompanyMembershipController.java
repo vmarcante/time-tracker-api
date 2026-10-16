@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.company.dto.input.MembershipFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.company.dto.input.ChangeMemberRoleInputDTO;
@@ -41,7 +42,6 @@ import com.vmarcante.time_tracker.core.application.company.in.RemoveMemberUseCas
 import com.vmarcante.time_tracker.core.application.company.dto.input.RequestToJoinInputDTO;
 import com.vmarcante.time_tracker.core.application.company.in.RequestToJoinCompanyUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -18,13 +18,13 @@ import com.vmarcante.time_tracker.core.infraestructure.company.mapper.CompanyPer
 public class CompanyRepositoryAdapter implements CompanyRepository {
 
     private final CompanyJpaRepository companyJpaRepository;
-    private final UserCompanyJpaRepository userCompanyJpaRepository;
+    private final CompanyMembershipJpaRepository companyMembershipJpaRepository;
 
     public CompanyRepositoryAdapter(
             CompanyJpaRepository companyJpaRepository,
-            UserCompanyJpaRepository userCompanyJpaRepository) {
+            CompanyMembershipJpaRepository companyMembershipJpaRepository) {
         this.companyJpaRepository = companyJpaRepository;
-        this.userCompanyJpaRepository = userCompanyJpaRepository;
+        this.companyMembershipJpaRepository = companyMembershipJpaRepository;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class CompanyRepositoryAdapter implements CompanyRepository {
 
     @Override
     public Page<Company> findActiveCompaniesByUserId(UUID userId, Pageable pageable) {
-        return userCompanyJpaRepository.findActiveCompaniesByUserId(userId, pageable)
+        return companyMembershipJpaRepository.findActiveCompaniesByUserId(userId, pageable)
                 .map(CompanyPersistenceMapper::toDomain);
     }
 

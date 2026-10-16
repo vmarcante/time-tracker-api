@@ -5,7 +5,10 @@ import com.vmarcante.time_tracker.core.infraestructure.person.persistence.Person
 import com.vmarcante.time_tracker.core.shared.vo.Email;
 import com.vmarcante.time_tracker.core.shared.vo.Phone;
 
-public class PersonPersistenceMapper {
+public final class PersonPersistenceMapper {
+
+    private PersonPersistenceMapper() {
+    }
 
     public static PersonJpaEntity toEntity(Person person) {
         PersonJpaEntity entity = new PersonJpaEntity();

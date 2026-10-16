@@ -26,7 +26,7 @@ import lombok.Data;
         @Index(name = "IX0012_CREATED_AT", columnList = "C0012_CREATED_AT")
 })
 @Data
-public class UserProjectJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class ProjectAssignmentJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

@@ -12,7 +12,7 @@ import com.vmarcante.time_tracker.base.infraestructure.persistence.BaseJpaReposi
 public interface TimeEntryJpaRepository extends BaseJpaRepository<TimeEntryJpaEntity, UUID, Integer> {
 
     String LEAD_SCOPE = "EXISTS ("
-            + "SELECT 1 FROM UserTeamJpaEntity lead, UserTeamJpaEntity member, ProjectTeamJpaEntity pt "
+            + "SELECT 1 FROM TeamMembershipJpaEntity lead, TeamMembershipJpaEntity member, ProjectTeamJpaEntity pt "
             + "WHERE lead.userId = :leadId "
             + "AND lead.role = com.vmarcante.time_tracker.core.domain.team.enums.TeamRole.LEAD "
             + "AND lead.approved = true AND lead.active = true "

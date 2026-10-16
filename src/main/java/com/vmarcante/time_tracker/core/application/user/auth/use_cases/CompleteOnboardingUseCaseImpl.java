@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,14 +34,14 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
     private final CompanyMembershipRepository membershipRepository;
     private final CompanyRepository companyRepository;
     private final SecurityContextPort securityContext;
-    private final ApplicationEventPublisher eventPublisher;
+    private final DomainEventPublisher eventPublisher;
 
     public CompleteOnboardingUseCaseImpl(
             UserAuthRepository userAuthRepository,
             CompanyMembershipRepository membershipRepository,
             CompanyRepository companyRepository,
             SecurityContextPort securityContext,
-            ApplicationEventPublisher eventPublisher) {
+            DomainEventPublisher eventPublisher) {
         this.userAuthRepository = userAuthRepository;
         this.membershipRepository = membershipRepository;
         this.companyRepository = companyRepository;
@@ -101,7 +101,7 @@ public class CompleteOnboardingUseCaseImpl implements CompleteOnboardingUseCase 
             membership.setCreatedBy(userId);
             membership.setUpdatedBy(userId);
             CompanyMembership saved = membershipRepository.saveMembership(membership);
-            eventPublisher.publishEvent(new MembershipRequestCreatedEvent(
+            eventPublisher.publish(new MembershipRequestCreatedEvent(
                     saved.getId(), userId, company.getId()));
         }
 

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.domain.response.PageWrapperDTO;
+import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectFilterInputDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -22,7 +23,6 @@ import com.vmarcante.time_tracker.core.application.project.dto.output.ProjectSum
 import com.vmarcante.time_tracker.core.application.project.in.AssignProjectMemberUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.ListTeamProjectsUseCase;
 import com.vmarcante.time_tracker.core.application.project.in.UnassignProjectMemberUseCase;
-import com.vmarcante.time_tracker.core.domain.user.auth.annotation.AuthSecure;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

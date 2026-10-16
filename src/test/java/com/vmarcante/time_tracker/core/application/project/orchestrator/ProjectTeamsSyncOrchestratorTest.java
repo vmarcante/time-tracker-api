@@ -14,7 +14,7 @@ import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
+import com.vmarcante.time_tracker.base.domain.event.DomainEventPublisher;
 
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
 import com.vmarcante.time_tracker.core.application.project.dto.input.ProjectTeamMembersInputDTO;
@@ -34,7 +34,7 @@ class ProjectTeamsSyncOrchestratorTest {
     private TeamRepository teamRepository;
     private TeamMembershipRepository teamMembershipRepository;
     private TeamProjectRepository teamProjectRepository;
-    private ApplicationEventPublisher eventPublisher;
+    private DomainEventPublisher eventPublisher;
     private ProjectTeamsSyncOrchestrator orchestrator;
 
     private static final UUID COMPANY_ID = UUID.randomUUID();
@@ -49,7 +49,7 @@ class ProjectTeamsSyncOrchestratorTest {
         teamRepository = mock(TeamRepository.class);
         teamMembershipRepository = mock(TeamMembershipRepository.class);
         teamProjectRepository = mock(TeamProjectRepository.class);
-        eventPublisher = mock(ApplicationEventPublisher.class);
+        eventPublisher = mock(DomainEventPublisher.class);
         orchestrator = new ProjectTeamsSyncOrchestrator(
                 projectAssignmentRepository, teamRepository, teamMembershipRepository,
                 teamProjectRepository, eventPublisher);
@@ -109,7 +109,7 @@ class ProjectTeamsSyncOrchestratorTest {
         // Assert
         verify(teamProjectRepository).saveAllTeamLinks(anyList());
         verify(projectAssignmentRepository).saveAllAssignments(anyList());
-        verify(eventPublisher).publishEvent(any(ProjectAssignedEvent.class));
+        verify(eventPublisher).publish(any(ProjectAssignedEvent.class));
     }
 
     @Test
@@ -149,7 +149,7 @@ class ProjectTeamsSyncOrchestratorTest {
         // Assert
         verify(projectAssignmentRepository).deactivateAssignmentsByIds(any(), any());
         verify(teamProjectRepository, never()).deactivateTeamLinksByIds(any(), any());
-        verify(eventPublisher, never()).publishEvent(any());
+        verify(eventPublisher, never()).publish(any());
     }
 
     @Test
@@ -172,7 +172,7 @@ class ProjectTeamsSyncOrchestratorTest {
         // Assert
         verify(projectAssignmentRepository, never()).saveAllAssignments(anyList());
         verify(teamProjectRepository, never()).saveAllTeamLinks(anyList());
-        verify(eventPublisher, never()).publishEvent(any());
+        verify(eventPublisher, never()).publish(any());
     }
 
     @Test

@@ -3,7 +3,6 @@ package com.vmarcante.time_tracker.core.application.company.use_cases;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.vmarcante.time_tracker.core.application.company.in.CountPendingMembershipsUseCase;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
@@ -24,7 +23,6 @@ public class CountPendingMembershipsUseCaseImpl implements CountPendingMembershi
     }
 
     @Override
-    @Transactional(readOnly = true)
     public long execute(UUID companyId) throws ApplicationException {
         if (securityContext.getCurrentUserId().isEmpty()) {
             throw new ApplicationException("user.authenticated.not", null);

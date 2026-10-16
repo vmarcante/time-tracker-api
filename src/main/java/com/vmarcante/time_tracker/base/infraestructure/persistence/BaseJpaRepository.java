@@ -11,9 +11,5 @@ public interface BaseJpaRepository<T, ID, SEQ> extends JpaRepository<T, ID>, Jpa
 
     Optional<T> findById(ID id);
 
-    Optional<T> findBySeqId(SEQ seqId);
-
     boolean existsById(ID id);
-
-    boolean existsBySeqId(SEQ seqId);
 }

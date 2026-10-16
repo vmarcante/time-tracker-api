@@ -29,7 +29,7 @@ import lombok.Data;
         @Index(name = "IX0010_CREATED_AT", columnList = "C0010_CREATED_AT")
 })
 @Data
-public class UserTeamJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
+public class TeamMembershipJpaEntity implements BaseActiveEntityInterface<UUID, Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

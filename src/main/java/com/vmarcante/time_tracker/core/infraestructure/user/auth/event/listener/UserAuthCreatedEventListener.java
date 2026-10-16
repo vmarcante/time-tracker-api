@@ -1,4 +1,4 @@
-package com.vmarcante.time_tracker.core.infraestructure.user.auth.listener;
+package com.vmarcante.time_tracker.core.infraestructure.user.auth.event.listener;
 
 import java.util.HashMap;
 import java.util.Locale;

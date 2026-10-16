@@ -12,12 +12,12 @@ import org.springframework.data.repository.query.Param;
 
 import com.vmarcante.time_tracker.core.domain.company.enums.MembershipOrigin;
 
-public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEntity, UUID> {
+public interface CompanyMembershipJpaRepository extends JpaRepository<CompanyMembershipJpaEntity, UUID> {
 
-    Optional<UserCompanyJpaEntity> findByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(
+    Optional<CompanyMembershipJpaEntity> findByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(
             UUID userId, UUID companyId);
 
-    Optional<UserCompanyJpaEntity> findByUserIdAndCompanyIdAndActiveTrueAndApprovedFalse(
+    Optional<CompanyMembershipJpaEntity> findByUserIdAndCompanyIdAndActiveTrueAndApprovedFalse(
             UUID userId, UUID companyId);
 
     boolean existsByUserIdAndCompanyIdAndActiveTrueAndApprovedTrue(UUID userId, UUID companyId);
@@ -26,30 +26,30 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
 
     boolean existsByUserIdAndActiveTrueAndApprovedTrue(UUID userId);
 
-    List<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedTrue(UUID companyId);
+    List<CompanyMembershipJpaEntity> findByCompanyIdAndActiveTrueAndApprovedTrue(UUID companyId);
 
-    Page<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedTrue(UUID companyId, Pageable pageable);
+    Page<CompanyMembershipJpaEntity> findByCompanyIdAndActiveTrueAndApprovedTrue(UUID companyId, Pageable pageable);
 
-    List<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId);
+    List<CompanyMembershipJpaEntity> findByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId);
 
-    Page<UserCompanyJpaEntity> findByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId, Pageable pageable);
+    Page<CompanyMembershipJpaEntity> findByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId, Pageable pageable);
 
-    List<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId);
+    List<CompanyMembershipJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId);
 
-    Page<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId, Pageable pageable);
+    Page<CompanyMembershipJpaEntity> findByUserIdAndActiveTrueAndApprovedFalse(UUID userId, Pageable pageable);
 
-    Page<UserCompanyJpaEntity> findByUserIdAndActiveTrueAndApprovedFalseAndOrigin(
+    Page<CompanyMembershipJpaEntity> findByUserIdAndActiveTrueAndApprovedFalseAndOrigin(
             UUID userId, MembershipOrigin origin, Pageable pageable);
 
     long countByUserIdAndActiveTrueAndApprovedFalseAndOrigin(UUID userId, MembershipOrigin origin);
 
     long countByCompanyIdAndActiveTrueAndApprovedFalse(UUID companyId);
 
-    Optional<UserCompanyJpaEntity> findFirstByUserIdAndActiveTrueAndApprovedFalseAndOrigin(
+    Optional<CompanyMembershipJpaEntity> findFirstByUserIdAndActiveTrueAndApprovedFalseAndOrigin(
             UUID userId, MembershipOrigin origin);
 
     @Query("""
-            SELECT c FROM UserCompanyJpaEntity uc
+            SELECT c FROM CompanyMembershipJpaEntity uc
             JOIN CompanyJpaEntity c ON c.id = uc.companyId
             WHERE uc.userId = :userId AND uc.active = true AND uc.approved = true AND c.active = true
             """)
@@ -57,18 +57,18 @@ public interface UserCompanyJpaRepository extends JpaRepository<UserCompanyJpaEn
             @Param("userId") UUID userId, Pageable pageable);
 
     @Query("""
-            SELECT uc.companyId FROM UserCompanyJpaEntity uc
+            SELECT uc.companyId FROM CompanyMembershipJpaEntity uc
             WHERE uc.userId = :userId AND uc.active = true AND uc.approved = true
             """)
     List<UUID> findApprovedCompanyIdsByUserId(@Param("userId") UUID userId);
 
-    Optional<UserCompanyJpaEntity> findFirstByUserIdAndActiveTrueAndApprovedTrue(UUID userId);
+    Optional<CompanyMembershipJpaEntity> findFirstByUserIdAndActiveTrueAndApprovedTrue(UUID userId);
 
     @Query("""
-            SELECT uc FROM UserCompanyJpaEntity uc
+            SELECT uc FROM CompanyMembershipJpaEntity uc
             WHERE uc.companyId = :companyId AND (uc.approved = true OR uc.active = false)
             ORDER BY uc.updatedAt DESC
             """)
-    Page<UserCompanyJpaEntity> findResolvedByCompanyId(
+    Page<CompanyMembershipJpaEntity> findResolvedByCompanyId(
             @Param("companyId") UUID companyId, Pageable pageable);
 }

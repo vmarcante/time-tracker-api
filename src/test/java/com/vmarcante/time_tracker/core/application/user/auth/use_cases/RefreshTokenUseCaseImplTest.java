@@ -27,7 +27,7 @@ import com.vmarcante.time_tracker.core.domain.user.auth.port.JwtPort;
 import com.vmarcante.time_tracker.core.domain.user.auth.repository.UserAuthRepository;
 import com.vmarcante.time_tracker.core.domain.user.session.model.UserSession;
 import com.vmarcante.time_tracker.core.domain.user.session.repository.UserSessionRepository;
-import com.vmarcante.time_tracker.core.domain.user.session.service.RefreshTokenCacheService;
+import com.vmarcante.time_tracker.core.domain.user.session.port.RefreshTokenCachePort;
 import com.vmarcante.time_tracker.core.shared.utils.TokenHashUtils;
 
 class RefreshTokenUseCaseImplTest {
@@ -35,7 +35,7 @@ class RefreshTokenUseCaseImplTest {
     private JwtPort jwtPort;
     private UserAuthRepository userAuthRepository;
     private UserSessionRepository userSessionRepository;
-    private RefreshTokenCacheService refreshTokenCacheService;
+    private RefreshTokenCachePort refreshTokenCacheService;
     private RefreshTokenUseCase useCase;
 
     private static final String OLD_TOKEN = "old-refresh-token";
@@ -49,7 +49,7 @@ class RefreshTokenUseCaseImplTest {
         jwtPort = mock(JwtPort.class);
         userAuthRepository = mock(UserAuthRepository.class);
         userSessionRepository = mock(UserSessionRepository.class);
-        refreshTokenCacheService = mock(RefreshTokenCacheService.class);
+        refreshTokenCacheService = mock(RefreshTokenCachePort.class);
         useCase = new RefreshTokenUseCaseImpl(
                 jwtPort,
                 userAuthRepository,

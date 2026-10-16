@@ -5,9 +5,12 @@ import com.vmarcante.time_tracker.core.domain.project.model.ProjectAssignment;
 import com.vmarcante.time_tracker.core.domain.project.model.TeamProject;
 import com.vmarcante.time_tracker.core.infraestructure.project.persistence.ProjectJpaEntity;
 import com.vmarcante.time_tracker.core.infraestructure.project.persistence.ProjectTeamJpaEntity;
-import com.vmarcante.time_tracker.core.infraestructure.project.persistence.UserProjectJpaEntity;
+import com.vmarcante.time_tracker.core.infraestructure.project.persistence.ProjectAssignmentJpaEntity;
 
-public class ProjectPersistenceMapper {
+public final class ProjectPersistenceMapper {
+
+    private ProjectPersistenceMapper() {
+    }
 
     public static Project toDomain(ProjectJpaEntity entity) {
         Project project = new Project();
@@ -71,7 +74,7 @@ public class ProjectPersistenceMapper {
         return entity;
     }
 
-    public static ProjectAssignment toDomain(UserProjectJpaEntity entity) {
+    public static ProjectAssignment toDomain(ProjectAssignmentJpaEntity entity) {
         ProjectAssignment assignment = new ProjectAssignment();
         assignment.setId(entity.getId());
         assignment.setSeqId(entity.getSeqId());
@@ -86,8 +89,8 @@ public class ProjectPersistenceMapper {
         return assignment;
     }
 
-    public static UserProjectJpaEntity toEntity(ProjectAssignment assignment) {
-        UserProjectJpaEntity entity = new UserProjectJpaEntity();
+    public static ProjectAssignmentJpaEntity toEntity(ProjectAssignment assignment) {
+        ProjectAssignmentJpaEntity entity = new ProjectAssignmentJpaEntity();
         entity.setId(assignment.getId());
         entity.setUserId(assignment.getUserId());
         entity.setProjectId(assignment.getProjectId());
