@@ -17,12 +17,12 @@ import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.application.timeentry.dto.input.TagInputDTO;
-import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TagOutputDTO;
-import com.vmarcante.time_tracker.core.application.timeentry.in.CreateTagUseCase;
-import com.vmarcante.time_tracker.core.application.timeentry.in.DeactivateTagUseCase;
-import com.vmarcante.time_tracker.core.application.timeentry.in.ListMyTagsUseCase;
-import com.vmarcante.time_tracker.core.application.timeentry.in.UpdateTagUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.tag.dto.input.TagInputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.tag.dto.output.TagOutputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.tag.in.CreateTagUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.tag.in.DeactivateTagUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.tag.in.ListMyTagsUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.tag.in.UpdateTagUseCase;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

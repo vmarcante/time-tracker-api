@@ -1,0 +1,68 @@
+package com.vmarcante.time_tracker.core.application.timeentry.session.use_cases;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilterMapper;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
+import com.vmarcante.time_tracker.core.application.timeentry.entry.assembler.TimeEntryDetailAssembler;
+import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntryDetailOutputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.session.in.StopTimerUseCase;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntry;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.TimeEntrySession;
+import com.vmarcante.time_tracker.core.domain.timeentry.model.filter.TimeEntrySessionFilter;
+import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntryRepository;
+import com.vmarcante.time_tracker.core.domain.timeentry.repository.TimeEntrySessionRepository;
+import com.vmarcante.time_tracker.core.domain.user.auth.port.SecurityContextPort;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@Slf4j
+public class StopTimerUseCaseImpl implements StopTimerUseCase {
+
+    private final TimeEntryRepository timeEntryRepository;
+    private final TimeEntrySessionRepository sessionRepository;
+    private final TimeEntryDetailAssembler assembler;
+    private final SecurityContextPort securityContext;
+
+    public StopTimerUseCaseImpl(
+            TimeEntryRepository timeEntryRepository,
+            TimeEntrySessionRepository sessionRepository,
+            TimeEntryDetailAssembler assembler,
+            SecurityContextPort securityContext) {
+        this.timeEntryRepository = timeEntryRepository;
+        this.sessionRepository = sessionRepository;
+        this.assembler = assembler;
+        this.securityContext = securityContext;
+    }
+
+    @Override
+    @Transactional
+    public TimeEntryDetailOutputDTO execute() throws ApplicationException {
+        Optional<UUID> currentUserId = securityContext.getCurrentUserId();
+        if (currentUserId.isEmpty()) {
+            throw new ApplicationException("user.authenticated.not", null);
+        }
+        UUID userId = currentUserId.get();
+
+        TimeEntrySessionFilter runningFilter = TimeEntrySessionFilterMapper.runningByUser(userId);
+        TimeEntrySession session = sessionRepository.findOne(runningFilter)
+                .orElseThrow(() -> new ApplicationException("timeentry.timer.not.running", null));
+
+        session.setEndTime(LocalDateTime.now());
+        session.setUpdatedBy(userId);
+        sessionRepository.save(session);
+
+        TimeEntry entry = timeEntryRepository.findById(session.getEntryId())
+                .orElseThrow(() -> new ApplicationException("timeentry.not.found", null));
+
+        log.info("[Stop Timer] Timer stopped on entry {} by user {}", entry.getId(), userId);
+
+        return assembler.toDetail(entry);
+    }
+}

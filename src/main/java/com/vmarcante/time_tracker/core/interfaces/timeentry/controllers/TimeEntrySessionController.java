@@ -15,11 +15,11 @@ import com.vmarcante.time_tracker.base.domain.response.ApiResponseDTO;
 import com.vmarcante.time_tracker.base.interfaces.controllers.BaseResponseController;
 import com.vmarcante.time_tracker.core.application.user.auth.annotation.AuthSecure;
 import com.vmarcante.time_tracker.core.application.exception.ApplicationException;
-import com.vmarcante.time_tracker.core.application.timeentry.dto.input.SessionInputDTO;
-import com.vmarcante.time_tracker.core.application.timeentry.dto.output.TimeEntryDetailOutputDTO;
-import com.vmarcante.time_tracker.core.application.timeentry.in.CreateSessionUseCase;
-import com.vmarcante.time_tracker.core.application.timeentry.in.DeleteSessionUseCase;
-import com.vmarcante.time_tracker.core.application.timeentry.in.UpdateSessionUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.session.dto.input.SessionInputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.entry.dto.output.TimeEntryDetailOutputDTO;
+import com.vmarcante.time_tracker.core.application.timeentry.session.in.CreateSessionUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.session.in.DeleteSessionUseCase;
+import com.vmarcante.time_tracker.core.application.timeentry.session.in.UpdateSessionUseCase;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
